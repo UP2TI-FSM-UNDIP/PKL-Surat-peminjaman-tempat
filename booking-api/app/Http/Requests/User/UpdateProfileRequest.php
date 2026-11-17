@@ -31,13 +31,16 @@ class UpdateProfileRequest extends FormRequest
         $unitRule = $user->is_profile_completed
             // Profil sudah lengkap: unit tidak bisa diganti sendiri
             ? ['sometimes', Rule::in([$user->unit_id])]
-            // Profil belum lengkap: pilih unit ormawa, atau tetap di unit sekarang
-            // (mis. dosen/staf yang unitnya akan ditetapkan admin)
+            // Profil belum lengkap:
+            // - Sekretaris (mahasiswa) WAJIB memilih ormawa, karena alur persetujuan
+            //   surat bergantung pada organisasinya
+            // - role lain boleh memilih ormawa atau tetap di unit sekarang
+            //   (mis. dosen/staf yang unitnya ditetapkan admin)
             : [
                 'required',
                 Rule::exists('units', 'id')->where(fn ($q) => $q->where(
                     fn ($w) => $w->whereIn(\DB::raw('UPPER(category)'), self::SELF_SERVICE_UNIT_CATEGORIES)
-                        ->orWhere('id', $user->unit_id)
+                        ->when($user->role?->slug !== 'sekretaris', fn ($w2) => $w2->orWhere('id', $user->unit_id))
                 )),
             ];
 

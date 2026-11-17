@@ -92,8 +92,8 @@ class SsoAuthController extends Controller
         // Step 4: Find existing user or auto-register
         //
         // Aturan role: hanya user yang di SSO berstatus admin/superadmin yang
-        // menjadi Admin. User lain mendapat role awal "Menunggu Penetapan" di unit
-        // Fakultas; role & unit sebenarnya ditetapkan oleh admin (Manajemen Pengguna).
+        // menjadi Admin. Mahasiswa menjadi Sekretaris (pengaju); dosen/staff mendapat
+        // "Menunggu Penetapan" sampai admin menetapkan role-nya (Manajemen Pengguna).
         $isSsoAdmin = in_array($role, ['admin', 'superadmin'], true);
         $adminRoleId = Role::where('slug', 'admin')->value('id');
 
@@ -104,11 +104,18 @@ class SsoAuthController extends Controller
             // NOTE: Database has NOT NULL constraints on role_id and unit_id
             Log::info('[SSO] User not found, auto-registering', ['email' => $email, 'name' => $name, 'sso_role' => $role]);
 
-            // Non-admin: "Menunggu Penetapan" (tanpa akses) sampai admin menetapkan role
-            $roleId = $isSsoAdmin
-                ? $adminRoleId
-                : (Role::where('slug', 'menunggu-penetapan')->value('id')
-                    ?? Role::where('slug', 'sekretaris')->value('id'));
+            // Role awal:
+            // - admin/superadmin SSO -> Admin
+            // - mahasiswa            -> Sekretaris (pengaju; memilih ormawa di form profil)
+            // - dosen, staff, lainnya -> Menunggu Penetapan (tanpa akses) sampai admin
+            //   menetapkan role penyetuju yang sesuai
+            $initialSlug = match (true) {
+                $isSsoAdmin => 'admin',
+                $role === 'mahasiswa' => 'sekretaris',
+                default => 'menunggu-penetapan',
+            };
+            $roleId = Role::where('slug', $initialSlug)->value('id')
+                ?? Role::where('slug', 'menunggu-penetapan')->value('id');
             $unitId = Unit::where('category', 'FAKULTAS')->value('id');
 
             $user = User::create([

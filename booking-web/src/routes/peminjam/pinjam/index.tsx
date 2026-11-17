@@ -108,8 +108,9 @@ function RouteComponent() {
           const deadlineStatus = documentHelpers.getDeadlineStatus(doc);
           const deadlineText = documentHelpers.getDeadlineText(doc);
 
-          if (doc.status === 'APPROVED' || doc.status === 'REJECTED') {
-            return <span className='text-xs text-gray-400'>-</span>;
+          // Deadline hanya relevan untuk dokumen yang masih harus dilengkapi pengaju
+          if (doc.status !== 'DRAFT' && doc.status !== 'REVISION') {
+            return <span className='text-xs text-gray-400'>{doc.status === 'IN_PROGRESS' ? 'Sudah diajukan' : '-'}</span>;
           }
 
           const getColorClasses = () => {
@@ -200,8 +201,8 @@ function RouteComponent() {
         <div className='flex-1'>
           <h3 className='text-sm font-semibold text-blue-900 mb-1'>Perhatian: Batas Waktu Pengajuan</h3>
           <p className='text-sm text-blue-800'>
-            Setiap pengajuan memiliki <strong>batas waktu 14 hari (2 minggu)</strong> sejak tanggal pengajuan untuk diselesaikan.
-            Pastikan Anda melengkapi dan mengajukan dokumen tepat waktu!
+            Dokumen harus dilengkapi dan diajukan paling lambat <strong>14 hari sejak dibuat</strong>, dan tidak lebih dari{' '}
+            <strong>8 hari sebelum tanggal peminjaman</strong> (mana yang lebih dulu). Lihat kolom Deadline untuk batas tiap pengajuan.
           </p>
         </div>
       </div>

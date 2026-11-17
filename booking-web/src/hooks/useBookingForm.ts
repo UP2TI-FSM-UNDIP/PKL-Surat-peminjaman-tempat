@@ -225,6 +225,11 @@ export function useBookingForm({
         document_id: doc.id,
         room_id: content.room_id,
         room_code: content.room_code,
+        // Kolom "Tempat" di proposal selalu mengikuti ruangan yang dipilih di sini
+        location:
+          (content as unknown as { room_name?: string }).room_name ||
+          content.room_code ||
+          '',
         booking_date: content.booking_date,
         start_time: content.start_time,
         end_time: content.end_time,

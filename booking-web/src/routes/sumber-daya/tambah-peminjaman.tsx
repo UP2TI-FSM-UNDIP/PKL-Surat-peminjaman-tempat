@@ -5,7 +5,6 @@ import { AxiosError } from 'axios';
 import {
 	Select,
 	SelectContent,
-	SelectItem,
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select';
@@ -22,6 +21,7 @@ import {
 } from '@/components/ui/table';
 import { roomService, type Room, type RoomBooking } from '@/services/room.service';
 import { documentService } from '@/services/document.service';
+import { RoomSelectOptions } from '@/features/rooms/components/RoomSelectOptions';
 
 export const Route = createFileRoute('/sumber-daya/tambah-peminjaman')({
 	component: RouteComponent,
@@ -199,12 +199,8 @@ function RouteComponent() {
 						<SelectTrigger className='w-full sm:w-64'>
 							<SelectValue placeholder='Pilih ruangan...' />
 						</SelectTrigger>
-						<SelectContent>
-							{rooms.map((room) => (
-								<SelectItem key={room.id} value={room.code}>
-									{room.code} - {room.name}
-								</SelectItem>
-							))}
+						<SelectContent position='popper' className='max-h-80'>
+							<RoomSelectOptions rooms={rooms} getValue={(room) => room.code} />
 						</SelectContent>
 					</Select>
 					<Button onClick={handleSearch} disabled={loading}>

@@ -7,7 +7,8 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button/button';
-import { Calendar, FileText } from 'lucide-react';
+import { Calendar, FileText, Info } from 'lucide-react';
+import { getBookingDateIssue } from '@/lib/bookingRules';
 
 interface DateSelectionModalProps {
     open: boolean;
@@ -22,13 +23,18 @@ export function DateSelectionModal({
 }: DateSelectionModalProps) {
     const navigate = useNavigate();
 
+    // Tanggal yang diklik di kalender ikut dibawa ke form, kecuali jika tidak
+    // memenuhi aturan peminjaman (form akan dibuka tanpa tanggal).
+    const dateIssue = selectedDate ? getBookingDateIssue(selectedDate) : null;
+    const prefillDate = selectedDate && !dateIssue ? selectedDate : undefined;
+
     const handleReservasi = () => {
         navigate({
             to: '/peminjam/reservasi',
             search: {
                 roomId: undefined,
                 roomCode: undefined,
-                bookingDate: undefined,
+                bookingDate: prefillDate,
                 startTime: undefined,
                 endTime: undefined,
                 purpose: undefined,
@@ -46,7 +52,7 @@ export function DateSelectionModal({
             search: {
                 editId: undefined,
                 roomId: undefined,
-                bookingDate: undefined,
+                bookingDate: prefillDate,
                 startTime: undefined,
                 endTime: undefined,
                 purpose: undefined,
@@ -84,6 +90,16 @@ export function DateSelectionModal({
                         )}
                     </DialogDescription>
                 </DialogHeader>
+
+                {dateIssue && (
+                    <div className='flex gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800'>
+                        <Info className='w-4 h-4 mt-0.5 shrink-0' />
+                        <div>
+                            <p className='font-medium'>Tanggal ini tidak bisa dipinjam.</p>
+                            <p>{dateIssue} Anda tetap bisa melanjutkan dan memilih tanggal lain di form.</p>
+                        </div>
+                    </div>
+                )}
 
                 <div className='grid gap-4 py-4'>
                     <Button

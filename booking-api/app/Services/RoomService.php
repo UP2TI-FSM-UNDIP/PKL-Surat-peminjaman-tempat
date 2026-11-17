@@ -33,7 +33,11 @@ class RoomService
             });
         }
 
-        $rooms = $query->latest()->paginate($filters['per_page'] ?? 15);
+        // Urut berdasarkan kode ruang (A101, A102, ...). per_page dibatasi 500 agar
+        // halaman yang butuh daftar lengkap (dropdown ruang, manajemen ruang) bisa
+        // mengambil semua ruang dalam satu permintaan.
+        $perPage = min(max((int) ($filters['per_page'] ?? 15), 1), 500);
+        $rooms = $query->orderBy('code')->paginate($perPage);
 
         // Annotate availability if params provided
         if (isset($filters['available_date'], $filters['available_start'], $filters['available_end'])) {

@@ -194,6 +194,13 @@ export function useProposalForm() {
                 updateFormData(hydrated);
             }
 
+            // Tempat selalu diambil dari ruangan yang direservasi
+            const roomName = typeof c.room_name === 'string' && c.room_name.trim() ? c.room_name : c.room_code;
+            if (typeof roomName === 'string' && roomName.trim()) {
+                setFields((prev) => ({ ...prev, location: roomName }));
+                updateFormData({ location: roomName });
+            }
+
             // Fallback autofill: jika event_name masih kosong, gunakan purpose (nama kegiatan dari reservasi)
             if (!newFields.event_name && c.purpose && typeof c.purpose === 'string' && c.purpose.trim()) {
                 setFields((prev) => ({ ...prev, event_name: String(c.purpose) }));
@@ -323,7 +330,9 @@ export function useProposalForm() {
         navigate({
             to: '/peminjam/pinjam/detail-tempat',
             search: {
-                editId: undefined,
+                // Bawa ID dokumen yang sedang dikerjakan agar langkah 1 memperbarui
+                // dokumen yang sama, bukan membuat dokumen baru (duplikat).
+                editId: formData.document_id || undefined,
                 roomId: undefined,
                 bookingDate: undefined,
                 startTime: undefined,
@@ -334,7 +343,7 @@ export function useProposalForm() {
                 ketuaHp: undefined,
             },
         });
-    }, [syncToContext, navigate]);
+    }, [syncToContext, navigate, formData.document_id]);
 
     return {
         fields,

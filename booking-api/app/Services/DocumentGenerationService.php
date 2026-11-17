@@ -27,6 +27,18 @@ class DocumentGenerationService
     }
 
     /**
+     * Kosongkan semua placeholder tanda tangan (ttd_* / signature_*) yang tersisa.
+     */
+    public static function clearSignaturePlaceholders(TemplateProcessor $templateProcessor): void
+    {
+        foreach (array_unique($templateProcessor->getVariables()) as $variable) {
+            if (str_starts_with($variable, 'ttd_') || str_starts_with($variable, 'signature_')) {
+                $templateProcessor->setValue($variable, '');
+            }
+        }
+    }
+
+    /**
      * Ambil log APPROVED yang masih berlaku, diurutkan per langkah.
      *
      * Saat dokumen diajukan ulang setelah revisi (log SUBMITTED) atau
@@ -71,7 +83,8 @@ class DocumentGenerationService
     public function generateFromTemplate(
         Document $document,
         string $templateType,
-        ?string $organizationType = null
+        ?string $organizationType = null,
+        bool $clearEmptySignatures = true
     ): string {
         // 0. Validate user has uploaded signature
         $this->validateUserSignature($document);
@@ -168,6 +181,13 @@ class DocumentGenerationService
 
             // 4b. Insert signature images if placeholders exist
             $tempSignaturePaths = $this->insertSignatures($templateProcessor, $document);
+
+            // 4c. Kosongkan placeholder tanda tangan yang belum terisi agar tidak
+            //     tercetak sebagai teks "\${ttd_...}". Dilewati jika pemanggil masih
+            //     akan membubuhkan tanda tangan (applySignatureToDocument).
+            if ($clearEmptySignatures) {
+                self::clearSignaturePlaceholders($templateProcessor);
+            }
 
             // 5. Save generated document to temp first, then upload to MinIO
             $outputFileName = $this->generateFileName($document, $templateType);

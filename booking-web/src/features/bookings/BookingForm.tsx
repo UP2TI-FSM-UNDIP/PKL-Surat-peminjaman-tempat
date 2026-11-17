@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button/button';
 import {
     Select,
     SelectContent,
-    SelectItem,
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
@@ -26,6 +25,8 @@ import { RoomDetailModal } from '@/features/bookings/RoomDetailModal';
 import type { Room } from '@/services/room.service';
 import type { ReservationContent } from '@/types/booking';
 import type { Document } from '@/types/document';
+import { RoomSelectOptions } from '@/features/rooms/components/RoomSelectOptions';
+import { getBookingDateIssue } from '@/lib/bookingRules';
 
 interface BookingFormProps {
     rooms: Room[];
@@ -72,8 +73,7 @@ export function BookingForm(props: BookingFormProps) {
 
     const dateValidationMsg = useMemo(() => {
         if (!form.bookingDate) return null;
-        if (!isSaturday) return 'Peminjaman hanya diperbolehkan pada hari Sabtu';
-        return null;
+        return getBookingDateIssue(form.bookingDate);
     }, [form.bookingDate, isSaturday]);
 
     const timeValidationMsg = useMemo(() => {
@@ -176,12 +176,11 @@ export function BookingForm(props: BookingFormProps) {
                             <SelectTrigger className='w-full'>
                                 <SelectValue placeholder='Pilih...' />
                             </SelectTrigger>
-                            <SelectContent>
-                                {props.rooms.map((r) => (
-                                    <SelectItem key={r.id} value={r.id.toString()}>
-                                        {r.name} ({r.capacity})
-                                    </SelectItem>
-                                ))}
+                            <SelectContent position='popper' className='max-h-80'>
+                                <RoomSelectOptions
+                                    rooms={props.rooms}
+                                    getLabel={(r) => `${r.name}${r.capacity ? ` (kapasitas ${r.capacity})` : ''}`}
+                                />
                             </SelectContent>
                         </Select>
                     </div>
@@ -277,10 +276,8 @@ export function BookingForm(props: BookingFormProps) {
                                         }}
                                         disabled={(date: Date) => {
                                             if (!canEditDocument) return true;
-                                            const isNotSaturday = date.getDay() !== 6;
-                                            const isPast =
-                                                date < new Date(new Date().setHours(0, 0, 0, 0));
-                                            return isNotSaturday || isPast;
+                                            // Hanya tanggal yang memenuhi aturan (Sabtu, minimal 8 hari lagi)
+                                            return getBookingDateIssue(format(date, 'yyyy-MM-dd')) !== null;
                                         }}
                                     />
                                 </PopoverContent>
@@ -352,7 +349,7 @@ export function BookingForm(props: BookingFormProps) {
                             disabled={
                                 submitMutation.isPending ||
                                 (availabilityMsg?.isError && !props.editId) ||
-                                !isSaturday ||
+                                !!dateValidationMsg ||
                                 !isTimeWindowValid ||
                                 !canEditDocument
                             }

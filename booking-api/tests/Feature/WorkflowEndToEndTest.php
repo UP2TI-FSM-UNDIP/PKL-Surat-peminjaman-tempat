@@ -541,4 +541,33 @@ class WorkflowEndToEndTest extends TestCase
         );
         $this->assertSame('Sabtu, 10 Oktober 2026', Carbon::parse('2026-10-10')->translatedFormat('l, d F Y'));
     }
+
+    public function test_draft_dengan_slot_sama_dipakai_ulang_bukan_dokumen_baru(): void
+    {
+        $creator = $this->user('sekretaris', 'HIMASTA');
+        $date = $this->nextValidSaturday();
+
+        // Reservasi (draft) lalu "Ajukan Peminjaman" untuk ruang/tanggal/jam yang sama
+        $first = $this->createDocument($creator, $this->content(2, $date))->assertCreated()->json('data.id');
+        $content = $this->content(2, $date) + ['ketua_pelaksana_hp' => '081234567890'];
+        $second = $this->createDocument($creator, $content)->assertOk()->json('data.id');
+
+        $this->assertSame($first, $second, 'Harus melanjutkan draft yang sama');
+        $this->assertSame(1, Document::where('creator_id', $creator->id)->where('content->booking_date', $date)->count());
+        $this->assertSame('081234567890', Document::find($first)->content['ketua_pelaksana_hp'], 'Isian baru ikut tersimpan');
+
+        // Slot berbeda tetap membuat dokumen baru
+        $this->createDocument($creator, $this->content(2, $date, '13:00', '15:00'))->assertCreated();
+    }
+
+    public function test_tanggal_booking_dikirim_sebagai_tanggal_tanpa_jam(): void
+    {
+        [$docId, $creator, $date] = $this->submittedHmdDocument(1);
+        $bookingId = RoomBooking::where('document_id', $docId)->sole()->id;
+
+        Sanctum::actingAs($creator);
+        $this->getJson("/api/room-bookings/{$bookingId}")
+            ->assertOk()
+            ->assertJsonPath('data.booking_date', $date);
+    }
 }

@@ -2,7 +2,6 @@ import { createFileRoute } from '@tanstack/react-router';
 import {
   Select,
   SelectContent,
-  SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
@@ -11,6 +10,7 @@ import { useReservation } from '@/hooks/useReservation';
 import { ReservationForm } from '@/features/bookings/ReservationForm';
 import { BookingScheduleTable } from '@/features/bookings/BookingScheduleTable';
 import { RoomDetailModal } from '@/features/bookings/RoomDetailModal';
+import { RoomSelectOptions } from '@/features/rooms/components/RoomSelectOptions';
 
 export const Route = createFileRoute('/peminjam/reservasi')({
   component: RouteComponent,
@@ -75,19 +75,15 @@ function RouteComponent() {
               <SelectTrigger className='w-full sm:w-64'>
                 <SelectValue placeholder='Pilih ruangan...' />
               </SelectTrigger>
-              <SelectContent>
-                {reservation.rooms.map((room) => (
-                  <SelectItem key={room.id} value={room.id.toString()}>
-                    {room.code} - {room.name}
-                  </SelectItem>
-                ))}
+              <SelectContent position='popper' className='max-h-80'>
+                <RoomSelectOptions rooms={reservation.rooms} />
               </SelectContent>
             </Select>
             <Button
               onClick={reservation.searchRoom}
               disabled={!reservation.selectedRoomId || reservation.isLoadingDetails}
             >
-              {reservation.isLoadingDetails ? 'Memuat...' : 'Cari'}
+              {reservation.isLoadingDetails ? 'Memuat...' : 'Muat Ulang'}
             </Button>
           </div>
         </div>

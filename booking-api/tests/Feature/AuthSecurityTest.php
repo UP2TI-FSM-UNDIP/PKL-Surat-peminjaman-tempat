@@ -126,6 +126,12 @@ class AuthSecurityTest extends TestCase
         ]);
         Sanctum::actingAs($user);
 
+        // Mahasiswa (Sekretaris) tidak boleh tetap di unit Fakultas: wajib pilih ormawa
+        $this->patchJson('/api/user/profile', [
+            'name' => 'Mahasiswa Baru', 'nim_nip' => '24060199990002',
+            'unit_id' => Unit::where('category', 'FAKULTAS')->value('id'),
+        ])->assertStatus(422)->assertJsonValidationErrors('unit_id');
+
         // Unit pimpinan (Departemen) tidak boleh dipilih sendiri
         $this->patchJson('/api/user/profile', [
             'name' => 'Mahasiswa Baru', 'nim_nip' => '24060199990002',
@@ -153,7 +159,7 @@ class AuthSecurityTest extends TestCase
     public function test_sso_hanya_admin_sso_yang_menjadi_admin(): void
     {
         $pending = 'menunggu-penetapan';
-        foreach (['mahasiswa' => $pending, 'dosen' => $pending, 'staff' => $pending, 'superadmin' => 'admin', 'admin' => 'admin'] as $ssoRole => $expected) {
+        foreach (['mahasiswa' => 'sekretaris', 'dosen' => $pending, 'staff' => $pending, 'superadmin' => 'admin', 'admin' => 'admin'] as $ssoRole => $expected) {
             $email = "sso-{$ssoRole}-e2e@undip.ac.id";
             $this->fakeSso($email, $ssoRole);
 
@@ -167,7 +173,7 @@ class AuthSecurityTest extends TestCase
         }
 
         // Email yang dulu dipaksa Admin tidak lagi otomatis Admin
-        $this->fakeSso('tim8@undip.ac.id', 'mahasiswa');
+        $this->fakeSso('tim8@undip.ac.id', 'staff');
         $this->withHeaders(['Authorization' => 'jwt-palsu'])->getJson('/auth/sso')->assertOk();
         $this->assertSame('menunggu-penetapan', User::where('email', 'tim8@undip.ac.id')->first()->role->slug);
     }

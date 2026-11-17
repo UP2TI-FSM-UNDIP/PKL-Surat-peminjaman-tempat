@@ -234,12 +234,28 @@ class DocumentService
             }
         }
 
-        // Prevent duplicate reservations
-        $metaData = $validated['meta_data'] ?? [];
-        if (isset($metaData['step']) && $metaData['step'] === 'reservation') {
+        // Aturan jadwal (Sabtu, minimal N hari sebelum hari-H, jam operasional)
+        // diterapkan sejak reservasi/draft dibuat, bukan baru saat diajukan.
+        // Tanpa ini reservasi bisa dibuat untuk tanggal yang pasti ditolak
+        // saat pengajuan, dan deadline pelengkapan dokumennya sudah lewat.
+        if ($scheduleError = $this->scheduleRuleError($content)) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'content.booking_date' => [$scheduleError],
+            ]);
+        }
+
+        // Cegah dokumen ganda: jika pengguna sudah punya DRAFT untuk ruang, tanggal,
+        // dan jam yang sama (mis. dari Reservasi, lalu mengajukan lagi lewat
+        // "Ajukan Peminjaman"), lanjutkan draft itu alih-alih membuat dokumen baru.
+        if (!empty($content['room_id']) && !empty($content['booking_date'])) {
             $existingDoc = $this->findDuplicateReservation($user, $content);
             if ($existingDoc) {
-                return $existingDoc; // Return existing doc, controller decides response
+                // Simpan isian terbaru ke draft yang ada agar tidak hilang
+                $existingDoc->update([
+                    'title' => $validated['title'] ?? $existingDoc->title,
+                    'content' => array_merge($existingDoc->content ?? [], $content),
+                ]);
+                return $existingDoc->fresh(); // wasRecentlyCreated = false -> controller membalas 200
             }
         }
 
@@ -286,11 +302,33 @@ class DocumentService
         return $document;
     }
 
+    /**
+     * Pesan error jika jadwal di content melanggar aturan peminjaman, atau null.
+     */
+    private function scheduleRuleError(array $content): ?string
+    {
+        if (empty($content['booking_date'])) {
+            return null;
+        }
+
+        try {
+            app(RoomBookingService::class)->validateScheduleRules(
+                (string) $content['booking_date'],
+                (string) ($content['start_time'] ?? '09:00'),
+                (string) ($content['end_time'] ?? '17:00')
+            );
+        } catch (\Exception $e) {
+            return $e->getMessage();
+        }
+
+        return null;
+    }
+
     private function findDuplicateReservation(User $user, array $content): ?Document
     {
         return Document::where('creator_id', $user->id)
             ->where('status', 'DRAFT')
-            ->whereJsonContains('meta_data->step', 'reservation')
+            ->latest('id')
             ->get()
             ->first(function ($doc) use ($content) {
                 $docContent = $doc->content ?? [];
@@ -636,10 +674,13 @@ class DocumentService
 
             // Regenerate from template
             $orgType = $this->mapCategoryToOrganizationType($document->unit->category ?? 'HMD');
+            // Placeholder tanda tangan kosong dibiarkan dulu: tanda tangan
+            // pemegang dokumen dibubuhkan di bawah, lalu sisanya dikosongkan.
             $newFilePath = $this->documentGenerationService->generateFromTemplate(
                 $document,
                 $templateType,
-                $orgType
+                $orgType,
+                false
             );
 
             $document->update([$column => $newFilePath]);
@@ -698,6 +739,9 @@ class DocumentService
             if (!$inserted) {
                 throw new \Exception('Placeholder tanda tangan untuk role Anda tidak ditemukan di template');
             }
+
+            // Kosongkan placeholder tanda tangan yang masih belum terisi
+            DocumentGenerationService::clearSignaturePlaceholders($templateProcessor);
 
             // Save + upload back to MinIO
             $templateProcessor->saveAs($tempDocxPath);
@@ -781,6 +825,14 @@ class DocumentService
             if (!preg_match('/^\d{12,13}$/', $content['ketua_pelaksana_hp'])) {
                 throw new \Exception('Nomor HP harus 12-13 digit angka', 422);
             }
+        }
+
+        // Jika tanggal/jam diubah, jadwal baru harus memenuhi aturan peminjaman
+        $current = $document->content ?? [];
+        $scheduleChanged = collect(['booking_date', 'start_time', 'end_time'])
+            ->contains(fn ($key) => array_key_exists($key, $content) && (string) $content[$key] !== (string) ($current[$key] ?? ''));
+        if ($scheduleChanged && ($scheduleError = $this->scheduleRuleError(array_merge($current, $content)))) {
+            throw new \Exception($scheduleError, 422);
         }
 
         $dataToUpdate = [

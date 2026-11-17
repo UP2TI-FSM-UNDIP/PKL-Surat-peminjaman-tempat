@@ -28,7 +28,8 @@ class RoomBooking extends Model
     ];
 
     protected $casts = [
-        'booking_date' => 'date',
+        // Hanya tanggal (tanpa jam/zona waktu) agar tidak bergeser saat dikirim ke frontend
+        'booking_date' => 'date:Y-m-d',
         'approved_at' => 'datetime',
         'expected_participants' => 'integer',
     ];

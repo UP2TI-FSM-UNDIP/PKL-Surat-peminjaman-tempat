@@ -8,19 +8,14 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from '@/components/ui/popover';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button/button';
 import type { Room } from '@/services/room.service';
 import type { ReservationFormState } from '@/hooks/useReservation';
 import { AvailabilityIndicator } from './AvailabilityIndicator';
+import { TimePicker } from '@/components/common/TimePicker';
+import { getBookingDateIssue } from '@/lib/bookingRules';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -52,63 +47,6 @@ interface ReservationFormProps {
 // ---------------------------------------------------------------------------
 // Sub-components
 // ---------------------------------------------------------------------------
-
-const HOURS = Array.from({ length: 9 }, (_, i) =>
-    (i + 9).toString().padStart(2, '0'),
-);
-const MINUTES = ['00', '15', '30', '45'];
-
-function TimePicker({
-    label,
-    value,
-    onChange,
-    defaultHour,
-}: {
-    label: string;
-    value: string;
-    onChange: (value: string) => void;
-    defaultHour: string;
-}) {
-    const [hour, minute] = value ? value.split(':') : [defaultHour, '00'];
-
-    return (
-        <div className='flex-1'>
-            <label className='text-sm'>{label}</label>
-            <div className='flex gap-2'>
-                <Select
-                    value={hour || defaultHour}
-                    onValueChange={(h) => onChange(`${h}:${minute || '00'}`)}
-                >
-                    <SelectTrigger className='w-full'>
-                        <SelectValue placeholder='Jam' />
-                    </SelectTrigger>
-                    <SelectContent position='popper' className='max-h-50'>
-                        {HOURS.map((h) => (
-                            <SelectItem key={h} value={h}>
-                                {h}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-                <Select
-                    value={minute || '00'}
-                    onValueChange={(m) => onChange(`${hour || defaultHour}:${m}`)}
-                >
-                    <SelectTrigger className='w-full'>
-                        <SelectValue placeholder='Menit' />
-                    </SelectTrigger>
-                    <SelectContent className='max-h-50'>
-                        {MINUTES.map((m) => (
-                            <SelectItem key={m} value={m}>
-                                {m}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-            </div>
-        </div>
-    );
-}
 
 // ---------------------------------------------------------------------------
 // Main Component
@@ -266,10 +204,8 @@ export function ReservationForm({
                                             }
                                         }}
                                         disabled={(date: Date) => {
-                                            const isNotSaturday = date.getDay() !== 6;
-                                            const isPast =
-                                                date < new Date(new Date().setHours(0, 0, 0, 0));
-                                            return isNotSaturday || isPast;
+                                            // Hanya tanggal yang memenuhi aturan (Sabtu, minimal 8 hari lagi)
+                                            return getBookingDateIssue(format(date, 'yyyy-MM-dd')) !== null;
                                         }}
                                         initialFocus
                                     />

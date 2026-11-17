@@ -20,25 +20,27 @@ export function ProfileCompletionModal() {
     const [isOpen, setIsOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [units, setUnits] = useState<Unit[]>([]);
-    // Role ditetapkan admin (atau otomatis Admin dari SSO), tidak dipilih sendiri
-    const currentRoleName = localStorage.getItem('role') || '-';
+    // Role tidak dipilih di sini: ditetapkan admin (atau otomatis Admin dari SSO)
     const currentUnitId = Number(localStorage.getItem('unitId')) || 0;
 
     const [formData, setFormData] = useState({
         name: localStorage.getItem('userName') || '',
         nim_nip: '',
-        unit_id: currentUnitId,
+        // Mahasiswa (Sekretaris) wajib memilih organisasi sendiri
+        unit_id: localStorage.getItem('role') === 'Sekretaris' ? 0 : currentUnitId,
     });
 
     const fetchData = useCallback(async () => {
         try {
             const fetchedUnits = await unitService.getUnits();
-            // Hanya organisasi mahasiswa yang bisa dipilih sendiri, atau tetap di unit sekarang
+            // Hanya organisasi mahasiswa yang bisa dipilih sendiri. Selain Sekretaris
+            // (mahasiswa), boleh juga tetap di unit sekarang (unit diatur admin).
+            const isStudent = localStorage.getItem('role') === 'Sekretaris';
             setUnits(
                 fetchedUnits.filter(
                     (unit) =>
                         SELF_SERVICE_UNIT_CATEGORIES.includes(unit.category) ||
-                        unit.id === currentUnitId,
+                        (!isStudent && unit.id === currentUnitId),
                 ),
             );
         } catch (error) {
@@ -57,7 +59,10 @@ export function ProfileCompletionModal() {
                 setFormData((prev) => ({
                     ...prev,
                     name: prev.name || localStorage.getItem('userName') || '',
-                    unit_id: prev.unit_id || Number(localStorage.getItem('unitId')) || 0,
+                    // Mahasiswa wajib memilih organisasi; selain itu default ke unit sekarang
+                    unit_id: prev.unit_id || (localStorage.getItem('role') === 'Sekretaris'
+                        ? 0
+                        : Number(localStorage.getItem('unitId')) || 0),
                 }));
                 setIsOpen(true);
                 fetchData();
@@ -162,16 +167,6 @@ export function ProfileCompletionModal() {
                                 <option key={unit.id} value={unit.id}>{unit.name}</option>
                             ))}
                         </select>
-                    </div>
-
-                    <div className="space-y-2">
-                        <label className="text-sm font-semibold">Role / Jabatan</label>
-                        <div className="flex h-10 w-full items-center rounded-md border border-input bg-muted px-3 text-sm">
-                            {currentRoleName}
-                        </div>
-                        <p className="text-[10px] text-muted-foreground italic">
-                            * Role ditetapkan oleh admin. Hubungi admin jika role Anda belum sesuai.
-                        </p>
                     </div>
 
                     <Button 

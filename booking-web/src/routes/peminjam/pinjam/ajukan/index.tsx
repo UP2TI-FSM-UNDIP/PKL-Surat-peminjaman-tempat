@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import api from '@/lib/axios';
 import { documentService } from '@/services/document.service';
+import { roomService } from '@/services/room.service';
 import type { CreateDocumentData } from '@/types/document';
 import { Button } from '@/components/ui/button/button';
 import { getErrorMessage, getValidationErrors } from '@/lib/errors';
@@ -62,10 +63,8 @@ export default function RouteComponent() {
   const fetchRooms = async () => {
     setRoomsLoading(true);
     try {
-      const res = await api.get('/rooms');
-      // API returns paginated: { data: { data: [...] } }
-      const data = res.data.data?.data || res.data.data || res.data;
-      setRooms(Array.isArray(data) ? data : []);
+      // Daftar lengkap ruang (API berhalaman; getRooms meminta semua)
+      setRooms(await roomService.getRooms({ status: 'ACTIVE' }));
     } catch (err) {
       console.error('Gagal memuat daftar ruang', err);
     } finally {

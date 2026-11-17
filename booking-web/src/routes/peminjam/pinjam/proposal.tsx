@@ -98,7 +98,15 @@ function RouteComponent() {
                     onChange={(e) => handleFieldChange(key, e.target.value)}
                     placeholder={placeholder}
                     required
+                    // Tempat mengikuti ruangan yang dipilih di langkah Detail Tempat
+                    readOnly={key === 'location'}
+                    className={key === 'location' ? 'bg-gray-50 text-gray-700' : undefined}
                   />
+                  {key === 'location' && (
+                    <p className='mt-1 text-xs text-gray-500'>
+                      Diambil dari ruangan yang dipilih di Detail Tempat. Ubah ruangan di langkah 1 jika perlu.
+                    </p>
+                  )}
                 </div>
               ))}
             </div>

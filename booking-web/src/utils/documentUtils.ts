@@ -1,5 +1,9 @@
 // src/utils/documentUtils.ts
 import type { Document } from '@/types/document';
+import { BOOKING_RULES } from '@/lib/bookingRules';
+
+/** Draft yang tidak diajukan dalam sekian hari akan dilepas (lihat booking.hold_days di backend). */
+const DRAFT_HOLD_DAYS = 14;
 
 export const documentHelpers = {
   // --- 1. Helpers Umum ---
@@ -58,14 +62,25 @@ export const documentHelpers = {
       : '-';
   },
 
-  // --- 3. Deadline & Hold Window (14 hari) ---
+  // --- 3. Deadline pengajuan ---
   /**
-   * Hitung deadline pengajuan (14 hari dari created_at)
+   * Deadline melengkapi & mengajukan dokumen = yang paling awal di antara:
+   * - 14 hari sejak dokumen dibuat (draft yang ditelantarkan dilepas), dan
+   * - batas minimal pengajuan sebelum hari-H (mis. 8 hari sebelum tanggal
+   *   peminjaman), karena setelah itu server menolak pengajuan.
+   * Dengan begitu deadline tidak pernah melewati tanggal yang direservasi.
    */
   getDeadline: (doc: Document) => {
-    const createdAt = new Date(doc.created_at);
-    const deadline = new Date(createdAt);
-    deadline.setDate(deadline.getDate() + 14);
+    const deadline = new Date(doc.created_at);
+    deadline.setDate(deadline.getDate() + DRAFT_HOLD_DAYS);
+
+    const bookingDate = doc.content?.booking_date;
+    if (typeof bookingDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(bookingDate)) {
+      const lastSubmitDay = new Date(`${bookingDate}T23:59:59`);
+      lastSubmitDay.setDate(lastSubmitDay.getDate() - BOOKING_RULES.minDaysAhead);
+      if (lastSubmitDay < deadline) return lastSubmitDay;
+    }
+
     return deadline;
   },
 
@@ -84,8 +99,8 @@ export const documentHelpers = {
    * Status deadline: 'expired' | 'critical' | 'warning' | 'safe'
    */
   getDeadlineStatus: (doc: Document) => {
-    // Hanya cek untuk dokumen yang belum selesai
-    if (doc.status === 'APPROVED' || doc.status === 'REJECTED') {
+    // Hanya untuk dokumen yang masih harus dilengkapi/diajukan pengaju
+    if (doc.status !== 'DRAFT' && doc.status !== 'REVISION') {
       return 'safe';
     }
 

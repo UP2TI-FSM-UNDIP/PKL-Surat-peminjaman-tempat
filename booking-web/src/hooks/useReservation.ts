@@ -1,11 +1,14 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from '@tanstack/react-router';
+import { toast } from 'sonner';
 import {
     roomService,
     type Room,
     type RoomBooking,
 } from '@/services/room.service';
 import { documentService } from '@/services/document.service';
+import { getBookingDateIssue } from '@/lib/bookingRules';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -51,6 +54,7 @@ interface ValidationInfo {
 // ---------------------------------------------------------------------------
 
 export function useReservation(searchParams: ReservationSearchParams) {
+    const navigate = useNavigate();
     const queryClient = useQueryClient();
 
     // ---- 1. ROOMS QUERY ----
@@ -75,6 +79,8 @@ export function useReservation(searchParams: ReservationSearchParams) {
     useEffect(() => {
         if (rooms.length > 0 && !selectedRoomId && !searchParams.roomId) {
             setSelectedRoomId(rooms[0].id);
+            // Langsung tampilkan form & jadwal ruangan (tanpa perlu klik tombol)
+            setShowRoomDetails(true);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [rooms.length]);
@@ -148,10 +154,7 @@ export function useReservation(searchParams: ReservationSearchParams) {
         const isTimeValid =
             !form.startTime || !form.endTime ? true : form.startTime < form.endTime;
 
-        const dateError =
-            form.bookingDate && !isSaturday
-                ? 'Peminjaman hanya diperbolehkan pada hari Sabtu'
-                : null;
+        const dateError = form.bookingDate ? getBookingDateIssue(form.bookingDate) : null;
 
         const timeError =
             form.startTime && form.endTime && !isTimeValid
@@ -293,10 +296,11 @@ export function useReservation(searchParams: ReservationSearchParams) {
             });
         },
         onSuccess: () => {
-            setSuccessMessage(
-                'Reservasi berhasil disimpan! Silakan cek di halaman Riwayat Pengajuan untuk melanjutkan.',
-            );
             resetForm();
+            // Arahkan ke Daftar Pengajuan agar reservasi baru langsung terlihat
+            toast.success('Reservasi berhasil disimpan. Lengkapi berkasnya dari daftar ini.');
+            queryClient.invalidateQueries({ queryKey: ['documents'] });
+            navigate({ to: '/peminjam/pinjam', search: { status: 'ALL' } });
             // Refresh schedule
             queryClient.invalidateQueries({
                 queryKey: ['rooms', selectedRoomId, 'schedule'],
@@ -307,7 +311,8 @@ export function useReservation(searchParams: ReservationSearchParams) {
     // ---- 8. HANDLERS ----
     const selectRoom = (id: number) => {
         setSelectedRoomId(id);
-        setShowRoomDetails(false);
+        // Langsung tampilkan form & jadwal ruangan yang dipilih
+        setShowRoomDetails(true);
         setFormError(null);
         setSuccessMessage(null);
     };

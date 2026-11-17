@@ -116,8 +116,11 @@ export const roomService = {
     available_start?: string;
     available_end?: string;
   }): Promise<Room[]> {
-    const response = await api.get<RoomResponse>('/rooms', { params: filters });
-    // Backend returns paginated response
+    // Backend mengembalikan data berhalaman (default 15); minta semua ruang
+    // (maks. 500) karena pemanggil butuh daftar lengkap, mis. dropdown ruang.
+    const response = await api.get<RoomResponse>('/rooms', {
+      params: { per_page: 500, ...filters },
+    });
     return response.data.data?.data ?? [];
   },
 
