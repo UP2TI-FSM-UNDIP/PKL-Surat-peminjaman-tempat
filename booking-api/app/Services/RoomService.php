@@ -15,7 +15,10 @@ class RoomService
     public function listRooms(array $filters)
     {
         $query = Room::query()
-            ->select('id', 'name', 'code', 'capacity', 'status', 'facilities', 'description', 'images');
+            ->select(
+                'id', 'name', 'code', 'capacity', 'status', 'facilities', 'description', 'images',
+                'type', 'is_bookable_weekday', 'weekday_max_end_time', 'adjacent_group', 'adjacent_position'
+            );
 
         if (!empty($filters['status'])) {
             $query->where('status', $filters['status']);
@@ -56,7 +59,10 @@ class RoomService
 
     public function showRoom(int $id): array
     {
-        $room = Room::select('id', 'name', 'code', 'capacity', 'status', 'facilities', 'description', 'images')
+        $room = Room::select(
+                'id', 'name', 'code', 'capacity', 'status', 'facilities', 'description', 'images',
+                'type', 'is_bookable_weekday', 'weekday_max_end_time', 'adjacent_group', 'adjacent_position'
+            )
             ->findOrFail($id);
 
         $startDate = Carbon::today();

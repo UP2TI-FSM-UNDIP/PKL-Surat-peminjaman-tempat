@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Room;
 
+use App\Models\Room;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateRoomRequest extends FormRequest
 {
@@ -23,6 +25,11 @@ class UpdateRoomRequest extends FormRequest
             'description' => 'nullable|string',
             'status'      => 'nullable|in:ACTIVE,MAINTENANCE,INACTIVE',
             'images.*'    => 'nullable|string',
+            'type' => ['sometimes', 'nullable', Rule::in(Room::TYPES)],
+            'is_bookable_weekday' => ['sometimes', 'boolean'],
+            'weekday_max_end_time' => ['sometimes', 'nullable', 'date_format:H:i'],
+            'adjacent_group' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'adjacent_position' => ['sometimes', 'nullable', 'integer', 'min:1'],
         ];
     }
 
@@ -34,6 +41,9 @@ class UpdateRoomRequest extends FormRequest
             'code.max'     => 'Kode ruangan maksimal 50 karakter',
             'capacity.min' => 'Kapasitas minimal 1',
             'status.in'    => 'Status harus ACTIVE, MAINTENANCE, atau INACTIVE',
+            'type.in' => 'Tipe ruang tidak valid',
+            'weekday_max_end_time.date_format' => 'Batas akhir hari kerja harus berformat HH:mm',
+            'adjacent_position.min' => 'Posisi sekat minimal 1',
         ];
     }
 }

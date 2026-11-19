@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Room;
 
+use App\Models\Room;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreRoomRequest extends FormRequest
 {
@@ -22,6 +24,11 @@ class StoreRoomRequest extends FormRequest
             'description' => 'nullable|string',
             'images'      => 'nullable|array',
             'images.*'    => 'file|image|mimes:png,jpg,jpeg|max:5120',
+            'type' => ['nullable', Rule::in(Room::TYPES)],
+            'is_bookable_weekday' => 'boolean',
+            'weekday_max_end_time' => 'nullable|date_format:H:i',
+            'adjacent_group' => 'nullable|string|max:255',
+            'adjacent_position' => 'nullable|integer|min:1',
         ];
     }
 
@@ -38,6 +45,9 @@ class StoreRoomRequest extends FormRequest
             'images.*.image'  => 'File harus berupa gambar',
             'images.*.mimes'  => 'Format gambar harus PNG, JPG, atau JPEG',
             'images.*.max'    => 'Ukuran gambar maksimal 5MB',
+            'type.in' => 'Tipe ruang tidak valid',
+            'weekday_max_end_time.date_format' => 'Batas akhir hari kerja harus berformat HH:mm',
+            'adjacent_position.min' => 'Posisi sekat minimal 1',
         ];
     }
 }
