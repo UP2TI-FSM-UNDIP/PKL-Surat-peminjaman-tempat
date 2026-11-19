@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -12,6 +13,16 @@ class Room extends Model
 {
     use HasFactory, SoftDeletes;
 
+    public const TYPES = [
+        'KELAS',
+        'SIDANG',
+        'PENDOPO',
+        'STUDIO',
+        'LAB',
+        'AULA',
+        'LAINNYA',
+    ];
+
     protected $fillable = [
         'name',
         'code',
@@ -20,13 +31,32 @@ class Room extends Model
         'status',
         'description',
         'images',
+        'type',
+        'is_bookable_weekday',
+        'weekday_max_end_time',
+        'adjacent_group',
+        'adjacent_position',
     ];
 
     protected $casts = [
         'facilities' => 'array',
         'images' => 'array',
         'capacity' => 'integer',
+        'is_bookable_weekday' => 'boolean',
+        'adjacent_position' => 'integer',
+        'weekday_seeded_at' => 'datetime',
     ];
+
+    protected $hidden = [
+        'weekday_seeded_at',
+    ];
+
+    protected function weekdayMaxEndTime(): Attribute
+    {
+        return Attribute::make(
+            get: fn (?string $value) => $value ? substr($value, 0, 5) : null,
+        );
+    }
 
     /**
      * Semua booking untuk ruangan ini
