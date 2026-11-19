@@ -1,10 +1,22 @@
 import api from '@/lib/axios';
 
+export type RoomType = 'KELAS' | 'SIDANG' | 'PENDOPO' | 'STUDIO' | 'LAB' | 'AULA' | 'LAINNYA';
+
+export const ROOM_TYPES: RoomType[] = [
+  'KELAS',
+  'SIDANG',
+  'PENDOPO',
+  'STUDIO',
+  'LAB',
+  'AULA',
+  'LAINNYA',
+];
+
 export interface Room {
   id: number;
   name: string;
   code: string;
-  capacity: number;
+  capacity: number | null;
   facilities?: string[];
   status: 'ACTIVE' | 'MAINTENANCE' | 'INACTIVE';
   description?: string;
@@ -13,6 +25,11 @@ export interface Room {
   location?: string;
   images?: string[];
   image_url?: string;
+  type?: RoomType | null;
+  is_bookable_weekday?: boolean;
+  weekday_max_end_time?: string | null;
+  adjacent_group?: string | null;
+  adjacent_position?: number | null;
   created_at: string;
   updated_at: string;
   is_available?: boolean;
@@ -202,11 +219,16 @@ export const roomService = {
     data: {
       name?: string;
       code?: string;
-      capacity?: number;
+      capacity?: number | null;
       facilities?: string[];
       description?: string;
       images?: string[];
       status?: 'ACTIVE' | 'MAINTENANCE' | 'INACTIVE';
+      type?: RoomType | null;
+      is_bookable_weekday?: boolean;
+      weekday_max_end_time?: string | null;
+      adjacent_group?: string | null;
+      adjacent_position?: number | null;
     },
   ): Promise<Room> {
     const response = await api.put<{ success: boolean; data: Room }>(
