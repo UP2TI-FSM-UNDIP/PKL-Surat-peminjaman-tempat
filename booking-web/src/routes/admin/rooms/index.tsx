@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button/button';
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import {
   Plus,
@@ -12,6 +13,7 @@ import {
 import { RoomForm } from '@/features/rooms/components/RoomForm';
 import { DetailRoomModal } from '@/features/rooms/components/DetailRoomModal';
 import { DeleteRoomDialog } from '@/features/rooms/components/DeleteRoomDialog';
+import { RoomEditWarnings } from '@/features/rooms/components/RoomEditWarnings';
 import { useRooms } from '@/features/rooms/hooks/useRooms';
 import type { Room } from '@/services/room.service';
 import {
@@ -67,6 +69,9 @@ function RouteComponent() {
     setSelectedStatus,
     capacityRange,
     setCapacityRange,
+    weekdayFilter,
+    setWeekdayFilter,
+    upcomingBookingCount,
     fetchRooms,
     handleCreate,
     handleEdit,
@@ -178,6 +183,24 @@ function RouteComponent() {
               </SelectContent>
             </Select>
           </div>
+
+          <div className='w-full md:w-[200px]'>
+            <Select
+              value={weekdayFilter}
+              onValueChange={(value) =>
+                setWeekdayFilter(value as 'all' | 'yes' | 'no')
+              }
+            >
+              <SelectTrigger className='h-9 text-xs sm:text-sm rounded-lg border-gray-200 shadow-sm bg-white'>
+                <SelectValue placeholder='Flag weekday' />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='all'>Semua Hari</SelectItem>
+                <SelectItem value='yes'>Weekday: Ya</SelectItem>
+                <SelectItem value='no'>Weekday: Tidak</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
@@ -215,6 +238,9 @@ function RouteComponent() {
                 <TableHead className='text-xs sm:text-sm px-2 w-24'>
                   Status
                 </TableHead>
+                <TableHead className='text-xs sm:text-sm px-2 w-28'>
+                  Weekday
+                </TableHead>
                 <TableHead className='text-center text-xs sm:text-sm px-2 w-24'>
                   Aksi
                 </TableHead>
@@ -224,12 +250,16 @@ function RouteComponent() {
               {filteredRooms.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={7}
+                    colSpan={8}
                     className='text-center text-gray-500 h-32'
                   >
                     {debouncedSearchTerm
                       ? 'Tidak ada ruangan yang cocok dengan pencarian'
-                      : 'Belum ada data ruangan'}
+                      : weekdayFilter === 'yes'
+                        ? 'Belum ada ruang yang ditandai weekday. Centang "Boleh dibooking Senin–Jumat" di form ruang.'
+                        : weekdayFilter === 'no'
+                          ? 'Semua ruang ditandai weekday.'
+                          : 'Belum ada data ruangan'}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -268,6 +298,15 @@ function RouteComponent() {
                             ? 'Maintenance'
                             : 'Nonaktif'}
                       </span>
+                    </TableCell>
+                    <TableCell className='text-xs sm:text-sm py-2 sm:py-3'>
+                      {room.status !== 'ACTIVE' ? (
+                        <Badge variant='secondary'>Nonaktif</Badge>
+                      ) : room.is_bookable_weekday ? (
+                        <Badge variant='success'>Weekday</Badge>
+                      ) : (
+                        <Badge variant='outline'>Sabtu saja</Badge>
+                      )}
                     </TableCell>
                     <TableCell className='py-2 sm:py-3'>
                       <div className='flex items-center justify-center gap-1 sm:gap-2'>
@@ -335,6 +374,12 @@ function RouteComponent() {
             <DialogTitle>Edit Ruangan</DialogTitle>
             <DialogDescription>Perbarui informasi ruangan</DialogDescription>
           </DialogHeader>
+          <RoomEditWarnings
+            upcomingBookingCount={upcomingBookingCount}
+            status={formData.status}
+            originalCode={selectedRoom?.code ?? ''}
+            currentCode={formData.code}
+          />
           <form onSubmit={handleSubmitEdit}>
             <RoomForm
               formData={formData}
