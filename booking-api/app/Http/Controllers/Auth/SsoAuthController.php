@@ -91,31 +91,27 @@ class SsoAuthController extends Controller
 
         // Step 4: Find existing user or auto-register
         //
-        // Aturan role: hanya user yang di SSO berstatus admin/superadmin yang
-        // menjadi Admin. Mahasiswa menjadi Sekretaris (pengaju); dosen/staff mendapat
-        // "Menunggu Penetapan" sampai admin menetapkan role-nya (Manajemen Pengguna).
+        // Aturan role: admin/superadmin SSO menjadi Admin; mahasiswa menjadi
+        // Peminjam; dosen menjadi Dosen; staf tanpa role dikenal mendapat
+        // role_id null sampai admin menetapkannya.
         $isSsoAdmin = in_array($role, ['admin', 'superadmin'], true);
         $adminRoleId = Role::where('slug', 'admin')->value('id');
+
+        $initialSlug = match (true) {
+            $isSsoAdmin => 'admin',
+            $role === 'mahasiswa' => 'peminjam',
+            $role === 'dosen' => 'dosen',
+            default => null,
+        };
+        $roleId = $initialSlug ? Role::where('slug', $initialSlug)->value('id') : null;
 
         $user = User::where('email', $email)->with(['role', 'unit'])->first();
 
         if (!$user) {
             // Auto-register: Create user with default role and unit
-            // NOTE: Database has NOT NULL constraints on role_id and unit_id
+            // NOTE: unit_id remains NOT NULL; role_id may be null.
             Log::info('[SSO] User not found, auto-registering', ['email' => $email, 'name' => $name, 'sso_role' => $role]);
 
-            // Role awal:
-            // - admin/superadmin SSO -> Admin
-            // - mahasiswa            -> Sekretaris (pengaju; memilih ormawa di form profil)
-            // - dosen, staff, lainnya -> Menunggu Penetapan (tanpa akses) sampai admin
-            //   menetapkan role penyetuju yang sesuai
-            $initialSlug = match (true) {
-                $isSsoAdmin => 'admin',
-                $role === 'mahasiswa' => 'sekretaris',
-                default => 'menunggu-penetapan',
-            };
-            $roleId = Role::where('slug', $initialSlug)->value('id')
-                ?? Role::where('slug', 'menunggu-penetapan')->value('id');
             $unitId = Unit::where('category', 'FAKULTAS')->value('id');
 
             $user = User::create([
@@ -135,8 +131,8 @@ class SsoAuthController extends Controller
                 'user_id' => $user->id,
                 'email'   => $email,
                 'sso_role' => $role,
-                'role'    => $user->role->name ?? $roleId,
-                'unit'    => $user->unit->name ?? $unitId,
+                'role'    => $user->role?->name ?? $roleId,
+                'unit'    => $user->unit?->name ?? $unitId,
             ]);
         } else {
             Log::info('[SSO] Existing user found', ['user_id' => $user->id, 'email' => $email]);
@@ -147,6 +143,10 @@ class SsoAuthController extends Controller
                     'user_id' => $user->id, 'from_role' => $user->role?->slug, 'sso_role' => $role,
                 ]);
                 $user->update(['role_id' => $adminRoleId]);
+                $user->load(['role', 'unit']);
+            } elseif ($user->role_id === null && $roleId) {
+                // Isi role bawaan SSO untuk user lama yang belum punya role.
+                $user->update(['role_id' => $roleId]);
                 $user->load(['role', 'unit']);
             }
         }
