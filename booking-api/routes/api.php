@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 
 // Admin
 use App\Http\Controllers\Admin\AdminUserController;
+use App\Http\Controllers\Auth\DevAuthController;
+use App\Http\Middleware\EnsureDevLoginEnabled;
 
 use App\Http\Controllers\WorkflowController;
 use App\Http\Controllers\DocumentController;
@@ -22,25 +24,16 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 Route::middleware('auth:sanctum')->patch('/user/profile', [App\Http\Controllers\UserController::class, 'updateProfile']);
 
-// DEV ONLY: Get all users for development login menu
-// Hanya bisa diakses di environment local/development
-if (app()->environment('local', 'development')) {
-    Route::get('/dev/users', function () {
-        return \App\Models\User::with(['role', 'unit'])
-            ->select('id', 'name', 'email', 'role_id', 'unit_id')
-            ->orderBy('role_id')
-            ->get()
-            ->map(function ($user) {
-                return [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'role' => $user->role?->name ?? 'Unknown',
-                    'unit' => $user->unit?->name ?? 'Unknown',
-                ];
-            });
+// DEV ONLY: login tanpa SSO untuk pengembangan lokal.
+// Middleware mengembalikan 404 bila AUTH_DEV_LOGIN mati, APP_ENV bukan
+// local/development, atau request bukan dari loopback.
+Route::prefix('dev')
+    ->middleware(EnsureDevLoginEnabled::class)
+    ->group(function () {
+        Route::get('/session', [DevAuthController::class, 'session']);
+        Route::post('/login', [DevAuthController::class, 'login'])
+            ->middleware('throttle:30,1');
     });
-}
 
 // Public: verifikasi bukti peminjaman dari QR code (butuh token di URL)
 Route::get('/room-bookings/{id}/verify', [RoomBookingController::class, 'verify'])

@@ -4,13 +4,12 @@
   "baseUrl": ".",
   "type": "module",
   "private": true,
+  "scripts": {
+    "dev": "bash dev.sh"
+  },
   "peerDependencies": {
     "typescript": "^5.5.3"
   },
-  "workspaces": [
-    "booking-api",
-    "booking-webapp"
-  ],
   "dependencies": {
     "docx-preview": "^0.3.7"
   }
