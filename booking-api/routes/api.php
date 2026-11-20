@@ -140,6 +140,10 @@ Route::middleware(['auth:sanctum', 'role.assigned'])->group(function () {
     // Booking rules (tanggal, ruang, batas policy)
     Route::get('/booking-rules', [\App\Http\Controllers\BookingRuleController::class, 'show']);
 
+    // Reservations
+    Route::post('/reservations', [\App\Http\Controllers\ReservationController::class, 'store']);
+    Route::post('/rooms/check-availability-batch', [\App\Http\Controllers\ReservationController::class, 'checkAvailability']);
+
     // Room Routes — Read Only (semua authenticated user)
     Route::prefix('rooms')->group(function () {
         Route::get('/', [RoomController::class, 'index']);
