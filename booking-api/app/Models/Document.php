@@ -16,6 +16,11 @@ class Document extends Model
         'meta_data' => 'array',
         'completed_at' => 'datetime',
         'current_step_order' => 'integer',
+        'proposal_completed_at' => 'datetime',
+        'reservation_deadline' => 'date:Y-m-d',
+        'expired_at' => 'datetime',
+        'cancelled_at' => 'datetime',
+        'deadline_rule_snapshot' => 'array',
     ];
 
     /**
@@ -101,10 +106,20 @@ class Document extends Model
     }
 
     /**
-     * Scope: Dokumen yang sudah selesai (approved/rejected)
+     * Scope: Dokumen yang sudah selesai (approved/rejected/expired/cancelled)
      */
     public function scopeCompleted($query)
     {
-        return $query->whereIn('status', ['APPROVED', 'REJECTED']);
+        return $query->whereIn('status', ['APPROVED', 'REJECTED', 'EXPIRED', 'CANCELLED']);
+    }
+
+    public function scopeExpired($query)
+    {
+        return $query->where('status', 'EXPIRED');
+    }
+
+    public function scopeCancelled($query)
+    {
+        return $query->where('status', 'CANCELLED');
     }
 }

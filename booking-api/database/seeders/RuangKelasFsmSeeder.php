@@ -16,8 +16,8 @@ use Illuminate\Database\Seeder;
  * - Nomor HP penanggung jawab sengaja tidak disimpan (deskripsi dapat dilihat
  *   semua pengguna); hanya nama penanggung jawab.
  *
- * Aman dijalankan ulang (upsert berdasarkan kode). Status ruang yang sudah ada
- * tidak diubah.
+ * Aman dijalankan ulang: baris baru dibuat, tetapi nama/kapasitas/deskripsi
+ * yang sudah diisi admin tidak ditimpa.
  *
  * Jalankan: php artisan db:seed --class=RuangKelasFsmSeeder
  */
@@ -112,20 +112,24 @@ class RuangKelasFsmSeeder extends Seeder
             $room = Room::withTrashed()->firstOrNew(['code' => $code]);
             $isNew = !$room->exists;
 
-            $room->fill([
-                'name' => $name,
-                'capacity' => $capacity,
-                'description' => implode(' · ', $details),
-            ]);
             if ($isNew) {
-                $room->facilities = [];
-                $room->status = 'ACTIVE';
+                $room->fill([
+                    'name' => $name,
+                    'capacity' => $capacity,
+                    'description' => implode(' · ', $details),
+                    'facilities' => [],
+                    'status' => 'ACTIVE',
+                ]);
+                $room->save();
             }
-            $room->save();
+
+            // Baris existing tidak diubah. Nama, kapasitas, deskripsi,
+            // fasilitas, status, dan foto adalah milik admin. Jangan mengisi
+            // capacity/description yang null: null bisa merupakan pilihan admin.
 
             $isNew ? $created++ : $updated++;
         }
 
-        $this->command?->info("Ruang kelas FSM: {$created} ditambahkan, {$updated} diperbarui (total " . count($rooms) . ').');
+        $this->command?->info("Ruang kelas FSM: {$created} ditambahkan, {$updated} dilewati.");
     }
 }

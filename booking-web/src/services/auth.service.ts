@@ -9,7 +9,7 @@ interface LoginRequest {
 }
 
 
-interface LoginResponse {
+export interface LoginResponse {
   message: string;
   token: string;
   user: {
@@ -22,10 +22,12 @@ interface LoginResponse {
     role?: {
       id: number;
       name: string;
+      slug?: string;
     };
     unit?: {
       id: number;
       name: string;
+      code?: string | null;
       category?: string;
     };
     is_profile_completed: boolean;

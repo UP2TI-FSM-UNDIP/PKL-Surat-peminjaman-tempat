@@ -14,17 +14,14 @@ class ReviseDocumentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'target_user_id' => 'required|exists:users,id',
-            'note'           => 'required|string',
+            'note' => 'required|string',
         ];
     }
 
     public function messages(): array
     {
         return [
-            'target_user_id.required' => 'User tujuan wajib dipilih',
-            'target_user_id.exists'   => 'User tujuan tidak ditemukan',
-            'note.required'           => 'Catatan revisi wajib diisi',
+            'note.required' => 'Catatan revisi wajib diisi',
         ];
     }
 }

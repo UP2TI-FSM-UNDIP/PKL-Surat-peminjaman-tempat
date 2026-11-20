@@ -9,17 +9,16 @@ class DatabaseSeeder extends Seeder
 {
     use WithoutModelEvents;
 
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
         $this->call([
             RoleSeeder::class,
             UnitSeeder::class,
-            UserSeeder::class,
+            BookingPolicySeeder::class,
             WorkflowSeeder::class,
-            RoomBookingSeeder::class,
+            RuangKelasFsmSeeder::class,
+            SpecialRoomsSeeder::class,
+            UserSeeder::class,
         ]);
     }
 }

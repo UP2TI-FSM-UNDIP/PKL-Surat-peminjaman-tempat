@@ -78,8 +78,7 @@ export function BookingDetailModal({ open, onOpenChange, booking }: Props) {
               {booking.room && (
                 <DetailRow label='Ruangan' className='sm:col-span-2'>
                   {booking.room.name}
-                  {booking.room.capacity &&
-                    ` (Kapasitas: ${booking.room.capacity} orang)`}
+                  {` (Kapasitas: ${booking.room.capacity ?? '-'} orang)`}
                 </DetailRow>
               )}
 

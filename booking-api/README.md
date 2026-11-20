@@ -1,58 +1,46 @@
-# 🚀 Booking API - Workflow Management System
+# 🚀 Booking API - Reservation Workflow
 
-Sistem manajemen dokumen dengan workflow approval otomatis untuk organisasi kampus (HIMA, UKM, Prodi, Fakultas).
+Sistem reservasi ruang dengan workflow approval otomatis untuk sivitas Fakultas Sains dan Matematika.
 
 ## ⚡ Quick Start
 
 ```bash
-# 1. Jalankan migrasi database
-php artisan migrate:fresh
+# 1. Jalankan migrasi dan seeder
+php artisan migrate:fresh --seed
 
-# 2. Seed data awal (roles, units, users, workflows)
-php artisan db:seed --class=WorkflowSeeder
-
-# 3. Jalankan server
+# 2. Jalankan server
 php artisan serve
 ```
 
 ## 📧 Demo Accounts
 
-| Email                       | Password | Role        | Unit                |
-| --------------------------- | -------- | ----------- | ------------------- |
-| dekan@ft.ac.id              | password | Dekan       | Fakultas            |
-| kaprodi.if@ft.ac.id         | password | Kaprodi     | Prodi Informatika   |
-| ketua.hima.if@student.ac.id | password | Ketua HIMA  | HIMA Informatika    |
-| ketua.hima.te@student.ac.id | password | Ketua HIMA  | HIMA Teknik Elektro |
-| ketua.hima.ts@student.ac.id | password | Ketua HIMA  | HIMA Teknik Sipil   |
-| ketua.bem@student.ac.id     | password | Ketua BEM   | BEM Fakultas        |
-| senat@ft.ac.id              | password | Ketua Senat | Senat Fakultas      |
-| ketua.ukm@student.ac.id     | password | Ketua UKM   | UKM Olahraga        |
-
-## 📚 Documentation
-
-- **[Implementation Guide](WORKFLOW_IMPLEMENTATION_GUIDE.md)** - Panduan lengkap API & penggunaan
-- **[Technical Diagrams](WORKFLOW_DIAGRAMS.md)** - Diagram database & flow
-- **[Organizational Structure](ORGANIZATIONAL_STRUCTURE.md)** - Struktur organisasi lengkap (HIMA, BEM, Senat, UKM)
-- **[Organizational Structure](ORGANIZATIONAL_STRUCTURE.md)** - Struktur organisasi lengkap (HIMA, BEM, Senat, UKM)
+| Email                          | Password | Role                  |
+| ------------------------------ | -------- | --------------------- |
+| admin@fsm.undip.ac.id          | password | Admin                 |
+| wadek2@fsm.undip.ac.id         | password | Wakil Dekan 2         |
+| tu@fsm.undip.ac.id             | password | Manajer Tata Usaha    |
+| spv@fsm.undip.ac.id            | password | Supervisor Sumberdaya |
+| mahasiswa@student.undip.ac.id  | password | Mahasiswa             |
+| dosen@undip.ac.id              | password | Dosen                 |
 
 ## 🔑 Key Features
 
-✅ Dynamic workflow routing (SELF, PARENT, FACULTY_LEADER, SPECIFIC_CATEGORY)  
-✅ Multi-level approval system  
-✅ Complete audit trail & document logs  
-✅ Hierarchical organization structure  
+✅ Reservasi multi-slot dengan pengecekan bentrok  
+✅ Alur persetujuan tiga langkah (SPV, Manajer TU, Wadek 2)  
+✅ Deadline reservasi berbasis policy  
+✅ Expiry otomatis dan penyelesaian booking  
 ✅ Role-based access control
 
 ## 📡 Main API Endpoints
 
 ```
-GET    /api/workflows                      # List workflows
-GET    /api/documents                      # My documents & pending approvals
-POST   /api/documents                      # Create document
-POST   /api/documents/{id}/submit          # Submit document
-POST   /api/documents/{id}/approve         # Approve & forward
-POST   /api/documents/{id}/reject          # Reject document
-POST   /api/documents/{id}/revise          # Return for revision
+GET    /api/booking-rules                  # Aturan ruang pada tanggal tertentu
+POST   /api/reservations                   # Buat reservasi
+GET    /api/reservations/{id}/summary      # Ringkasan reservasi
+POST   /api/documents/{id}/submit          # Ajukan reservasi
+POST   /api/documents/{id}/approve         # Setujui & teruskan
+POST   /api/documents/{id}/reject          # Tolak reservasi
+POST   /api/documents/{id}/revise          # Kembalikan untuk revisi
 ```
 
 ## 🏗️ Tech Stack

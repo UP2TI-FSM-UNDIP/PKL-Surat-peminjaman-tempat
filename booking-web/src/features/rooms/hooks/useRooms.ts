@@ -1,6 +1,13 @@
 import { useState, useEffect } from 'react';
 import { AxiosError } from 'axios';
 import { roomService, type Room } from '@/services/room.service';
+import {
+    appendRoomFormData,
+    emptyRoomForm,
+    toRoomFormData,
+    toRoomPayload,
+    type RoomFormData,
+} from '@/features/rooms/utils/roomForm';
 import type { ChangeEvent, FormEvent } from 'react';
 
 export function useRooms() {
@@ -19,20 +26,15 @@ export function useRooms() {
 
     // Form states
     const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
-    const [formData, setFormData] = useState({
-        name: '',
-        code: '',
-        capacity: '10',
-        description: '',
-        facilities: '',
-        status: 'ACTIVE' as Room['status'],
-    });
+    const [formData, setFormData] = useState<RoomFormData>(emptyRoomForm);
     const [roomImage, setRoomImage] = useState<File | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [formError, setFormError] = useState('');
 
     const [selectedStatus, setSelectedStatus] = useState<Room['status'] | 'all'>('all');
     const [capacityRange, setCapacityRange] = useState<string>('all');
+    const [weekdayFilter, setWeekdayFilter] = useState<'all' | 'yes' | 'no'>('all');
+    const [upcomingBookingCount, setUpcomingBookingCount] = useState(0);
 
     // Debounce search query
     useEffect(() => {
@@ -67,34 +69,24 @@ export function useRooms() {
     }, []);
 
     const handleCreate = () => {
-        setFormData({
-            name: '',
-            code: '',
-            capacity: '10',
-            description: '',
-            facilities: '',
-            status: 'ACTIVE',
-        });
+        setFormData({ ...emptyRoomForm });
         setRoomImage(null);
         setFormError('');
         setIsCreateModalOpen(true);
     };
 
-    const handleEdit = (room: Room) => {
+    const handleEdit = async (room: Room) => {
         setSelectedRoom(room);
-        setFormData({
-            name: room.name,
-            code: room.code,
-            capacity: String(room.capacity || 10),
-            description: room.description || '',
-            facilities: Array.isArray(room.facilities)
-                ? room.facilities.join(', ')
-                : '',
-            status: room.status,
-        });
+        setFormData(toRoomFormData(room));
         setRoomImage(null);
         setFormError('');
         setIsEditModalOpen(true);
+        try {
+            const detail = await roomService.getRoom(room.id);
+            setUpcomingBookingCount(detail.upcoming_bookings?.length ?? 0);
+        } catch {
+            setUpcomingBookingCount(0);
+        }
     };
 
     const handleDetail = (room: Room) => {
@@ -124,21 +116,9 @@ export function useRooms() {
         try {
             setIsSubmitting(true);
 
+            const payload = toRoomPayload(formData);
             const data = new FormData();
-            data.append('name', formData.name);
-            data.append('code', formData.code);
-            data.append('capacity', String(parseInt(formData.capacity)));
-            data.append('description', formData.description);
-            data.append('status', 'ACTIVE');
-
-            const facilitiesArray = formData.facilities
-                .split(',')
-                .map((f) => f.trim())
-                .filter((f) => f.length > 0);
-
-            facilitiesArray.forEach((f, index) => {
-                data.append(`facilities[${index}]`, f);
-            });
+            appendRoomFormData(data, payload);
 
             if (roomImage) {
                 data.append('images[]', roomImage);
@@ -173,21 +153,7 @@ export function useRooms() {
         try {
             setIsSubmitting(true);
 
-            const facilitiesArray = formData.facilities
-                .split(',')
-                .map((f) => f.trim())
-                .filter((f) => f.length > 0);
-
-            const roomData = {
-                name: formData.name,
-                code: formData.code,
-                capacity: parseInt(formData.capacity) || 10,
-                description: formData.description,
-                facilities: facilitiesArray,
-                status: formData.status,
-            };
-
-            await roomService.updateRoom(selectedRoom.id, roomData);
+            await roomService.updateRoom(selectedRoom.id, toRoomPayload(formData));
 
             if (roomImage) {
                 try {
@@ -244,7 +210,12 @@ export function useRooms() {
             return true;
         };
 
-        return matchesSearch && matchesStatus && matchesCapacity();
+        const matchesWeekday =
+            weekdayFilter === 'all' ||
+            (weekdayFilter === 'yes' && room.is_bookable_weekday) ||
+            (weekdayFilter === 'no' && !room.is_bookable_weekday);
+
+        return matchesSearch && matchesStatus && matchesCapacity() && matchesWeekday;
     });
 
     return {
@@ -273,6 +244,9 @@ export function useRooms() {
         setSelectedStatus,
         capacityRange,
         setCapacityRange,
+        weekdayFilter,
+        setWeekdayFilter,
+        upcomingBookingCount,
         fetchRooms,
         handleCreate,
         handleEdit,

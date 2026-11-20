@@ -123,7 +123,7 @@ export function RoomDetailModal({
                                 <span className='text-sm font-medium'>Kapasitas</span>
                             </div>
                             <p className='text-base font-semibold text-gray-900 ml-6'>
-                                {room.capacity} orang
+                                {room.capacity ?? '-'} orang
                             </p>
                         </div>
 

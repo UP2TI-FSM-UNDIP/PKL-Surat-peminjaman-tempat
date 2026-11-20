@@ -8,6 +8,5 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-// Lepas booking PENDING yang kadaluarsa (draft yang tidak pernah diajukan).
-// Butuh cron: * * * * * php artisan schedule:run
-Schedule::command('room:release-expired')->dailyAt('01:00');
+Schedule::command('reservations:expire')->dailyAt('00:05')->timezone('Asia/Jakarta');
+Schedule::command('bookings:complete')->dailyAt('00:10')->timezone('Asia/Jakarta');
