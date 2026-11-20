@@ -137,6 +137,9 @@ Route::middleware(['auth:sanctum', 'role.assigned'])->group(function () {
         Route::delete('/{id}', [UserController::class, 'destroy']);  // Has internal admin check
     });
 
+    // Booking rules (tanggal, ruang, batas policy)
+    Route::get('/booking-rules', [\App\Http\Controllers\BookingRuleController::class, 'show']);
+
     // Room Routes — Read Only (semua authenticated user)
     Route::prefix('rooms')->group(function () {
         Route::get('/', [RoomController::class, 'index']);
