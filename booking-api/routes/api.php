@@ -64,6 +64,15 @@ Route::middleware(['auth:sanctum', 'role.assigned'])->group(function () {
         Route::get('/stats', [App\Http\Controllers\Admin\DashboardController::class, 'stats']);
     });
 
+    // Booking Policy (versi aktif + audit)
+    Route::middleware('admin')->prefix('admin/booking-policy')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\BookingPolicyController::class, 'show']);
+        Route::put('/', [\App\Http\Controllers\Admin\BookingPolicyController::class, 'update']);
+        Route::post('/preview', [\App\Http\Controllers\Admin\BookingPolicyController::class, 'preview']);
+        Route::get('/audits', [\App\Http\Controllers\Admin\BookingPolicyController::class, 'audits']);
+        Route::post('/recalculate', [\App\Http\Controllers\Admin\BookingPolicyController::class, 'recalculate']);
+    });
+
     // Room Management (Create, Update, Delete, Upload Image) — empat role pengelola
     Route::middleware('admin:wadek2,manajer-tata-usaha,spv-sumberdaya')->prefix('rooms')->group(function () {
         Route::post('/', [RoomController::class, 'store']);
