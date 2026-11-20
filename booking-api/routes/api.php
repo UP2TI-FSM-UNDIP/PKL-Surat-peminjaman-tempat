@@ -142,6 +142,9 @@ Route::middleware(['auth:sanctum', 'role.assigned'])->group(function () {
 
     // Reservations
     Route::post('/reservations', [\App\Http\Controllers\ReservationController::class, 'store']);
+    Route::put('/reservations/{document}/proposal', [\App\Http\Controllers\ReservationController::class, 'updateProposal']);
+    Route::post('/reservations/{document}/cancel', [\App\Http\Controllers\ReservationController::class, 'cancel']);
+    Route::get('/reservations/{document}/summary', [\App\Http\Controllers\ReservationController::class, 'summary']);
     Route::post('/rooms/check-availability-batch', [\App\Http\Controllers\ReservationController::class, 'checkAvailability']);
 
     // Room Routes — Read Only (semua authenticated user)

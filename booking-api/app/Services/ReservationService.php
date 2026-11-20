@@ -17,6 +17,7 @@ class ReservationService
     public function __construct(
         private BookingRuleService $rules,
         private BookingPolicyService $policies,
+        private ProposalCompletenessService $completeness,
     ) {}
 
     public function create(User $user, array $data): Document
@@ -104,6 +105,90 @@ class ReservationService
 
             return $document->load('roomBookings');
         });
+    }
+
+    public function updateProposal(Document $document, User $user, array $data, ?\Illuminate\Http\UploadedFile $file = null): Document
+    {
+        if (!in_array($document->status, ['DRAFT', 'REVISION'], true)) {
+            throw ValidationException::withMessages(['status' => ['Status tidak dapat diubah.']]);
+        }
+
+        $reservationKeys = ['mode', 'slots', 'room_id', 'booking_date', 'start_time', 'end_time', 'purpose', 'ketua_pelaksana_nama', 'ketua_pelaksana_identitas', 'ketua_pelaksana_hp', 'expected_participants', 'buka_sekat'];
+        $content = $data['content'] ?? [];
+        $current = $document->content ?? [];
+
+        foreach ($reservationKeys as $key) {
+            if (array_key_exists($key, $content) && $content[$key] != ($current[$key] ?? null)) {
+                throw ValidationException::withMessages(['content' => ["Field {$key} tidak dapat diubah."]]);
+            }
+        }
+
+        $allowed = ['event_name', 'event_nature', 'event_form', 'objectives', 'benefits', 'target_audience', 'equipment_items'];
+        $merge = array_intersect_key($content, array_flip($allowed));
+        $document->update([
+            'content' => array_merge($current, $merge),
+            'file_proposal' => $file ? $file->store('documents/proposals', 'private') : $document->file_proposal,
+        ]);
+
+        return $this->completeness->sync($document);
+    }
+
+    public function cancel(Document $document, User $user, ?string $reason = null): Document
+    {
+        if (!in_array($document->status, ['DRAFT', 'REVISION', 'IN_PROGRESS'], true)) {
+            throw ValidationException::withMessages(['status' => ['Status tidak dapat dibatalkan.']]);
+        }
+
+        DB::transaction(function () use ($document, $user, $reason) {
+            $document->update([
+                'status' => 'CANCELLED',
+                'cancelled_at' => now(),
+                'cancelled_by' => $user->id,
+                'current_holder_id' => null,
+            ]);
+            $document->roomBookings()->where('status', 'PENDING')->update([
+                'status' => 'CANCELLED',
+                'cancelled_at' => now(),
+                'cancelled_by' => $user->id,
+                'rejection_reason' => $reason ?? 'Dibatalkan',
+            ]);
+            DocumentLog::create([
+                'document_id' => $document->id,
+                'user_id' => $user->id,
+                'action' => 'CANCELLED',
+                'note' => $reason,
+            ]);
+        });
+
+        return $document->fresh(['roomBookings', 'logs']);
+    }
+
+    public function summary(Document $document): array
+    {
+        $document->load(['roomBookings.room', 'logs']);
+
+        return [
+            'document' => $document,
+            'slots' => $document->roomBookings->map(fn ($booking) => [
+                'room_id' => $booking->room_id,
+                'room_code' => $booking->room?->code,
+                'room_name' => $booking->room?->name,
+                'booking_date' => $booking->booking_date->format('Y-m-d'),
+                'start_time' => substr($booking->start_time, 0, 5),
+                'end_time' => substr($booking->end_time, 0, 5),
+                'is_sekat' => $booking->is_sekat,
+            ])->values()->all(),
+            'equipment_items' => $document->content['equipment_items'] ?? [],
+            'completeness' => $this->completeness->evaluate($document),
+            'proposal_completed_at' => $document->proposal_completed_at,
+            'reservation_deadline' => $document->reservation_deadline?->format('Y-m-d'),
+            'status' => $document->status,
+            'timeline' => $document->logs->map(fn ($log) => [
+                'action' => $log->action,
+                'note' => $log->note,
+                'at' => $log->created_at,
+            ])->values()->all(),
+        ];
     }
 
     public function checkAvailability(array $slots, ?int $excludeDocumentId = null): array
