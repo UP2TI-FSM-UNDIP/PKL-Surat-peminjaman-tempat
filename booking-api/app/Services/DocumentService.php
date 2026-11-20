@@ -5,29 +5,22 @@ namespace App\Services;
 use App\Models\Document;
 use App\Models\DocumentLog;
 use App\Models\RoomBooking;
-use App\Models\Sign;
 use App\Models\User;
-use App\Services\WorkflowEngine;
-use App\Services\DocumentGenerationService;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use PhpOffice\PhpWord\TemplateProcessor;
 
 class DocumentService
 {
     protected WorkflowEngine $workflowEngine;
-    protected DocumentGenerationService $documentGenerationService;
 
-    public function __construct(WorkflowEngine $workflowEngine, DocumentGenerationService $documentGenerationService)
+    public function __construct(WorkflowEngine $workflowEngine)
     {
         $this->workflowEngine = $workflowEngine;
-        $this->documentGenerationService = $documentGenerationService;
     }
 
     public function listDocuments(User $user, array $filters): array
     {
-        $isAdmin = $user->role->slug === 'admin';
+        $isAdmin = $user->role?->slug === 'admin';
         $perPage = $filters['per_page'] ?? 10;
         $search = $filters['q'] ?? null;
 
@@ -62,7 +55,7 @@ class DocumentService
         $pendingDocuments = $pendingQuery->latest()->paginate($perPage, ['*'], 'page_pending');
 
         $processedQuery = clone $baseQuery;
-        $processedQuery->whereIn('status', ['APPROVED', 'REJECTED', 'RETURNED']);
+        $processedQuery->whereIn('status', ['APPROVED', 'REJECTED', 'RETURNED', 'EXPIRED', 'CANCELLED']);
         $this->applySearch($processedQuery, $search);
         $processedDocuments = $processedQuery->latest()->paginate($perPage, ['*'], 'page_processed');
 
@@ -92,7 +85,7 @@ class DocumentService
             $doc->current_holder_info = $doc->currentHolder ? [
                 'id' => $doc->currentHolder->id,
                 'name' => $doc->currentHolder->name,
-                'role' => $doc->currentHolder->role->name ?? 'Unknown',
+                'role' => $doc->currentHolder->role?->name ?? 'Unknown',
             ] : null;
             return $doc;
         });
@@ -163,16 +156,17 @@ class DocumentService
             'currentHolder.unit',
             'creator.role',
             'unit',
-            'logs.user.role'
+            'logs.user.role',
+            'roomBookings',
         ])->findOrFail($id);
 
-        $isAdmin = $user->role->slug === 'admin';
+        $isAdmin = $user->role?->slug === 'admin';
         $isCreator = $document->creator_id === $user->id;
         $isCurrentHolder = $document->current_holder_id === $user->id;
 
         $hasProcessed = DocumentLog::where('document_id', $document->id)
             ->where('user_id', $user->id)
-            ->whereIn('action', ['APPROVED', 'REJECTED', 'SUBMITTED', 'REVISED', 'RETURNED'])
+            ->whereIn('action', ['APPROVED', 'REJECTED', 'SUBMITTED', 'RETURNED'])
             ->exists();
 
         if (!$isAdmin && !$isCreator && !$isCurrentHolder && !$hasProcessed) {
@@ -182,174 +176,13 @@ class DocumentService
         return $document;
     }
 
-    public function createDocument(User $user, array $validated, Request $request): ?Document
-    {
-        $content = $request->input('content', []);
-
-        // NIM/HP validation
-        if (isset($content['ketua_pelaksana_nim']) && !empty($content['ketua_pelaksana_nim'])) {
-            if (!preg_match('/^\d{14}$/', $content['ketua_pelaksana_nim'])) {
-                throw new \Illuminate\Validation\ValidationException(
-                    \Illuminate\Support\Facades\Validator::make([], []),
-                    response()->json([
-                        'success' => false,
-                        'message' => 'NIM harus 14 digit angka',
-                        'errors' => ['content.ketua_pelaksana_nim' => ['NIM harus 14 digit angka']],
-                    ], 422)
-                );
-            }
-        }
-        if (isset($content['ketua_pelaksana_hp']) && !empty($content['ketua_pelaksana_hp'])) {
-            if (!preg_match('/^\d{12,13}$/', $content['ketua_pelaksana_hp'])) {
-                throw new \Illuminate\Validation\ValidationException(
-                    \Illuminate\Support\Facades\Validator::make([], []),
-                    response()->json([
-                        'success' => false,
-                        'message' => 'HP harus 12-13 digit angka',
-                        'errors' => ['content.ketua_pelaksana_hp' => ['HP harus 12-13 digit angka']],
-                    ], 422)
-                );
-            }
-        }
-
-        $validated['content'] = $content;
-
-        // Workflow harus sesuai kategori unit pembuat. Approver dicari relatif
-        // terhadap unit pembuat (SELF/PARENT), jadi misalnya user unit Fakultas
-        // yang memakai workflow HMD pasti gagal saat submit/approve.
-        // Admin & Sumber Daya dikecualikan (booking manual, langsung disetujui).
-        $roleSlug = $user->role->slug ?? '';
-        if (!in_array($roleSlug, ['admin', 'sumber-daya'])) {
-            $workflow = \App\Models\Workflow::find($validated['workflow_id']);
-            $unitCategory = $user->unit?->category;
-            if (!$unitCategory || strcasecmp((string) $workflow?->applies_to_category, $unitCategory) !== 0) {
-                throw new \Illuminate\Validation\ValidationException(
-                    \Illuminate\Support\Facades\Validator::make([], []),
-                    response()->json([
-                        'success' => false,
-                        'message' => 'Alur pengajuan tidak sesuai dengan unit Anda (' . ($user->unit?->name ?? 'tanpa unit') . '). Hubungi admin untuk memperbaiki unit akun Anda.',
-                        'errors' => ['workflow_id' => ['Workflow tidak sesuai dengan kategori unit Anda']],
-                    ], 422)
-                );
-            }
-        }
-
-        // Aturan jadwal (Sabtu, minimal N hari sebelum hari-H, jam operasional)
-        // diterapkan sejak reservasi/draft dibuat, bukan baru saat diajukan.
-        // Tanpa ini reservasi bisa dibuat untuk tanggal yang pasti ditolak
-        // saat pengajuan, dan deadline pelengkapan dokumennya sudah lewat.
-        if ($scheduleError = $this->scheduleRuleError($content)) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
-                'content.booking_date' => [$scheduleError],
-            ]);
-        }
-
-        // Cegah dokumen ganda: jika pengguna sudah punya DRAFT untuk ruang, tanggal,
-        // dan jam yang sama (mis. dari Reservasi, lalu mengajukan lagi lewat
-        // "Ajukan Peminjaman"), lanjutkan draft itu alih-alih membuat dokumen baru.
-        if (!empty($content['room_id']) && !empty($content['booking_date'])) {
-            $existingDoc = $this->findDuplicateReservation($user, $content);
-            if ($existingDoc) {
-                // Simpan isian terbaru ke draft yang ada agar tidak hilang
-                $existingDoc->update([
-                    'title' => $validated['title'] ?? $existingDoc->title,
-                    'content' => array_merge($existingDoc->content ?? [], $content),
-                ]);
-                return $existingDoc->fresh(); // wasRecentlyCreated = false -> controller membalas 200
-            }
-        }
-
-        $document = DB::transaction(function () use ($request, $validated, $user) {
-            $pathExecutive = null;
-            if ($request->hasFile('executive_summary')) {
-                $pathExecutive = $request->file('executive_summary')->store('documents/executive_summaries', 'private');
-            }
-
-            $pathApproval = null;
-            if ($request->hasFile('approval_sheet')) {
-                $pathApproval = $request->file('approval_sheet')->store('documents/approval_sheets', 'private');
-            }
-
-            $pathProposal = null;
-            if ($request->hasFile('proposal')) {
-                $pathProposal = $request->file('proposal')->store('documents/proposals', 'private');
-            }
-
-            $doc = Document::create([
-                'workflow_id' => $validated['workflow_id'],
-                'title'       => $validated['title'],
-                'content'     => $validated['content'] ?? null,
-                'meta_data'   => $validated['meta_data'] ?? null,
-                'file_executive_summary' => $pathExecutive,
-                'file_approval_sheet'    => $pathApproval,
-                'file_proposal'          => $pathProposal,
-                'unit_id'            => $user->unit_id,
-                'creator_id'         => $user->id,
-                'status'             => 'DRAFT',
-                'current_step_order' => 1,
-            ]);
-
-            DocumentLog::create([
-                'document_id' => $doc->id,
-                'user_id'     => $user->id,
-                'action'      => 'CREATED',
-                'note'        => 'Dokumen dibuat',
-            ]);
-
-            return $doc;
-        });
-
-        return $document;
-    }
-
-    /**
-     * Pesan error jika jadwal di content melanggar aturan peminjaman, atau null.
-     */
-    private function scheduleRuleError(array $content): ?string
-    {
-        if (empty($content['booking_date'])) {
-            return null;
-        }
-
-        try {
-            app(RoomBookingService::class)->validateScheduleRules(
-                (string) $content['booking_date'],
-                (string) ($content['start_time'] ?? '09:00'),
-                (string) ($content['end_time'] ?? '17:00')
-            );
-        } catch (\Exception $e) {
-            return $e->getMessage();
-        }
-
-        return null;
-    }
-
-    private function findDuplicateReservation(User $user, array $content): ?Document
-    {
-        return Document::where('creator_id', $user->id)
-            ->where('status', 'DRAFT')
-            ->latest('id')
-            ->get()
-            ->first(function ($doc) use ($content) {
-                $docContent = $doc->content ?? [];
-                return isset($docContent['room_id']) &&
-                       isset($docContent['booking_date']) &&
-                       isset($docContent['start_time']) &&
-                       isset($docContent['end_time']) &&
-                       $docContent['room_id'] == ($content['room_id'] ?? null) &&
-                       $docContent['booking_date'] == ($content['booking_date'] ?? null) &&
-                       $docContent['start_time'] == ($content['start_time'] ?? null) &&
-                       $docContent['end_time'] == ($content['end_time'] ?? null);
-            });
-    }
-
     public function submitDocument(Document $document, User $user): Document
     {
         DB::transaction(function () use ($document, $user) {
-            $userRole = $user->role->slug ?? '';
+            $userRole = $user->role?->slug ?? '';
 
-            // AUTO APPROVAL untuk Admin dan Sumber Daya
-            if (in_array($userRole, ['admin', 'sumber-daya'])) {
+            // AUTO APPROVAL untuk Admin
+            if ($userRole === 'admin') {
                 $document->update([
                     'status' => 'APPROVED',
                     'current_step_order' => 999,
@@ -373,16 +206,12 @@ class DocumentService
             $originalStatus = $document->status;
             $currentStep = 1;
 
-            // HANDLE REVISION LOGIC (Requirements #8 & #9)
-            // Bandingkan jadwal di content dengan jadwal saat terakhir diajukan.
-            // (Frontend meng-update booking SEBELUM submit, jadi membandingkan
-            // dengan RoomBooking selalu menghasilkan "tidak berubah".)
+            // HANDLE REVISION LOGIC
             $content = $document->content ?? [];
             if ($originalStatus === 'REVISION') {
                 $previous = $document->meta_data['submitted_booking'] ?? null;
 
                 if (!$previous) {
-                    // Dokumen lama tanpa snapshot: fallback ke booking terakhir
                     $lastBooking = RoomBooking::where('document_id', $document->id)
                         ->whereNotIn('status', ['CANCELLED', 'REJECTED'])
                         ->latest()
@@ -398,11 +227,9 @@ class DocumentService
                     $newRoomId = $content['room_id'] ?? null;
 
                     if ($newDate && $newDate !== $previous['booking_date']) {
-                        // Requirement #9: Ganti tanggal -> ulang dari awal
                         \Log::info("[Revision] Date changed from {$previous['booking_date']} to {$newDate}. Restarting workflow.");
                         $currentStep = 1;
                     } elseif ($newRoomId && $newRoomId != $previous['room_id']) {
-                        // Requirement #8: Ganti tempat saja -> langsung ke Sumber Daya
                         $sumberDayaStep = $document->workflow->steps()
                             ->where('target_role_slug', 'sumber-daya')
                             ->first();
@@ -415,8 +242,6 @@ class DocumentService
                 }
             }
 
-            // Pastikan booking ruangan mengikuti jadwal terbaru di dokumen dan
-            // simpan snapshot jadwal yang diajukan untuk perbandingan revisi berikutnya.
             $this->syncBookingWithContent($document, $user);
             if (!empty($content['room_id']) && !empty($content['booking_date'])) {
                 $meta = $document->meta_data ?? [];
@@ -444,19 +269,11 @@ class DocumentService
                 'user_id' => $user->id,
                 'action' => 'SUBMITTED',
                 'note' => $logNote,
-                // Pada pengajuan ulang, simpan langkah awal ulang agar persetujuan
-                // lama untuk langkah >= ini dianggap tidak berlaku (lihat
-                // DocumentGenerationService::effectiveApprovalLogs).
                 'step_snapshot' => $originalStatus === 'REVISION' ? $currentStep : 0,
             ]);
 
-            // AUTO-APPROVE JIKA SUBMITTER ADALAH SEKRETARIS (berlaku untuk step 1)
+            // AUTO-APPROVE JIKA SUBMITTER ADALAH SEKRETARIS (legacy, tetap ada sampai Task 10)
             if ($currentStep === 1 && $userRole === 'sekretaris' && $firstStep->target_role_slug === 'sekretaris') {
-                \Log::info('[DocumentService] Sekretaris auto-approve Step 1', [
-                    'document_id' => $document->id,
-                    'user' => $user->name,
-                ]);
-
                 DocumentLog::create([
                     'document_id' => $document->id,
                     'user_id' => $user->id,
@@ -493,7 +310,6 @@ class DocumentService
                 return;
             }
 
-            // ALUR NORMAL / JUMP
             $approver = $this->workflowEngine->findApprover($document, $firstStep);
 
             if (!$approver) {
@@ -515,13 +331,7 @@ class DocumentService
 
     /**
      * Samakan booking ruangan (PENDING) dengan jadwal di content dokumen.
-     *
-     * Dipanggil saat dokumen diajukan. Menangani kasus:
-     * - dokumen belum punya booking (dibuat PENDING dari content),
-     * - booking lama CANCELLED karena hold kadaluarsa (dihidupkan lagi jadi PENDING),
-     * - jadwal/ruangan diubah saat revisi tapi booking belum ikut berubah.
-     * Dokumen dengan beberapa booking (batch) tidak disentuh karena content hanya
-     * memuat satu slot.
+     * Dipertahankan sementara sampai alur submit lama diganti pada Task 10.
      */
     private function syncBookingWithContent(Document $document, User $user): void
     {
@@ -590,19 +400,7 @@ class DocumentService
 
     public function approveDocument(Document $document, User $user, ?string $note): string
     {
-        $signaturePath = null;
-        $userRoleSlug = $user->role->slug ?? '';
-        $rolesWithoutSignature = ['sumber-daya', 'kemahasiswaan'];
-
-        if (!in_array($userRoleSlug, $rolesWithoutSignature)) {
-            $sign = Sign::where('user_id', $user->id)->latest()->first();
-            if (!$sign || !$sign->signature) {
-                throw new \Exception('Anda harus mengupload tanda tangan terlebih dahulu sebelum approve dokumen', 400);
-            }
-            $signaturePath = $sign->signature;
-        }
-
-        return $this->workflowEngine->approveDocument($document, $user, $note, $signaturePath);
+        return $this->workflowEngine->approveDocument($document, $user, $note);
     }
 
     public function reviseDocument(Document $document, User $user, int $targetUserId, string $note): string
@@ -615,303 +413,15 @@ class DocumentService
         return $this->workflowEngine->rejectDocument($document, $user, $note);
     }
 
-    public function applySignatureToDocument(Document $document, User $user, string $type): void
-    {
-        $columnMap = [
-            'approval-sheet' => 'file_approval_sheet',
-            'executive-summary' => 'file_executive_summary'
-        ];
-        $templateTypeMap = [
-            'approval-sheet' => 'lembar_pengesahan',
-            'executive-summary' => 'executive_summary'
-        ];
-
-        $column = $columnMap[$type];
-        $templateType = $templateTypeMap[$type];
-
-        // Validasi: Dokumen harus memiliki file target
-        if (!$document->{$column}) {
-            $typeName = $type === 'approval-sheet' ? 'lembar pengesahan' : 'executive summary';
-            throw new \Exception("Dokumen belum memiliki {$typeName}", 400);
-        }
-
-        // Validasi: File harus berformat DOCX
-        $fileExtension = pathinfo($document->{$column}, PATHINFO_EXTENSION);
-        if (strtolower($fileExtension) !== 'docx') {
-            throw new \Exception('Hanya file DOCX yang dapat dibubuhkan tanda tangan', 400);
-        }
-
-        // Ambil signature user
-        $signature = Sign::where('user_id', $user->id)->latest('updated_at')->first();
-
-        if (!$signature) {
-            throw new \Exception('Anda belum memiliki tanda tangan. Silakan upload tanda tangan terlebih dahulu.', 400);
-        }
-
-        $signature->refresh();
-
-        if (!$signature->signature) {
-            throw new \Exception('File tanda tangan tidak ditemukan. Silakan upload ulang tanda tangan Anda.', 400);
-        }
-
-        if (!Storage::disk('private')->exists($signature->signature)) {
-            throw new \Exception('File tanda tangan hilang dari storage. Silakan upload ulang tanda tangan Anda.', 400);
-        }
-
-        $tempDocxPath = null;
-        $tempSignaturePath = null;
-
-        try {
-            DB::beginTransaction();
-
-            \Log::info('ApplySignature: Starting', [
-                'document_id' => $document->id,
-                'user_id' => $user->id,
-                'signature_id' => $signature->id,
-                'signature_path' => $signature->signature,
-                'signature_updated_at' => $signature->updated_at,
-            ]);
-
-            // Regenerate from template
-            $orgType = $this->mapCategoryToOrganizationType($document->unit->category ?? 'HMD');
-            // Placeholder tanda tangan kosong dibiarkan dulu: tanda tangan
-            // pemegang dokumen dibubuhkan di bawah, lalu sisanya dikosongkan.
-            $newFilePath = $this->documentGenerationService->generateFromTemplate(
-                $document,
-                $templateType,
-                $orgType,
-                false
-            );
-
-            $document->update([$column => $newFilePath]);
-            $document->refresh();
-
-            // Download files to temp
-            $tempDir = storage_path('app/temp');
-            if (!file_exists($tempDir)) {
-                mkdir($tempDir, 0755, true);
-            }
-
-            $targetPath = $document->{$column};
-            $tempDocxPath = $tempDir . '/' . $type . '_' . uniqid() . '.docx';
-            $docxContent = Storage::disk('private')->get($targetPath);
-            file_put_contents($tempDocxPath, $docxContent);
-
-            $tempSignaturePath = $tempDir . '/signature_' . uniqid() . '.' . pathinfo($signature->signature, PATHINFO_EXTENSION);
-            $signatureContent = Storage::disk('private')->get($signature->signature);
-            file_put_contents($tempSignaturePath, $signatureContent);
-
-            // Load template processor
-            $templateProcessor = new TemplateProcessor($tempDocxPath);
-
-            // Determine placeholders based on role
-            $userRole = $user->role->slug ?? '';
-            $userUnitCategory = strtoupper($user->unit->category ?? '');
-            $approverIndex = DocumentGenerationService::effectiveApprovalLogs($document)->count() + 1;
-            $placeholders = $this->getSignaturePlaceholders($userRole, $userUnitCategory, $approverIndex);
-
-            // Insert signature
-            $inserted = false;
-            $insertedPlaceholders = [];
-            foreach ($placeholders as $placeholder) {
-                try {
-                    $templateProcessor->setImageValue(
-                        $placeholder,
-                        [
-                            'path' => $tempSignaturePath,
-                            'width' => 100,
-                            'height' => 50,
-                            'ratio' => false
-                        ]
-                    );
-                    $inserted = true;
-                    $insertedPlaceholders[] = $placeholder;
-                    \Log::info('ApplySignature: Successfully inserted at placeholder', ['placeholder' => $placeholder]);
-                } catch (\Exception $e) {
-                    \Log::warning('ApplySignature: Placeholder not found', [
-                        'placeholder' => $placeholder,
-                        'error' => $e->getMessage(),
-                    ]);
-                    continue;
-                }
-            }
-
-            if (!$inserted) {
-                throw new \Exception('Placeholder tanda tangan untuk role Anda tidak ditemukan di template');
-            }
-
-            // Kosongkan placeholder tanda tangan yang masih belum terisi
-            DocumentGenerationService::clearSignaturePlaceholders($templateProcessor);
-
-            // Save + upload back to MinIO
-            $templateProcessor->saveAs($tempDocxPath);
-            $modifiedContent = file_get_contents($tempDocxPath);
-            Storage::disk('private')->put($targetPath, $modifiedContent);
-
-            $typeName = $type === 'approval-sheet' ? 'lembar pengesahan' : 'executive summary';
-            DocumentLog::create([
-                'document_id' => $document->id,
-                'user_id' => $user->id,
-                'action' => 'UPDATED',
-                'note' => "Tanda tangan dibubuhkan pada {$typeName} oleh {$user->name}",
-            ]);
-
-            DB::commit();
-        } catch (\Exception $e) {
-            DB::rollBack();
-            throw $e;
-        } finally {
-            if ($tempDocxPath && file_exists($tempDocxPath)) {
-                @unlink($tempDocxPath);
-            }
-            if ($tempSignaturePath && file_exists($tempSignaturePath)) {
-                @unlink($tempSignaturePath);
-            }
-        }
-    }
-
-    /**
-     * Placeholder tempat tanda tangan current holder dibubuhkan.
-     * Nama role mengikuti slug di tabel roles dan sama dengan pemetaan di
-     * DocumentGenerationService, ditambah slot generik signature_approver_N
-     * (N = urutan approver berikutnya) yang dipakai template saat ini.
-     */
-    private function getSignaturePlaceholders(string $userRole, string $userUnitCategory, int $approverIndex): array
-    {
-        $placeholders = [];
-
-        if ($userUnitCategory === 'SENAT' && in_array($userRole, ['ketua-ormawa', 'senat'])) {
-            $placeholders = ['ttd_ketua_senat', 'signature_ketua_senat', 'ttd_ketuasenat'];
-        } else {
-            $roleMap = [
-                'sekretaris' => ['ttd_sekretaris', 'signature_sekretaris'],
-                'ketua-ormawa' => ['ttd_ketua_ormawa', 'signature_ketua_ormawa', 'ttd_ketua_panitia', 'signature_ketua_panitia'],
-                'dosen-pendamping' => ['ttd_dosen_pendamping', 'signature_dosen_pendamping'],
-                'senat' => ['ttd_ketua_senat', 'signature_ketua_senat'],
-                'ketua-departemen' => ['ttd_ketua_departemen', 'signature_ketua_departemen'],
-                'kemahasiswaan' => ['ttd_kemahasiswaan', 'signature_kemahasiswaan'],
-                'wadek1' => ['ttd_wadek1', 'signature_wadek1'],
-                'sumber-daya' => ['ttd_sumber_daya', 'signature_sumber_daya'],
-            ];
-            $placeholders = $roleMap[$userRole] ?? [];
-        }
-
-        $placeholders[] = "signature_approver_{$approverIndex}";
-        $placeholders[] = "ttd_approver_{$approverIndex}";
-
-        return $placeholders;
-    }
-
-    public function updateDocument(Document $document, User $user, Request $request): Document
-    {
-        $validated = $request->validate([
-            'title'             => 'sometimes|string|max:255',
-            'content'           => 'nullable|array',
-            'meta_data'         => 'nullable|array',
-            'executive_summary' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
-            'approval_sheet'    => 'nullable|file|mimes:pdf,jpg,png|max:5120',
-            'proposal'          => 'nullable|file|mimes:pdf|max:20480',
-        ]);
-
-        $content = $request->input('content', []);
-
-        if (isset($content['ketua_pelaksana_nim']) && !empty($content['ketua_pelaksana_nim'])) {
-            if (!preg_match('/^\d{14}$/', $content['ketua_pelaksana_nim'])) {
-                throw new \Exception('NIM harus 14 digit angka', 422);
-            }
-        }
-
-        if (isset($content['ketua_pelaksana_hp']) && !empty($content['ketua_pelaksana_hp'])) {
-            if (!preg_match('/^\d{12,13}$/', $content['ketua_pelaksana_hp'])) {
-                throw new \Exception('Nomor HP harus 12-13 digit angka', 422);
-            }
-        }
-
-        // Jika tanggal/jam diubah, jadwal baru harus memenuhi aturan peminjaman
-        $current = $document->content ?? [];
-        $scheduleChanged = collect(['booking_date', 'start_time', 'end_time'])
-            ->contains(fn ($key) => array_key_exists($key, $content) && (string) $content[$key] !== (string) ($current[$key] ?? ''));
-        if ($scheduleChanged && ($scheduleError = $this->scheduleRuleError(array_merge($current, $content)))) {
-            throw new \Exception($scheduleError, 422);
-        }
-
-        $dataToUpdate = [
-            'title'     => $validated['title'] ?? $document->title,
-            'content'   => array_merge($document->content ?? [], $content),
-            'meta_data' => array_merge($document->meta_data ?? [], $validated['meta_data'] ?? []),
-        ];
-
-        // Update files
-        if ($request->hasFile('executive_summary')) {
-            $this->deleteOldFile($document->file_executive_summary);
-            $dataToUpdate['file_executive_summary'] = $request->file('executive_summary')->store('documents/executive_summaries', 'private');
-        }
-
-        if ($request->hasFile('approval_sheet')) {
-            $this->deleteOldFile($document->file_approval_sheet);
-            $dataToUpdate['file_approval_sheet'] = $request->file('approval_sheet')->store('documents/approval_sheets', 'private');
-        }
-
-        if ($request->hasFile('proposal')) {
-            $this->deleteOldFile($document->file_proposal);
-            $dataToUpdate['file_proposal'] = $request->file('proposal')->store('documents/proposals', 'private');
-        }
-
-        $document->update($dataToUpdate);
-
-        // Auto-regenerate if content changed
-        if ($request->has('content')) {
-            $this->autoRegenerateDocuments($document);
-        }
-
-        DocumentLog::create([
-            'document_id' => $document->id,
-            'user_id'     => $user->id,
-            'action'      => 'UPDATED',
-            'note'        => 'Dokumen diperbarui dan file di-generate ulang',
-        ]);
-
-        return $document->fresh(['creator']);
-    }
-
-    private function autoRegenerateDocuments(Document $document): void
-    {
-        try {
-            $document->refresh();
-
-            try {
-                $newPathExec = $this->documentGenerationService->generateFromTemplate($document, 'executive_summary');
-                $document->update(['file_executive_summary' => $newPathExec]);
-            } catch (\Exception $ex) {
-                \Log::warning('Skip auto-gen Executive Summary: ' . $ex->getMessage());
-            }
-
-            try {
-                $orgType = $this->mapCategoryToOrganizationType($document->unit->category ?? 'HMD');
-                $newPathApp = $this->documentGenerationService->generateFromTemplate($document, 'lembar_pengesahan', $orgType);
-                $document->update(['file_approval_sheet' => $newPathApp]);
-            } catch (\Exception $ex) {
-                \Log::warning('Skip auto-gen Approval Sheet: ' . $ex->getMessage());
-            }
-
-            \Log::info('Documents auto-regenerated after update', ['document_id' => $document->id]);
-        } catch (\Exception $e) {
-            \Log::error('Auto-regeneration failed in update', [
-                'document_id' => $document->id,
-                'error' => $e->getMessage()
-            ]);
-        }
-    }
-
     public function checkDocumentAccess(Document $document, User $user): bool
     {
-        $isAdmin = $user->role->slug === 'admin';
+        $isAdmin = $user->role?->slug === 'admin';
         $isCreator = $document->creator_id === $user->id;
         $isCurrentHolder = $document->current_holder_id === $user->id;
 
         $hasProcessed = DocumentLog::where('document_id', $document->id)
             ->where('user_id', $user->id)
-            ->whereIn('action', ['APPROVED', 'REJECTED', 'SUBMITTED', 'REVISED', 'RETURNED'])
+            ->whereIn('action', ['APPROVED', 'REJECTED', 'SUBMITTED', 'RETURNED'])
             ->exists();
 
         return $isAdmin || $isCreator || $isCurrentHolder || $hasProcessed;
@@ -919,171 +429,22 @@ class DocumentService
 
     public function serveFile(Document $document, string $type): array
     {
-        $map = [
-            'proposal' => 'file_proposal',
-            'executive-summary' => 'file_executive_summary',
-            'approval-sheet' => 'file_approval_sheet',
-        ];
-
-        if (!isset($map[$type])) {
-            throw new \Exception('Invalid file type', 400);
+        if ($type !== 'proposal' || !$document->file_proposal) {
+            throw new \Exception('File tidak ditemukan', 404);
         }
 
-        $col = $map[$type];
-        $path = $document->{$col};
-
-        if (!$path) {
-            throw new \Exception('File not available', 404);
+        $disk = Storage::disk('private');
+        if (!$disk->exists($document->file_proposal)) {
+            throw new \Exception('File proposal tidak ditemukan', 404);
         }
 
-        if (!Storage::disk('private')->exists($path)) {
-            throw new \Exception('File not found on disk', 404);
-        }
+        $content = $disk->get($document->file_proposal);
 
         return [
-            'content'     => Storage::disk('private')->get($path),
-            'mimeType'    => Storage::disk('private')->mimeType($path),
-            'fileName'    => basename($path),
-            'path'        => $path,
-            'etag'        => md5($path . $document->updated_at),
+            'content' => $content,
+            'mimeType' => 'application/pdf',
+            'fileName' => basename($document->file_proposal),
+            'etag' => md5($content),
         ];
-    }
-
-    public function generateFromTemplate(Document $document, string $type): string
-    {
-        $orgType = $this->mapCategoryToOrganizationType($document->unit->category ?? 'HMD');
-
-        return $this->documentGenerationService->generateFromTemplate($document, $type, $orgType);
-    }
-
-    public function convertDocxToPdf(string $docxPath, int $documentId, string $type): \Symfony\Component\HttpFoundation\BinaryFileResponse
-    {
-        \Log::info('[PDF Conversion] Starting conversion', [
-            'document_id' => $documentId,
-            'type' => $type,
-            'docx_path' => $docxPath,
-            'docx_exists' => file_exists($docxPath)
-        ]);
-
-        $pdfPath = storage_path('app/temp/doc_' . $documentId . '_' . $type . '_' . time() . '.pdf');
-
-        if (!file_exists(dirname($pdfPath))) {
-            mkdir(dirname($pdfPath), 0755, true);
-        }
-
-        $isWindows = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
-        $sofficeCommand = $this->findLibreOffice($isWindows);
-
-        if (!$sofficeCommand) {
-            \Log::error('[PDF Conversion] LibreOffice not found');
-            throw new \Exception('LibreOffice not found');
-        }
-
-        \Log::info('[PDF Conversion] LibreOffice found', ['command' => $sofficeCommand]);
-
-        $outputDir = dirname($pdfPath);
-
-        if ($isWindows) {
-            $docxPath = str_replace('/', '\\', $docxPath);
-            $outputDir = str_replace('/', '\\', $outputDir);
-        }
-
-        $command = '"' . $sofficeCommand . '"' .
-                  ' --headless' .
-                  ' --convert-to pdf:writer_pdf_Export' .
-                  ' --outdir "' . $outputDir . '"' .
-                  ' "' . $docxPath . '"';
-
-        \Log::info('[PDF Conversion] Executing command', ['command' => $command]);
-
-        if ($isWindows) {
-            $fullCommand = 'cmd /c "' . $command . '"';
-            exec($fullCommand . ' 2>&1', $execOutput, $execReturn);
-        } else {
-            exec($command . ' 2>&1', $execOutput, $execReturn);
-        }
-
-        \Log::info('[PDF Conversion] Command executed', [
-            'return_code' => $execReturn,
-            'output' => $execOutput
-        ]);
-
-        $baseFilename = pathinfo($docxPath, PATHINFO_FILENAME);
-        $tempPdfPath = $outputDir . DIRECTORY_SEPARATOR . $baseFilename . '.pdf';
-
-        sleep(1);
-
-        if (!file_exists($tempPdfPath)) {
-            \Log::error('[PDF Conversion] PDF file not created', [
-                'expected_path' => $pdfPath,
-                'temp_path' => $tempPdfPath,
-                'temp_exists' => file_exists($tempPdfPath)
-            ]);
-            throw new \Exception('PDF conversion failed');
-        }
-
-        if ($tempPdfPath !== $pdfPath) {
-            if (file_exists($pdfPath)) {
-                unlink($pdfPath);
-            }
-            rename($tempPdfPath, $pdfPath);
-        }
-
-        \Log::info('[PDF Conversion] Success', [
-            'pdf_path' => $pdfPath,
-            'file_size' => filesize($pdfPath)
-        ]);
-
-        if (!file_exists($pdfPath)) {
-            throw new \Exception('PDF conversion failed');
-        }
-
-        return response()->file($pdfPath, [
-            'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="' . pathinfo($docxPath, PATHINFO_FILENAME) . '.pdf"',
-        ])->deleteFileAfterSend(true);
-    }
-
-    private function findLibreOffice(bool $isWindows): ?string
-    {
-        if ($isWindows) {
-            $possiblePaths = [
-                base_path('libreoffice-portable/App/libreoffice/program/soffice.exe'),
-                base_path('LibreOfficePortable/App/libreoffice/program/soffice.exe'),
-                'C:\\Program Files\\LibreOffice\\program\\soffice.exe',
-                'C:\\Program Files (x86)\\LibreOffice\\program\\soffice.exe',
-                getenv('ProgramFiles') . '\\LibreOffice\\program\\soffice.exe',
-                getenv('ProgramFiles(x86)') . '\\LibreOffice\\program\\soffice.exe',
-            ];
-
-            foreach ($possiblePaths as $path) {
-                if (file_exists($path)) return $path;
-            }
-
-            exec('where soffice 2>NUL', $output, $returnCode);
-            if ($returnCode === 0 && !empty($output)) return trim($output[0]);
-        } else {
-            exec('which libreoffice 2>/dev/null', $output, $returnCode);
-            if ($returnCode === 0 && !empty($output)) return 'libreoffice';
-
-            exec('which soffice 2>/dev/null', $output2, $returnCode2);
-            if ($returnCode2 === 0 && !empty($output2)) return 'soffice';
-        }
-
-        return null;
-    }
-
-    private function deleteOldFile($path): void
-    {
-        if (!$path) return;
-
-        if (Storage::disk('private')->exists($path)) {
-            Storage::disk('private')->delete($path);
-        }
-    }
-
-    public function mapCategoryToOrganizationType($category): string
-    {
-        return DocumentGenerationService::organizationTypeForCategory($category);
     }
 }

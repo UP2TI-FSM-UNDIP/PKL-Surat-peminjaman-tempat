@@ -13,8 +13,6 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\RoomBookingController;
-use App\Http\Controllers\SignController;
-use App\Http\Controllers\DocumentTemplateController;
 
 // Get authenticated user
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
@@ -66,16 +64,6 @@ Route::middleware(['auth:sanctum', 'role.assigned'])->group(function () {
         Route::get('/stats', [App\Http\Controllers\Admin\DashboardController::class, 'stats']);
     });
 
-    // Document Template Management (Upload, Edit, Delete, Activate) — dikelola Kemahasiswaan
-    Route::middleware('admin:kemahasiswaan')->prefix('document-templates')->group(function () {
-        Route::post('/', [DocumentTemplateController::class, 'store']);                   // Upload template
-        Route::post('/{id}', [DocumentTemplateController::class, 'update']);              // Update template
-        Route::put('/{id}/placeholder-metadata', [DocumentTemplateController::class, 'updatePlaceholderMetadata']);
-        Route::patch('/{id}/activate', [DocumentTemplateController::class, 'activate']);
-        Route::patch('/{id}/deactivate', [DocumentTemplateController::class, 'deactivate']);
-        Route::delete('/{id}', [DocumentTemplateController::class, 'destroy']);
-    });
-
     // Room Management (Create, Update, Delete, Upload Image) — empat role pengelola
     Route::middleware('admin:wadek2,manajer-tata-usaha,spv-sumberdaya')->prefix('rooms')->group(function () {
         Route::post('/', [RoomController::class, 'store']);
@@ -88,26 +76,6 @@ Route::middleware(['auth:sanctum', 'role.assigned'])->group(function () {
     // =============================================
     // AUTHENTICATED USER ROUTES
     // =============================================
-
-    // Signature (Tanda Tangan) Routes
-    Route::prefix('signs')->group(function () {
-        Route::get('/', [SignController::class, 'index']);
-        Route::get('/file', [SignController::class, 'file']);
-        Route::post('/', [SignController::class, 'store']);
-        Route::put('/{id}', [SignController::class, 'update']);
-        Route::delete('/{id}', [SignController::class, 'destroy']);
-    });
-
-    // Document Template Read Routes
-    Route::prefix('document-templates')->group(function () {
-        Route::get('/active', [DocumentTemplateController::class, 'getActiveTemplates']);
-        Route::get('/available-fields', [DocumentTemplateController::class, 'getAvailableFields']);
-        Route::get('/test/libreoffice', [DocumentTemplateController::class, 'testLibreOffice']);
-        Route::get('/', [DocumentTemplateController::class, 'index']);
-        Route::get('/{id}', [DocumentTemplateController::class, 'show']);
-        Route::get('/{id}/download', [DocumentTemplateController::class, 'download']);
-        Route::get('/{id}/preview-pdf', [DocumentTemplateController::class, 'previewPdf']);
-    });
 
     // Workflow Routes
     Route::prefix('workflows')->group(function () {
@@ -125,23 +93,15 @@ Route::middleware(['auth:sanctum', 'role.assigned'])->group(function () {
     Route::prefix('documents')->group(function () {
         Route::get('/', [DocumentController::class, 'index']);
         Route::get('/{id}', [DocumentController::class, 'show']);
-        Route::post('/', [DocumentController::class, 'store']);
-        Route::put('/{id}', [DocumentController::class, 'update']);
 
         // Workflow Actions
         Route::post('/{id}/submit', [DocumentController::class, 'submit']);
         Route::post('/{id}/approve', [DocumentController::class, 'approve']);
         Route::post('/{id}/reject', [DocumentController::class, 'reject']);
         Route::post('/{id}/revise', [DocumentController::class, 'revise']);
-        Route::post('/{id}/apply-signature', [DocumentController::class, 'applySignature']);
 
-        // Generate documents from templates
-        Route::post('/{id}/generate/executive-summary', [DocumentController::class, 'generateExecutiveSummary']);
-        Route::post('/{id}/generate/approval-sheet', [DocumentController::class, 'generateApprovalSheet']);
-
-        // Serve stored document files
+        // Serve proposal file
         Route::get('/{id}/file/{type}', [DocumentController::class, 'file'])->name('api.documents.file');
-        Route::get('/{id}/file/{type}/pdf', [DocumentController::class, 'filePdf'])->name('api.documents.file.pdf');
     });
 
     // Unit Routes

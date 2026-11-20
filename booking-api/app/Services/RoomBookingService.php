@@ -269,8 +269,6 @@ class RoomBookingService
 
             DB::transaction(function () use ($document) {
                 $cols = [
-                    'file_executive_summary',
-                    'file_approval_sheet',
                     'file_proposal',
                 ];
 
