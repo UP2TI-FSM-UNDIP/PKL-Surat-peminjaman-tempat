@@ -34,11 +34,17 @@ trait CreatesReservationFixtures
             'weekday_max_end_time' => '16:30',
         ]);
 
+        $bookingDate = CarbonImmutable::today('Asia/Jakarta')->addDays(11);
+
+        while ($bookingDate->isSunday()) {
+            $bookingDate = $bookingDate->addDay();
+        }
+
         return app(ReservationService::class)->create($borrower, array_merge([
             'mode' => 'one_room_many_dates',
             'slots' => [[
                 'room_id' => $room->id,
-                'booking_date' => CarbonImmutable::today('Asia/Jakarta')->addDays(11)->toDateString(),
+                'booking_date' => $bookingDate->toDateString(),
                 'start_time' => '09:00',
                 'end_time' => '12:00',
             ]],
