@@ -407,6 +407,31 @@ cd booking-api
 php artisan test
 ```
 
+### Frontend E2E Testing
+
+E2E memakai Playwright (Chromium) dan menjalankan empat alur smoke: login dev admin, daftar ruang, daftar peminjaman, dan halaman peminjam.
+
+```bash
+cd booking-web
+npx playwright install chromium
+npm run test:e2e
+npm run test:e2e:report
+```
+
+Playwright menyalakan API di `127.0.0.1:18000` dan Vite di `127.0.0.1:20181`, lalu memakai database SQLite khusus `booking-api/database/e2e.sqlite`. Database MySQL lokal tidak disentuh. Dev login hanya aktif di lingkungan lokal dan loopback; jangan mengaktifkan `AUTH_DEV_LOGIN` di produksi.
+
+### CI
+
+GitHub Actions menjalankan tiga job pada PR ke `main`:
+
+- `backend` — `php artisan test` dengan PHP 8.4 dan SQLite.
+- `web` — `npm run lint` dan `npm run build`.
+- `e2e` — Playwright Chromium setelah `backend` dan `web` hijau.
+
+Aktifkan branch protection untuk `main` dan jadikan `backend`, `web`, serta `e2e` sebagai required status checks. Ini dilakukan manual di GitHub Settings, bukan dari repository.
+
+`vendor/bin/pint --test` belum dijadikan gate karena repo belum format-clean; reformasi format dilakukan di PR terpisah.
+
 ### API Testing with Postman
 
 1. Import collection: `booking-api/Booking-API.postman_collection.json`
