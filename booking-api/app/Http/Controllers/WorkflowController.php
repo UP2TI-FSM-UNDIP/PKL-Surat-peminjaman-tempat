@@ -68,6 +68,8 @@ class WorkflowController extends Controller
         );
 
         $workflow = Workflow::findOrFail($id);
+        abort_if($workflow->applies_to_category !== 'UMUM', 422, 'Hanya workflow UMUM yang dapat diubah.');
+
         $workflow = $this->workflowService->updateWorkflow($workflow, $request->validated());
 
         return response()->json([

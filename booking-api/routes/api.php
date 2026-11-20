@@ -61,8 +61,8 @@ Route::middleware(['auth:sanctum', 'role.assigned'])->group(function () {
     // =============================================
     // Admin selalu diizinkan; role lain disebut eksplisit sesuai tugasnya.
 
-    // Admin Dashboard (juga dipakai dashboard Sumber Daya)
-    Route::middleware('admin:sumber-daya')->prefix('admin/dashboard')->group(function () {
+    // Admin Dashboard
+    Route::middleware('admin')->prefix('admin/dashboard')->group(function () {
         Route::get('/stats', [App\Http\Controllers\Admin\DashboardController::class, 'stats']);
     });
 
@@ -76,19 +76,13 @@ Route::middleware(['auth:sanctum', 'role.assigned'])->group(function () {
         Route::delete('/{id}', [DocumentTemplateController::class, 'destroy']);
     });
 
-    // Room Management (Create, Update, Delete, Upload Image) — dikelola Sumber Daya
-    Route::middleware('admin:sumber-daya')->prefix('rooms')->group(function () {
+    // Room Management (Create, Update, Delete, Upload Image) — empat role pengelola
+    Route::middleware('admin:wadek2,manajer-tata-usaha,spv-sumberdaya')->prefix('rooms')->group(function () {
         Route::post('/', [RoomController::class, 'store']);
         Route::put('/{id}', [RoomController::class, 'update']);
         Route::delete('/{id}', [RoomController::class, 'destroy']);
         Route::post('/{id}/upload-image', [RoomController::class, 'uploadImage']);
         Route::delete('/{id}/images', [RoomController::class, 'deleteImage']);
-    });
-
-    // Booking Admin Actions (Approve / Reject)
-    Route::middleware('admin:sumber-daya')->prefix('room-bookings')->group(function () {
-        Route::post('/{id}/approve', [RoomBookingController::class, 'approve']);
-        Route::post('/{id}/reject', [RoomBookingController::class, 'reject']);
     });
 
     // =============================================
@@ -119,9 +113,7 @@ Route::middleware(['auth:sanctum', 'role.assigned'])->group(function () {
     Route::prefix('workflows')->group(function () {
         Route::get('/', [WorkflowController::class, 'index']);
         Route::get('/{id}', [WorkflowController::class, 'show']);
-        Route::post('/', [WorkflowController::class, 'store']);          // Has internal admin check
         Route::put('/{id}', [WorkflowController::class, 'update']);      // Has internal admin check
-        Route::delete('/{id}', [WorkflowController::class, 'destroy']);  // Has internal admin check
 
         // Workflow Steps Management
         Route::post('/{id}/steps', [WorkflowController::class, 'addStep']);
@@ -161,13 +153,10 @@ Route::middleware(['auth:sanctum', 'role.assigned'])->group(function () {
         Route::delete('/{id}', [UnitController::class, 'destroy']);  // Has internal admin check
     });
 
-    // Role Routes
+    // Role Routes — read only
     Route::prefix('roles')->group(function () {
         Route::get('/', [RoleController::class, 'index']);
         Route::get('/{id}', [RoleController::class, 'show']);
-        Route::post('/', [RoleController::class, 'store']);          // Has internal admin check
-        Route::put('/{id}', [RoleController::class, 'update']);      // Has internal admin check
-        Route::delete('/{id}', [RoleController::class, 'destroy']);  // Has internal admin check
     });
 
     // User Routes
@@ -187,20 +176,14 @@ Route::middleware(['auth:sanctum', 'role.assigned'])->group(function () {
         Route::get('/{id}/schedule', [RoomController::class, 'schedule']);
     });
 
-    // Room Booking Routes
+    // Room Booking Routes — read only, except completion by room managers
     Route::prefix('room-bookings')->group(function () {
         Route::get('/', [RoomBookingController::class, 'index']);
         Route::get('/statistics', [RoomBookingController::class, 'statistics']);
         Route::get('/weekly-report', [RoomBookingController::class, 'weeklyReport']);
         Route::get('/{id}', [RoomBookingController::class, 'show']);
-        Route::post('/', [RoomBookingController::class, 'store']);
-        Route::post('/batch', [RoomBookingController::class, 'batchStore']);
-        Route::put('/{id}', [RoomBookingController::class, 'update']);
-        Route::delete('/{id}', [RoomBookingController::class, 'destroy']);
-
-        // User Actions
-        Route::post('/{id}/cancel', [RoomBookingController::class, 'cancel']);
-        Route::post('/{id}/complete', [RoomBookingController::class, 'complete']);
+        Route::post('/{id}/complete', [RoomBookingController::class, 'complete'])
+            ->middleware('admin:wadek2,manajer-tata-usaha,spv-sumberdaya');
 
         // Receipt & QR Code
         Route::get('/{id}/receipt', [RoomBookingController::class, 'receipt']);
