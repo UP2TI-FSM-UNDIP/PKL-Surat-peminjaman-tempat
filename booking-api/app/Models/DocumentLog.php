@@ -44,7 +44,7 @@ class DocumentLog extends Model
      */
     public function getFormattedMessageAttribute()
     {
-        $actorName = $this->user->name ?? 'Unknown';
+        $actorName = $this->user?->name ?? 'Sistem';
 
         return match ($this->action) {
             'CREATED' => "{$actorName} membuat dokumen ini.",
@@ -53,6 +53,8 @@ class DocumentLog extends Model
             'REJECTED' => "{$actorName} menolak dokumen.",
             'RETURNED' => "{$actorName} mengembalikan dokumen untuk revisi.",
             'RESUBMITTED' => "{$actorName} mengirim ulang revisi.",
+            'EXPIRED' => 'Reservasi kedaluwarsa otomatis.',
+            'CANCELLED' => "{$actorName} membatalkan reservasi.",
             default => "{$actorName} melakukan aksi {$this->action}.",
         };
     }

@@ -9,8 +9,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->foreign('role_id')->references('id')->on('roles')->nullOnDelete();
-            $table->foreign('unit_id')->references('id')->on('units')->nullOnDelete();
+            // role_id/unit_id NOT NULL, jadi ON DELETE SET NULL tidak valid di MySQL.
+            $table->foreign('role_id')->references('id')->on('roles')->restrictOnDelete();
+            $table->foreign('unit_id')->references('id')->on('units')->restrictOnDelete();
         });
     }
 

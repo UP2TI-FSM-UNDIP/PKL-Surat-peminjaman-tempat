@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
 import { AxiosError } from 'axios';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -44,6 +45,15 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select';
+import { RoomEditWarnings } from '@/features/rooms/components/RoomEditWarnings';
+import { RoomWeekdayFields } from '@/features/rooms/components/RoomWeekdayFields';
+import {
+	appendRoomFormData,
+	emptyRoomForm,
+	toRoomFormData,
+	toRoomPayload,
+	type RoomFormData,
+} from '@/features/rooms/utils/roomForm';
 import { roomService, type Room } from '@/services/room.service';
 
 export const Route = createFileRoute('/sumber-daya/manajemen-ruang')({
@@ -65,19 +75,14 @@ function RouteComponent() {
 
 	// Form states
 	const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
-	const [formData, setFormData] = useState({
-		name: '',
-		code: '',
-		capacity: '10',
-		description: '',
-		facilities: '',
-		status: 'ACTIVE' as Room['status'],
-	});
+	const [formData, setFormData] = useState<RoomFormData>(emptyRoomForm);
 	const [roomImage, setRoomImage] = useState<File | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [formError, setFormError] = useState('');
 
 	const [selectedStatus, setSelectedStatus] = useState<Room['status'] | 'all'>('all');
+	const [weekdayFilter, setWeekdayFilter] = useState<'all' | 'yes' | 'no'>('all');
+	const [upcomingBookingCount, setUpcomingBookingCount] = useState(0);
 
 	// Debounce search query
 	useEffect(() => {
@@ -111,34 +116,24 @@ function RouteComponent() {
 	}, []);
 
 	const handleCreate = () => {
-		setFormData({
-			name: '',
-			code: '',
-			capacity: '10',
-			description: '',
-			facilities: '',
-			status: 'ACTIVE',
-		});
+		setFormData({ ...emptyRoomForm });
 		setRoomImage(null);
 		setFormError('');
 		setIsCreateModalOpen(true);
 	};
 
-	const handleEdit = (room: Room) => {
+	const handleEdit = async (room: Room) => {
 		setSelectedRoom(room);
-		setFormData({
-			name: room.name,
-			code: room.code,
-			capacity: String(room.capacity || 10),
-			description: room.description || '',
-			facilities: Array.isArray(room.facilities)
-				? room.facilities.join(', ')
-				: '',
-			status: room.status,
-		});
+		setFormData(toRoomFormData(room));
 		setRoomImage(null);
 		setFormError('');
 		setIsEditModalOpen(true);
+		try {
+			const detail = await roomService.getRoom(room.id);
+			setUpcomingBookingCount(detail.upcoming_bookings?.length ?? 0);
+		} catch {
+			setUpcomingBookingCount(0);
+		}
 	};
 
 	const handleDetail = (room: Room) => {
@@ -168,21 +163,9 @@ function RouteComponent() {
 		try {
 			setIsSubmitting(true);
 
+			const payload = toRoomPayload(formData);
 			const data = new FormData();
-			data.append('name', formData.name);
-			data.append('code', formData.code);
-			data.append('capacity', String(parseInt(formData.capacity)));
-			data.append('description', formData.description);
-			data.append('status', 'ACTIVE');
-
-			const facilitiesArray = formData.facilities
-				.split(',')
-				.map((f) => f.trim())
-				.filter((f) => f.length > 0);
-
-			facilitiesArray.forEach((f, index) => {
-				data.append(`facilities[${index}]`, f);
-			});
+			appendRoomFormData(data, payload);
 
 			if (roomImage) {
 				data.append('images[]', roomImage);
@@ -217,21 +200,7 @@ function RouteComponent() {
 		try {
 			setIsSubmitting(true);
 
-			const facilitiesArray = formData.facilities
-				.split(',')
-				.map((f) => f.trim())
-				.filter((f) => f.length > 0);
-
-			const roomData = {
-				name: formData.name,
-				code: formData.code,
-				capacity: parseInt(formData.capacity) || 10,
-				description: formData.description,
-				facilities: facilitiesArray,
-				status: formData.status,
-			};
-
-			await roomService.updateRoom(selectedRoom.id, roomData);
+			await roomService.updateRoom(selectedRoom.id, toRoomPayload(formData));
 
 			if (roomImage) {
 				try {
@@ -278,7 +247,12 @@ function RouteComponent() {
 		const matchesStatus =
 			selectedStatus === 'all' || room.status === selectedStatus;
 
-		return matchesSearch && matchesStatus;
+		const matchesWeekday =
+			weekdayFilter === 'all' ||
+			(weekdayFilter === 'yes' && room.is_bookable_weekday) ||
+			(weekdayFilter === 'no' && !room.is_bookable_weekday);
+
+		return matchesSearch && matchesStatus && matchesWeekday;
 	});
 
 	if (loading) {
@@ -343,6 +317,21 @@ function RouteComponent() {
 							<SelectItem value='INACTIVE'>Nonaktif</SelectItem>
 						</SelectContent>
 					</Select>
+					<Select
+						value={weekdayFilter}
+						onValueChange={(value) =>
+							setWeekdayFilter(value as 'all' | 'yes' | 'no')
+						}
+					>
+						<SelectTrigger className='w-[140px] h-9 sm:h-10 text-xs sm:text-sm'>
+							<SelectValue placeholder='Flag weekday' />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem value='all'>Semua Hari</SelectItem>
+							<SelectItem value='yes'>Weekday: Ya</SelectItem>
+							<SelectItem value='no'>Weekday: Tidak</SelectItem>
+						</SelectContent>
+					</Select>
 				</div>
 				<Button
 					onClick={handleCreate}
@@ -377,6 +366,9 @@ function RouteComponent() {
 								<TableHead className='text-xs sm:text-sm px-2 w-24'>
 									Status
 								</TableHead>
+								<TableHead className='text-xs sm:text-sm px-2 w-28'>
+									Weekday
+								</TableHead>
 								<TableHead className='text-center text-xs sm:text-sm px-2 w-24'>
 									Aksi
 								</TableHead>
@@ -386,12 +378,16 @@ function RouteComponent() {
 							{filteredRooms.length === 0 ? (
 								<TableRow>
 									<TableCell
-										colSpan={7}
+										colSpan={8}
 										className='text-center text-gray-500 h-32'
 									>
 										{debouncedSearchTerm
 											? 'Tidak ada ruangan yang cocok dengan pencarian'
-											: 'Belum ada data ruangan'}
+											: weekdayFilter === 'yes'
+												? 'Belum ada ruang yang ditandai weekday. Centang "Boleh dibooking Senin–Jumat" di form ruang.'
+												: weekdayFilter === 'no'
+													? 'Semua ruang ditandai weekday.'
+													: 'Belum ada data ruangan'}
 									</TableCell>
 								</TableRow>
 							) : (
@@ -430,6 +426,15 @@ function RouteComponent() {
 														? 'Maintenance'
 														: 'Nonaktif'}
 											</span>
+										</TableCell>
+										<TableCell className='text-xs sm:text-sm py-2 sm:py-3'>
+											{room.status !== 'ACTIVE' ? (
+												<Badge variant='secondary'>Nonaktif</Badge>
+											) : room.is_bookable_weekday ? (
+												<Badge variant='success'>Weekday</Badge>
+											) : (
+												<Badge variant='outline'>Sabtu saja</Badge>
+											)}
 										</TableCell>
 										<TableCell className='py-2 sm:py-3'>
 											<div className='flex items-center justify-center gap-1 sm:gap-2'>
@@ -508,7 +513,7 @@ function RouteComponent() {
 							</div>
 							<div className='grid gap-2'>
 								<label htmlFor='capacity' className='text-sm font-medium'>
-									Kapasitas Ruangan <span className='text-red-500'>*</span>
+									Kapasitas Ruangan (opsional)
 								</label>
 								<Input
 									id='capacity'
@@ -518,7 +523,6 @@ function RouteComponent() {
 									onChange={(e) =>
 										setFormData({ ...formData, capacity: e.target.value })
 									}
-									required
 								/>
 							</div>
 							<div className='grid gap-2'>
@@ -551,6 +555,12 @@ function RouteComponent() {
 									className='block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500'
 								/>
 							</div>
+							<RoomWeekdayFields
+								value={formData}
+								onChange={(patch) =>
+									setFormData({ ...formData, ...patch })
+								}
+							/>
 							<div className='grid gap-2'>
 								<label htmlFor='image' className='text-sm font-medium'>
 									Foto Ruangan
@@ -589,6 +599,12 @@ function RouteComponent() {
 						<DialogDescription>Use informasi ruangan</DialogDescription>
 					</DialogHeader>
 					<form onSubmit={handleSubmitEdit}>
+						<RoomEditWarnings
+							upcomingBookingCount={upcomingBookingCount}
+							status={formData.status}
+							originalCode={selectedRoom?.code ?? ''}
+							currentCode={formData.code}
+						/>
 						<div className='grid gap-4 py-4'>
 							<div className='grid gap-2'>
 								<label htmlFor='edit-code' className='text-sm font-medium'>
@@ -628,7 +644,6 @@ function RouteComponent() {
 									onChange={(e) =>
 										setFormData({ ...formData, capacity: e.target.value })
 									}
-									required
 								/>
 							</div>
 							<div className='grid gap-2'>
@@ -662,6 +677,12 @@ function RouteComponent() {
 									className='block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500'
 								/>
 							</div>
+							<RoomWeekdayFields
+								value={formData}
+								onChange={(patch) =>
+									setFormData({ ...formData, ...patch })
+								}
+							/>
 							<div className='grid gap-2'>
 								<label htmlFor='edit-status' className='text-sm font-medium'>
 									Status Ruangan <span className='text-red-500'>*</span>
@@ -740,7 +761,7 @@ function RouteComponent() {
 								<div>
 									<p className='text-sm font-medium text-gray-500'>Kapasitas</p>
 									<p className='text-sm text-gray-900'>
-										{selectedRoom.capacity} Orang
+										{selectedRoom.capacity ?? '-'} Orang
 									</p>
 								</div>
 							</div>

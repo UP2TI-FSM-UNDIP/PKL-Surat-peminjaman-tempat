@@ -74,7 +74,7 @@ export function ReservationForm({
                     Reservasi Ruang {room.code}
                 </h2>
                 <p className='text-sm text-gray-600 mt-1'>
-                    Kapasitas: {room.capacity} orang
+                    Kapasitas: {room.capacity ?? '-'} orang
                 </p>
                 <button
                     onClick={onShowRoomDetail}

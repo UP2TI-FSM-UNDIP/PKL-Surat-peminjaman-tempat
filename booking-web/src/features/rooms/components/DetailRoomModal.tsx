@@ -55,7 +55,7 @@ export function DetailRoomModal({ room, isOpen, onClose }: DetailRoomModalProps)
                         <div>
                             <p className='text-[10px] uppercase tracking-wider font-bold text-gray-400 mb-1'>Kapasitas</p>
                             <p className='text-sm font-semibold text-gray-900 bg-white px-3 py-2 rounded-lg border border-gray-200 shadow-sm inline-block min-w-[80px] text-center'>
-                                {room.capacity} Orang
+                                {room.capacity ?? '-'} Orang
                             </p>
                         </div>
                     </div>

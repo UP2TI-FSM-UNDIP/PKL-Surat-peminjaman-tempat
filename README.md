@@ -11,8 +11,8 @@ Complete document booking and workflow management system with multi-step approva
 - **Role Management** - Custom roles with slug-based permissions
 - **Unit Management** - Hierarchical organizational units (7 categories)
 - **Workflow Engine** - Dynamic multi-step approval workflows
-- **Document Management** - Create, review, sign documents
-- **Access Control** - Role and unit-based document visibility
+- **Reservation Management** - Create, review, and approve room reservations
+- **Access Control** - Role and unit-based reservation visibility
 
 ### Frontend (React + TypeScript)
 
@@ -94,6 +94,57 @@ peminjaman-tempat/
 
 ## 🚦 Quick Start
 
+### Run API and Web Together
+
+After dependencies are installed, one command from the repo root starts both the Laravel API and the Vite dev server:
+
+```bash
+npm run dev
+# or
+./dev.sh
+```
+
+- API: `http://127.0.0.1:8000`
+- Web: `http://localhost:20081/peminjaman-ruang/`
+- Ctrl-C stops both processes.
+
+Requirements and overrides:
+
+- MySQL/MariaDB configured in `booking-api/.env` must be running. The script only checks the port and prints a warning when it is unreachable.
+- `VITE_API_URL` in `booking-web/.env` must point to the API port (`http://localhost:8000/api` by default).
+- Change ports with `API_PORT=8001 WEB_PORT=20082 ./dev.sh`.
+- Local email/password login is disabled by default (`AUTH_LOCAL_LOGIN=off` in `booking-api/.env`, `VITE_LOCAL_LOGIN=false` in `booking-web/.env`). Set them to `all` and `true` to test without SSO.
+
+The backend needs both frontend variables in `booking-api/.env` (they serve different purposes):
+
+```
+# SSO redirect target, may include a path
+FRONTEND_APP_URL=http://localhost:20081/peminjaman-ruang
+# CORS and Sanctum origins only, comma separated
+FRONTEND_URL=http://localhost:20081,http://127.0.0.1:20081
+```
+
+The per-component steps below remain valid when you only want to run one side.
+
+### Dev Login (local only)
+
+For local development the frontend can log in without SSO and switch roles from the top bar. Enable it in `booking-api/.env`:
+
+```
+AUTH_DEV_LOGIN=true
+```
+
+Then restart the API. `npm run dev` shows a "Ganti akun" button in the top bar and logs in automatically as the default Admin.
+
+- Default account: `admin@fsm.undip.ac.id` (role Admin).
+- The switch dialog lists one seeded account per role: Admin, Wakil Dekan 2, Manajer Tata Usaha, Supervisor Sumberdaya, Mahasiswa, and Dosen.
+- Only requests from `127.0.0.1`/`::1` are accepted. `APP_ENV=production` always returns 404, even when the flag is on.
+- Logout disables auto-login for the current tab so the SSO flow can be tested. The "Masuk sebagai Admin" button on the landing page re-enables it.
+- Run `php artisan db:seed` first so the six accounts exist.
+- Never enable `AUTH_DEV_LOGIN` on staging or production.
+
+Built previews (`npm run preview`) hide the menu unless `VITE_DEV_LOGIN=true`.
+
 ### Backend Setup
 
 1. Navigate to API folder:
@@ -173,18 +224,20 @@ VITE_API_URL=http://localhost:8000/api
 npm run dev
 ```
 
-App will be available at `http://localhost:5173`
+App will be available at `http://localhost:20081/peminjaman-ruang/`
 
 ## 🔑 Default Credentials
 
 After seeding the database:
 
-| Role       | Email                     | Password |
-| ---------- | ------------------------- | -------- |
-| Admin      | admin@example.com         | password |
-| Kadep      | kadep.ti@example.com      | password |
-| Sekretaris | sekretaris.ti@example.com | password |
-| Ketua HIMA | ketua.hima-if@example.com | password |
+| Role                 | Email                        | Password |
+| -------------------- | ---------------------------- | -------- |
+| Admin                | admin@fsm.undip.ac.id        | password |
+| Wakil Dekan II       | wadek2@fsm.undip.ac.id       | password |
+| Manajer Tata Usaha   | tu@fsm.undip.ac.id           | password |
+| Supervisor Sumberdaya| spv@fsm.undip.ac.id          | password |
+| Mahasiswa            | mahasiswa@student.undip.ac.id| password |
+| Dosen                | dosen@undip.ac.id            | password |
 
 ⚠️ **Change these passwords in production!**
 
@@ -245,11 +298,12 @@ DELETE /api/workflows/:id/steps/:stepId
 
 ```
 GET    /api/documents
-POST   /api/documents
 GET    /api/documents/:id
-PUT    /api/documents/:id
-DELETE /api/documents/:id
-POST   /api/documents/:id/sign
+POST   /api/documents/:id/submit
+POST   /api/documents/:id/approve
+POST   /api/documents/:id/reject
+POST   /api/documents/:id/revise
+GET    /api/documents/:id/file/proposal
 ```
 
 ## 🎯 Key Features Explained
@@ -259,8 +313,8 @@ POST   /api/documents/:id/sign
 **Three Document Categories:**
 
 - `my_documents` - Documents created by user
-- `pending_documents` - Documents awaiting user's signature
-- `processed_documents` - Documents user has already signed
+- `pending_documents` - Documents awaiting the user's approval
+- `processed_documents` - Documents the user has already reviewed
 
 **Admin Override:**
 
@@ -272,27 +326,23 @@ POST   /api/documents/:id/sign
 Users can view a document if they are:
 
 - The creator of the document
-- Current holder (awaiting their signature)
-- Have processed the document (signed it)
+- Current holder (awaiting their approval)
+- Have processed the document (approved, rejected, or returned it)
 - Admin role
 
 ### 3. Workflow Engine
 
 **Dynamic Routing:**
 
-- Workflows created per unit category
+- Satu workflow `UMUM` untuk seluruh reservasi
 - Steps configured with target roles
-- Multiple scope types:
-  - `SELF` - Same unit as document creator
-  - `PARENT` - Parent unit
-  - `FACULTY_LEADER` - Faculty-level leader
-  - `SPECIFIC_CATEGORY` - Specific unit category
+- Approver dicari di unit fakultas
 
 **Example Workflow:**
 
-1. Ketua HIMA reviews (SELF scope)
-2. Kadep approves (PARENT scope)
-3. Dekan signs (FACULTY_LEADER scope)
+1. Supervisor Sumberdaya memverifikasi
+2. Manajer Tata Usaha menyetujui
+3. Wakil Dekan II menyetujui
 
 ### 4. Unit Hierarchy
 
@@ -356,6 +406,31 @@ Run all tests:
 cd booking-api
 php artisan test
 ```
+
+### Frontend E2E Testing
+
+E2E memakai Playwright (Chromium) dan menjalankan empat alur smoke: login dev admin, daftar ruang, daftar peminjaman, dan halaman peminjam.
+
+```bash
+cd booking-web
+npx playwright install chromium
+npm run test:e2e
+npm run test:e2e:report
+```
+
+Playwright menyalakan API di `127.0.0.1:18000` dan Vite di `127.0.0.1:20181`, lalu memakai database SQLite khusus `booking-api/database/e2e.sqlite`. Database MySQL lokal tidak disentuh. Dev login hanya aktif di lingkungan lokal dan loopback; jangan mengaktifkan `AUTH_DEV_LOGIN` di produksi.
+
+### CI
+
+GitHub Actions menjalankan tiga job pada PR ke `main`:
+
+- `backend` — `php artisan test` dengan PHP 8.4 dan SQLite.
+- `web` — `npm run lint` dan `npm run build`.
+- `e2e` — Playwright Chromium setelah `backend` dan `web` hijau.
+
+Aktifkan branch protection untuk `main` dan jadikan `backend`, `web`, serta `e2e` sebagai required status checks. Ini dilakukan manual di GitHub Settings, bukan dari repository.
+
+`vendor/bin/pint --test` belum dijadikan gate karena repo belum format-clean; reformasi format dilakukan di PR terpisah.
 
 ### API Testing with Postman
 

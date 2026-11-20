@@ -7,28 +7,21 @@ use Illuminate\Database\Seeder;
 
 class RoleSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         $roles = [
             ['name' => 'Admin', 'slug' => 'admin'],
-            ['name' => 'Dosen Pendamping Ormawa', 'slug' => 'dosen-pendamping'],
-            ['name' => 'Ketua Departemen', 'slug' => 'ketua-departemen'],
-            ['name' => 'Ketua Ormawa', 'slug' => 'ketua-ormawa'],
-            ['name' => 'Sekretaris', 'slug' => 'sekretaris'],
-            ['name' => 'Senat', 'slug' => 'senat'],
-            ['name' => 'Kemahasiswaan', 'slug' => 'kemahasiswaan'],
-            ['name' => 'Sumber Daya', 'slug' => 'sumber-daya'],
-            ['name' => 'Wakil Dekan 1', 'slug' => 'wadek1'],
-            ['name' => 'Menunggu Penetapan', 'slug' => 'menunggu-penetapan'],
+            ['name' => 'Wakil Dekan 2', 'slug' => 'wadek2'],
+            ['name' => 'Manajer Tata Usaha', 'slug' => 'manajer-tata-usaha'],
+            ['name' => 'Supervisor Sumberdaya', 'slug' => 'spv-sumberdaya'],
+            ['name' => 'Mahasiswa', 'slug' => 'peminjam'],
+            ['name' => 'Dosen', 'slug' => 'dosen'],
         ];
 
         foreach ($roles as $role) {
-            Role::firstOrCreate(['slug' => $role['slug']], $role);
+            Role::updateOrCreate(['slug' => $role['slug']], $role);
         }
 
-        $this->command->info('✅ Role seeder berhasil dijalankan!');
+        $this->command?->info('Role seeder: 6 role bisnis.');
     }
 }

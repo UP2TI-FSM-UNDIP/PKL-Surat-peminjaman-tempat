@@ -10,7 +10,7 @@ class EnsureIsAdmin
 {
     /**
      * Izinkan admin, plus role lain yang disebut eksplisit di route,
-     * mis. ->middleware('admin:sumber-daya,kemahasiswaan').
+     * mis. ->middleware('admin:wadek2,manajer-tata-usaha,spv-sumberdaya').
      *
      * Sebelumnya semua user di unit kategori FAKULTAS diloloskan, sehingga
      * mahasiswa/staf non-admin yang terdaftar di unit Fakultas ikut punya

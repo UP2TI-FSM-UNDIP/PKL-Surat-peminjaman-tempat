@@ -1,5 +1,6 @@
 import { RouterProvider } from '@tanstack/react-router';
 import { type UserRole, router } from './main';
+import { DevLoginBootstrap } from '@/components/dev/DevLoginBootstrap';
 
 export default function App() {
   const authState = {
@@ -11,5 +12,9 @@ export default function App() {
     },
   };
 
-  return <RouterProvider router={router} context={{ auth: authState }} />;
+  return (
+    <DevLoginBootstrap>
+      <RouterProvider router={router} context={{ auth: authState }} />
+    </DevLoginBootstrap>
+  );
 }

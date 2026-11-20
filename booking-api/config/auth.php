@@ -119,6 +119,16 @@ return [
 
     'local_login' => env('AUTH_LOCAL_LOGIN', 'off'),
 
+    /*
+    | Login dev tanpa SSO (khusus pengembangan lokal).
+    | Default mati. Hanya berlaku saat APP_ENV local/development, dan secara
+    | default hanya menerima request dari loopback (127.0.0.1 / ::1).
+    */
+
+    'dev_login' => env('AUTH_DEV_LOGIN', false),
+
+    'dev_login_allow_remote' => env('AUTH_DEV_LOGIN_ALLOW_REMOTE', false),
+
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
 ];
