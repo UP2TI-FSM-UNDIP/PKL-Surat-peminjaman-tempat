@@ -25,6 +25,10 @@ class RoomBooking extends Model
         'rejection_reason',
         'special_requirements',
         'expected_participants',
+        'slot_index',
+        'is_sekat',
+        'cancelled_at',
+        'cancelled_by',
     ];
 
     protected $casts = [
@@ -32,6 +36,9 @@ class RoomBooking extends Model
         'booking_date' => 'date:Y-m-d',
         'approved_at' => 'datetime',
         'expected_participants' => 'integer',
+        'slot_index' => 'integer',
+        'is_sekat' => 'boolean',
+        'cancelled_at' => 'datetime',
     ];
 
     /**

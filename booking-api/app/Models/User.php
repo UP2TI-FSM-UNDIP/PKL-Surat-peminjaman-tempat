@@ -69,7 +69,7 @@ class User extends Authenticatable
      */
     public function isPendingRole(): bool
     {
-        return $this->role?->slug === 'menunggu-penetapan';
+        return $this->role_id === null;
     }
 
     /**
