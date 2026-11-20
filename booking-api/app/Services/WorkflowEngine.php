@@ -106,48 +106,26 @@ class WorkflowEngine
     }
 
     /**
-     * Logika Revisi: Kembalikan ke masa lalu
+     * Logika Revisi: Kembalikan dokumen ke pembuat.
      */
-    public function reviseDocument(Document $document, User $actor, $targetUserId, $note)
+    public function reviseDocument(Document $document, User $actor, string $note)
     {
-        return DB::transaction(function () use ($document, $actor, $targetUserId, $note) {
-            $isValidTarget = DocumentLog::where('document_id', $document->id)
-                                        ->where('user_id', $targetUserId)
-                                        ->exists();
-
-            if (!$isValidTarget && $document->creator_id != $targetUserId) {
-                throw new \Exception("User target tidak ada dalam riwayat dokumen ini.");
-            }
-
-            $targetStep = null;
-            if ((int) $targetUserId !== (int) $document->creator_id) {
-                $targetStep = DocumentLog::where('document_id', $document->id)
-                    ->where('user_id', $targetUserId)
-                    ->where('action', 'APPROVED')
-                    ->where('step_snapshot', '>', 0)
-                    ->latest('id')
-                    ->value('step_snapshot');
-            }
-
+        return DB::transaction(function () use ($document, $actor, $note) {
             DocumentLog::create([
                 'document_id' => $document->id,
                 'user_id' => $actor->id,
                 'action' => 'RETURNED',
                 'note' => $note,
-                'step_snapshot' => $targetStep,
+                'step_snapshot' => $document->current_step_order,
             ]);
 
-            $updates = [
-                'current_holder_id' => $targetUserId,
+            $document->update([
                 'status' => 'REVISION',
-            ];
-            if ($targetStep) {
-                $updates['current_step_order'] = (int) $targetStep;
-            }
+                'current_holder_id' => $document->creator_id,
+                'current_step_order' => 1,
+            ]);
 
-            $document->update($updates);
-
-            return "Dokumen dikembalikan untuk revisi.";
+            return 'Dokumen dikembalikan untuk revisi.';
         });
     }
 

@@ -79,6 +79,8 @@ class DocumentController extends Controller
                     : 'Dokumen berhasil disubmit dan diteruskan ke approver',
                 'data' => $document,
             ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
         } catch (\Exception $e) {
             \Log::error('Failed to submit document', ['document_id' => $id, 'error' => $e->getMessage()]);
             return response()->json([
@@ -103,12 +105,10 @@ class DocumentController extends Controller
         }
 
         // Status check
-        $canApprove = $document->status === 'IN_PROGRESS'
-            || ($document->status === 'REVISION' && $document->creator_id !== $user->id);
-        if (!$canApprove) {
+        if ($document->status !== 'IN_PROGRESS') {
             return response()->json([
                 'success' => false,
-                'message' => 'Dokumen dalam status ' . $document->status . ' tidak dapat disetujui',
+                'message' => 'Dokumen tidak dapat diproses',
             ], 400);
         }
 
@@ -148,10 +148,10 @@ class DocumentController extends Controller
         }
 
         // Status check
-        if (!in_array($document->status, ['IN_PROGRESS', 'REVISION'])) {
+        if ($document->status !== 'IN_PROGRESS') {
             return response()->json([
                 'success' => false,
-                'message' => 'Dokumen dalam status ' . $document->status . ' tidak dapat ditolak',
+                'message' => 'Dokumen tidak dapat diproses',
             ], 400);
         }
 
@@ -190,15 +190,15 @@ class DocumentController extends Controller
             ], 403);
         }
 
-        if (!in_array($document->status, ['IN_PROGRESS', 'REVISION'])) {
+        if ($document->status !== 'IN_PROGRESS') {
             return response()->json([
                 'success' => false,
-                'message' => 'Dokumen dalam status ' . $document->status . ' tidak dapat dikembalikan',
+                'message' => 'Dokumen tidak dapat diproses',
             ], 400);
         }
 
         try {
-            $result = $this->documentService->reviseDocument($document, $user, $validated['target_user_id'], $validated['note']);
+            $result = $this->documentService->reviseDocument($document, $user, $validated['note']);
 
             return response()->json([
                 'success' => true,

@@ -4,10 +4,9 @@ namespace App\Services;
 
 use App\Models\Document;
 use App\Models\DocumentLog;
-use App\Models\RoomBooking;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 
 class DocumentService
 {
@@ -178,224 +177,44 @@ class DocumentService
 
     public function submitDocument(Document $document, User $user): Document
     {
-        DB::transaction(function () use ($document, $user) {
-            $userRole = $user->role?->slug ?? '';
+        if ($user->isAdmin()) {
+            $document->update(['status' => 'APPROVED', 'completed_at' => now(), 'current_holder_id' => null]);
+            $document->roomBookings()->where('status', 'PENDING')->update(['status' => 'APPROVED', 'approved_by' => $user->id, 'approved_at' => now()]);
+            DocumentLog::create(['document_id' => $document->id, 'user_id' => $user->id, 'action' => 'APPROVED', 'note' => 'Manual booking oleh admin']);
 
-            // AUTO APPROVAL untuk Admin
-            if ($userRole === 'admin') {
-                $document->update([
-                    'status' => 'APPROVED',
-                    'current_step_order' => 999,
-                    'current_holder_id' => null,
-                    'completed_at' => now(),
-                ]);
-
-                DocumentLog::create([
-                    'document_id' => $document->id,
-                    'user_id' => $user->id,
-                    'action' => 'APPROVED',
-                    'note' => 'Dokumen disetujui secara otomatis (Manual Booking)',
-                    'step_snapshot' => 999,
-                ]);
-
-                $this->workflowEngine->finalizeRoomBookings($document, $user);
-
-                return;
-            }
-
-            $originalStatus = $document->status;
-            $currentStep = 1;
-
-            // HANDLE REVISION LOGIC
-            $content = $document->content ?? [];
-            if ($originalStatus === 'REVISION') {
-                $previous = $document->meta_data['submitted_booking'] ?? null;
-
-                if (!$previous) {
-                    $lastBooking = RoomBooking::where('document_id', $document->id)
-                        ->whereNotIn('status', ['CANCELLED', 'REJECTED'])
-                        ->latest()
-                        ->first();
-                    $previous = $lastBooking ? [
-                        'room_id' => $lastBooking->room_id,
-                        'booking_date' => $lastBooking->booking_date->format('Y-m-d'),
-                    ] : null;
-                }
-
-                if ($previous) {
-                    $newDate = $content['booking_date'] ?? null;
-                    $newRoomId = $content['room_id'] ?? null;
-
-                    if ($newDate && $newDate !== $previous['booking_date']) {
-                        \Log::info("[Revision] Date changed from {$previous['booking_date']} to {$newDate}. Restarting workflow.");
-                        $currentStep = 1;
-                    } elseif ($newRoomId && $newRoomId != $previous['room_id']) {
-                        $sumberDayaStep = $document->workflow->steps()
-                            ->where('target_role_slug', 'sumber-daya')
-                            ->first();
-
-                        if ($sumberDayaStep) {
-                            \Log::info("[Revision] Room changed from {$previous['room_id']} to {$newRoomId}. Jumping to Sumber Daya (Step {$sumberDayaStep->step_order}).");
-                            $currentStep = $sumberDayaStep->step_order;
-                        }
-                    }
-                }
-            }
-
-            $this->syncBookingWithContent($document, $user);
-            if (!empty($content['room_id']) && !empty($content['booking_date'])) {
-                $meta = $document->meta_data ?? [];
-                $meta['submitted_booking'] = [
-                    'room_id' => (int) $content['room_id'],
-                    'booking_date' => $content['booking_date'],
-                    'start_time' => $content['start_time'] ?? null,
-                    'end_time' => $content['end_time'] ?? null,
-                ];
-                $document->update(['meta_data' => $meta]);
-            }
-
-            $firstStep = $document->workflow->steps()->where('step_order', $currentStep)->first();
-
-            if (!$firstStep) {
-                throw new \Exception("Workflow tidak memiliki langkah ke-{$currentStep}");
-            }
-
-            $logNote = $originalStatus === 'REVISION'
-                ? 'Dokumen diajukan ulang setelah revisi'
-                : 'Dokumen diajukan untuk diproses';
-
-            DocumentLog::create([
-                'document_id' => $document->id,
-                'user_id' => $user->id,
-                'action' => 'SUBMITTED',
-                'note' => $logNote,
-                'step_snapshot' => $originalStatus === 'REVISION' ? $currentStep : 0,
-            ]);
-
-            // AUTO-APPROVE JIKA SUBMITTER ADALAH SEKRETARIS (legacy, tetap ada sampai Task 10)
-            if ($currentStep === 1 && $userRole === 'sekretaris' && $firstStep->target_role_slug === 'sekretaris') {
-                DocumentLog::create([
-                    'document_id' => $document->id,
-                    'user_id' => $user->id,
-                    'action' => 'APPROVED',
-                    'note' => 'Pengajuan oleh Sekretaris (auto-approve)',
-                    'step_snapshot' => 1,
-                ]);
-
-                $secondStep = $document->workflow->steps()->where('step_order', 2)->first();
-
-                if (!$secondStep) {
-                    $this->workflowEngine->finalizeRoomBookings($document, $user);
-                    $document->update([
-                        'status' => 'APPROVED',
-                        'completed_at' => now(),
-                        'current_holder_id' => null,
-                        'current_step_order' => 1,
-                    ]);
-                    return;
-                }
-
-                $secondApprover = $this->workflowEngine->findApprover($document, $secondStep);
-
-                if (!$secondApprover) {
-                    throw new \Exception("Tidak dapat menemukan approver untuk langkah '{$secondStep->step_name}'.");
-                }
-
-                $document->update([
-                    'status' => 'IN_PROGRESS',
-                    'current_step_order' => 2,
-                    'current_holder_id' => $secondApprover->id,
-                ]);
-
-                return;
-            }
-
-            $approver = $this->workflowEngine->findApprover($document, $firstStep);
-
-            if (!$approver) {
-                $roleName = $firstStep->target_role_slug;
-                $unitName = $document->unit->name ?? 'Unknown Unit';
-
-                throw new \Exception("Tidak dapat menemukan approver untuk langkah '{$firstStep->step_name}'. Diperlukan user dengan role '{$roleName}' di unit '{$unitName}'.");
-            }
-
-            $document->update([
-                'status' => 'IN_PROGRESS',
-                'current_step_order' => $currentStep,
-                'current_holder_id' => $approver->id,
-            ]);
-        });
-
-        return $document->fresh(['currentHolder', 'creator', 'logs']);
-    }
-
-    /**
-     * Samakan booking ruangan (PENDING) dengan jadwal di content dokumen.
-     * Dipertahankan sementara sampai alur submit lama diganti pada Task 10.
-     */
-    private function syncBookingWithContent(Document $document, User $user): void
-    {
-        $content = $document->content ?? [];
-        if (empty($content['room_id']) || empty($content['booking_date'])
-            || empty($content['start_time']) || empty($content['end_time'])) {
-            return;
+            return $document->fresh(['roomBookings', 'logs']);
         }
 
-        $bookings = RoomBooking::where('document_id', $document->id)
-            ->where('status', '!=', 'REJECTED')
-            ->latest('id')
-            ->get();
-
-        if ($bookings->count() > 1) {
-            return;
+        if ($document->reservation_deadline && $document->reservation_deadline->lt(today('Asia/Jakarta'))) {
+            throw ValidationException::withMessages(['reservation_deadline' => ['Reservasi sudah melewati deadline.']]);
         }
 
-        $booking = $bookings->first();
-        $target = [
-            'room_id' => (int) $content['room_id'],
-            'booking_date' => $content['booking_date'],
-            'start_time' => substr($content['start_time'], 0, 5),
-            'end_time' => substr($content['end_time'], 0, 5),
-        ];
-
-        if ($booking && in_array($booking->status, ['APPROVED', 'COMPLETED'])) {
-            return;
+        $completeness = app(ProposalCompletenessService::class)->evaluate($document);
+        if (!$completeness['is_complete']) {
+            throw ValidationException::withMessages(['proposal' => ['Proposal belum lengkap.'], 'missing' => $completeness['missing_fields']]);
         }
 
-        $alreadyInSync = $booking
-            && $booking->status === 'PENDING'
-            && (int) $booking->room_id === $target['room_id']
-            && $booking->booking_date->format('Y-m-d') === $target['booking_date']
-            && substr($booking->start_time, 0, 5) === $target['start_time']
-            && substr($booking->end_time, 0, 5) === $target['end_time'];
-
-        if ($alreadyInSync) {
-            return;
-        }
-
-        app(RoomBookingService::class)->validateScheduleRules(
-            $target['booking_date'], $target['start_time'], $target['end_time']
+        $conflicts = app(ReservationService::class)->checkAvailability(
+            ($document->content['slots'] ?? []),
+            $document->id
         );
-
-        $room = \App\Models\Room::find($target['room_id']);
-        if (!$room) {
-            throw new \Exception('Ruangan yang dipilih tidak ditemukan', 400);
-        }
-        if (!$room->isAvailable($target['booking_date'], $target['start_time'], $target['end_time'], $booking?->id, $document->id)) {
-            throw new \Exception('Ruangan tidak tersedia pada jadwal yang dipilih. Silakan pilih jadwal/ruangan lain.', 400);
+        if (!$conflicts['available']) {
+            throw ValidationException::withMessages(['slots' => ['Slot bentrok.']]);
         }
 
-        if ($booking) {
-            $booking->update($target + ['status' => 'PENDING', 'rejection_reason' => null]);
-            return;
-        }
+        $firstStep = $document->workflow->steps()->where('step_order', 1)->firstOrFail();
+        $approver = $this->workflowEngine->findApprover($document, $firstStep);
 
-        RoomBooking::create($target + [
-            'document_id' => $document->id,
-            'booked_by' => $document->creator_id,
-            'purpose' => $content['event_name'] ?? ($content['purpose'] ?? $document->title),
-            'status' => 'PENDING',
+        $document->update([
+            'status' => 'IN_PROGRESS',
+            'current_step_order' => 1,
+            'current_holder_id' => $approver->id,
+            'proposal_completed_at' => $document->proposal_completed_at ?? now(),
         ]);
+
+        DocumentLog::create(['document_id' => $document->id, 'user_id' => $user->id, 'action' => 'SUBMITTED', 'note' => 'Dokumen diajukan']);
+
+        return $document->fresh(['currentHolder', 'roomBookings']);
     }
 
     public function approveDocument(Document $document, User $user, ?string $note): string
@@ -403,9 +222,9 @@ class DocumentService
         return $this->workflowEngine->approveDocument($document, $user, $note);
     }
 
-    public function reviseDocument(Document $document, User $user, int $targetUserId, string $note): string
+    public function reviseDocument(Document $document, User $user, string $note): string
     {
-        return $this->workflowEngine->reviseDocument($document, $user, $targetUserId, $note);
+        return $this->workflowEngine->reviseDocument($document, $user, $note);
     }
 
     public function rejectDocument(Document $document, User $user, string $note): string
