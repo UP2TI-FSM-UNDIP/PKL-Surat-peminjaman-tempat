@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Role;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Database\Seeders\UnitSeeder;
@@ -70,6 +71,27 @@ class DevAuthTest extends TestCase
         $this->assertSame(
             User::where('email', 'admin@fsm.undip.ac.id')->value('id'),
             $response->json('default_user_id'),
+        );
+    }
+
+    public function test_session_tidak_menampilkan_role_legacy(): void
+    {
+        $legacyRole = Role::create([
+            'name' => 'Sekretaris',
+            'slug' => 'sekretaris',
+        ]);
+
+        User::factory()->create([
+            'role_id' => $legacyRole->id,
+            'is_profile_completed' => true,
+        ]);
+
+        $response = $this->getJson('/api/dev/session')->assertOk();
+
+        $response->assertJsonCount(6, 'accounts');
+        $this->assertNotContains(
+            'sekretaris',
+            collect($response->json('accounts'))->pluck('role.slug'),
         );
     }
 
