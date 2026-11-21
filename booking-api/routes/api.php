@@ -15,6 +15,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\RoomBookingController;
+use App\Http\Controllers\CalendarController;
 
 // Get authenticated user
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
@@ -132,6 +133,9 @@ Route::middleware(['auth:sanctum', 'role.assigned'])->group(function () {
 
     // Booking rules (tanggal, ruang, batas policy)
     Route::get('/booking-rules', [\App\Http\Controllers\BookingRuleController::class, 'show']);
+
+    // Kalender agregat per rentang tanggal
+    Route::get('/calendar', [CalendarController::class, 'index']);
 
     // Reservations
     Route::post('/reservations', [\App\Http\Controllers\ReservationController::class, 'store']);
