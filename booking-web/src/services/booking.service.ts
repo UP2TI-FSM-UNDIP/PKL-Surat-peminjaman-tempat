@@ -1,4 +1,5 @@
 import api from '@/lib/axios';
+import type { CalendarResponse } from '@/types/calendar';
 
 export interface RoomBooking {
   id: number;
@@ -85,6 +86,21 @@ export const bookingService = {
   async list(filters?: BookingFilters & { per_page?: number }): Promise<RoomBooking[]> {
     const response = await api.get<BookingResponse>('/room-bookings', { params: filters });
     return response.data.data?.data ?? [];
+  },
+
+  /**
+   * Ambil event kalender agregat untuk rentang tanggal.
+   */
+  async getCalendar(params: {
+    from: string;
+    to: string;
+    room_id?: number;
+  }): Promise<CalendarResponse> {
+    const response = await api.get<{ success: boolean; data: CalendarResponse }>(
+      '/calendar',
+      { params },
+    );
+    return response.data.data;
   },
 
   /**
