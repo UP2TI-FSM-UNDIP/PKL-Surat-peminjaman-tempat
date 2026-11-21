@@ -32,13 +32,6 @@ export interface SingleWorkflowResponse {
   data: Workflow;
 }
 
-export interface CreateWorkflowData {
-  name: string;
-  description?: string;
-  applies_to_category: string;
-  steps: Omit<WorkflowStep, 'id' | 'workflow_id' | 'created_at' | 'updated_at'>[];
-}
-
 export interface UpdateWorkflowData {
   name?: string;
   description?: string;
@@ -80,26 +73,11 @@ export const workflowService = {
   },
 
   /**
-   * Create new workflow
-   */
-  async createWorkflow(data: CreateWorkflowData): Promise<Workflow> {
-    const response = await api.post<SingleWorkflowResponse>('/workflows', data);
-    return response.data.data;
-  },
-
-  /**
    * Update existing workflow
    */
   async updateWorkflow(id: number, data: UpdateWorkflowData): Promise<Workflow> {
     const response = await api.put<SingleWorkflowResponse>(`/workflows/${id}`, data);
     return response.data.data;
-  },
-
-  /**
-   * Delete workflow
-   */
-  async deleteWorkflow(id: number): Promise<void> {
-    await api.delete(`/workflows/${id}`);
   },
 
   /**

@@ -60,15 +60,9 @@ export const menuConfigurations: Record<RoleSlug, MenuConfig> = {
 };
 
 /**
- * Route legacy (wadek1, senat, dan seterusnya) masih memanggil nama role lama
- * sampai Task 14 menghapusnya. Guard route tersebut selalu mengalihkan sebelum
- * komponen dirender, jadi menu fallback admin tidak pernah tampil.
- *
- * @deprecated dihapus bersama route legacy di Task 14.
+ * Ambil konfigurasi menu untuk role yang dikenal. Role tidak dikenal
+ * (mis. nilai localStorage lama) tetap mendapat menu admin.
  */
-type LegacyMenuRole = 'wadek1' | 'dosen-pendamping' | 'ketua-departemen' | 'ketua-ormawa' | 'kemahasiswaan' | 'sumber-daya' | 'senat';
-
-export function getMenuConfig(role: RoleSlug | LegacyMenuRole): MenuConfig {
-  const config = (menuConfigurations as Record<string, MenuConfig | undefined>)[role];
-  return config ?? menuConfigurations.admin;
+export function getMenuConfig(role: RoleSlug): MenuConfig {
+  return menuConfigurations[role] ?? menuConfigurations.admin;
 }

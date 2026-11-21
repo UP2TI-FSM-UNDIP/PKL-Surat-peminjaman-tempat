@@ -32,35 +32,6 @@ export interface ReservationContent {
   benefits?: string;
   target_audience?: string;
   equipment_items?: EquipmentItem[];
-
-  /** @deprecated dihapus di Task 14; dipertahankan agar build tetap hijau selama migrasi. */
-  room_id?: number;
-  /** @deprecated */
-  room_code?: string;
-  /** @deprecated */
-  room_name?: string;
-  /** @deprecated */
-  booking_date?: string;
-  /** @deprecated */
-  start_time?: string;
-  /** @deprecated */
-  end_time?: string;
-  /** @deprecated */
-  peminjam_nama?: string;
-  /** @deprecated */
-  schedule?: string;
-  /** @deprecated */
-  committee_head?: string;
-  /** @deprecated */
-  ketua_pelaksana_nim?: string;
-  /** @deprecated */
-  event_type?: string;
-  /** @deprecated */
-  location?: string;
-  /** @deprecated */
-  equipment?: string;
-  /** @deprecated */
-  invitations?: string;
 }
 
 export interface ReservationPayload {

@@ -27,7 +27,6 @@ interface WorkflowTableProps {
   onView: (workflow: Workflow) => void;
   onManageSteps: (workflow: Workflow) => void;
   onEdit: (workflow: Workflow) => void;
-  onDelete: (workflow: Workflow) => void;
   onEditStep: (workflow: Workflow, step: WorkflowStep) => void;
   onDeleteStep: (workflow: Workflow, step: WorkflowStep) => void;
   getScopeTypeLabel: (scopeType: string) => string;
@@ -41,7 +40,6 @@ export function WorkflowTable({
   onView,
   onManageSteps,
   onEdit,
-  onDelete,
   onEditStep,
   onDeleteStep,
   getScopeTypeLabel,
@@ -79,7 +77,6 @@ export function WorkflowTable({
                   onView={onView}
                   onManageSteps={onManageSteps}
                   onEdit={onEdit}
-                  onDelete={onDelete}
                   onEditStep={onEditStep}
                   onDeleteStep={onDeleteStep}
                   getScopeTypeLabel={getScopeTypeLabel}
@@ -101,7 +98,6 @@ interface WorkflowRowProps {
   onView: (workflow: Workflow) => void;
   onManageSteps: (workflow: Workflow) => void;
   onEdit: (workflow: Workflow) => void;
-  onDelete: (workflow: Workflow) => void;
   onEditStep: (workflow: Workflow, step: WorkflowStep) => void;
   onDeleteStep: (workflow: Workflow, step: WorkflowStep) => void;
   getScopeTypeLabel: (scopeType: string) => string;
@@ -115,7 +111,6 @@ function WorkflowRow({
   onView,
   onManageSteps,
   onEdit,
-  onDelete,
   onEditStep,
   onDeleteStep,
   getScopeTypeLabel,
@@ -190,15 +185,6 @@ function WorkflowRow({
               title='Edit'
             >
               <Pencil className='h-3 w-3 sm:h-4 sm:w-4' />
-            </Button>
-            <Button
-              variant='ghost'
-              size='sm'
-              onClick={() => onDelete(workflow)}
-              className='h-7 w-7 p-0 sm:h-8 sm:w-8'
-              title='Hapus'
-            >
-              <Trash2 className='h-3 w-3 sm:h-4 sm:w-4 text-red-500' />
             </Button>
           </div>
         </TableCell>
