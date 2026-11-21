@@ -11,16 +11,6 @@ import { Badge } from '@/components/ui/badge';
 import { authService } from '@/services/auth.service';
 import { devService, type DevAccount, type DevSession } from '@/services/dev.service';
 
-/**
- * Role yang dashboard-nya belum dibangun di frontend (Fase 2/3).
- * Token dan izin backend tetap benar; hanya halaman tujuannya masih fallback.
- */
-const DASHBOARD_PENDING_SLUGS = new Set([
-  'wadek2',
-  'manajer-tata-usaha',
-  'spv-sumberdaya',
-]);
-
 interface DevAccountSwitcherProps {
   session: DevSession;
   currentUserId?: number;
@@ -41,7 +31,7 @@ export function DevAccountSwitcher({ session, currentUserId }: DevAccountSwitche
       const response = await devService.login(account.user_id);
       authService.saveAuthData(response);
       setOpen(false);
-      authService.redirectByRole(response.user.role?.name ?? account.role.name);
+      authService.redirectByRole(response.user.role?.slug ?? account.role.slug);
     } catch {
       setError('Gagal berpindah akun. Pastikan API lokal hidup dan AUTH_DEV_LOGIN aktif.');
       setSwitchingId(null);
@@ -100,9 +90,6 @@ export function DevAccountSwitcher({ session, currentUserId }: DevAccountSwitche
 
                 <div className='flex shrink-0 items-center gap-2'>
                   <Badge variant='secondary'>{account.role.name}</Badge>
-                  {DASHBOARD_PENDING_SLUGS.has(account.role.slug) && (
-                    <Badge variant='warning'>UI Fase 2</Badge>
-                  )}
                   {isCurrent && <Check className='h-4 w-4 text-primary' />}
                   {isSwitching && <Loader2 className='h-4 w-4 animate-spin text-primary' />}
                 </div>

@@ -1,11 +1,16 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, redirect } from '@tanstack/react-router';
 
 import { TopBar } from '@/layouts/TopBar';
 import { LoginModal } from '@/components/LoginModal';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button/button';
+import { authService } from '@/services/auth.service';
 
 export const Route = createFileRoute('/')({
+  beforeLoad: () => {
+    if (!authService.isAuthenticated()) return;
+    throw redirect({ to: authService.getRolePath(authService.getRoleSlug()) });
+  },
   component: RouteComponent,
 });
 

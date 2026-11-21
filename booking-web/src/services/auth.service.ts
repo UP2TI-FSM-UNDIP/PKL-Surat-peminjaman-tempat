@@ -1,6 +1,7 @@
 import api from '@/lib/axios';
+import { getRolePath } from '@/lib/roleRoutes';
+import { isRoleSlug, type AuthUser, type RoleSlug } from '@/types/auth';
 
-/** Event yang dikirim setiap data login di localStorage berubah (tab yang sama). */
 export const AUTH_CHANGED_EVENT = 'auth-changed';
 
 interface LoginRequest {
@@ -8,189 +9,99 @@ interface LoginRequest {
   password: string;
 }
 
-
 export interface LoginResponse {
   message: string;
   token: string;
-  user: {
-    id: number;
-    name: string;
-    email: string;
-    nim_nip?: string | null;
-    role_id: number;
-    unit_id: number;
-    role?: {
-      id: number;
-      name: string;
-      slug?: string;
-    };
-    unit?: {
-      id: number;
-      name: string;
-      code?: string | null;
-      category?: string;
-    };
-    is_profile_completed: boolean;
-  };
-  unit_category?: string; // Untuk dynamic workflow selection
-}
-
-interface LogoutResponse {
-  message: string;
+  user: AuthUser;
 }
 
 export const authService = {
-  /**
-   * Login dengan email dan password
-   */
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     const response = await api.post<LoginResponse>('/login', credentials);
     return response.data;
   },
 
-  /**
-   * Logout user
-   */
-  async logout(): Promise<LogoutResponse> {
-    const response = await api.post<LogoutResponse>('/logout');
+  async logout(): Promise<{ message: string }> {
+    const response = await api.post<{ message: string }>('/logout');
     return response.data;
   },
 
-  /**
-   * Get authenticated user
-   */
-  async getUser() {
-    const response = await api.get('/user');
+  async getUser(): Promise<AuthUser> {
+    const response = await api.get<AuthUser>('/user');
     return response.data;
   },
 
-  /**
-   * Simpan data autentikasi ke localStorage
-   */
+  saveUser(user: AuthUser, token?: string): void {
+    if (token) localStorage.setItem('token', token);
+    localStorage.setItem('userEmail', user.email);
+    localStorage.setItem('userName', user.name);
+    localStorage.setItem('userId', String(user.id));
+
+    if (user.nim_nip) localStorage.setItem('userNim', user.nim_nip);
+    else localStorage.removeItem('userNim');
+
+    if (user.role) {
+      localStorage.setItem('role', user.role.slug);
+      localStorage.setItem('roleName', user.role.name);
+      localStorage.setItem('roleId', String(user.role.id));
+    } else {
+      localStorage.removeItem('role');
+      localStorage.removeItem('roleName');
+      localStorage.removeItem('roleId');
+    }
+
+    if (user.unit) {
+      localStorage.setItem('userUnit', user.unit.name);
+      localStorage.setItem('unitId', String(user.unit.id));
+    } else {
+      localStorage.removeItem('userUnit');
+      localStorage.removeItem('unitId');
+    }
+
+    localStorage.setItem('isProfileCompleted', user.is_profile_completed ? 'true' : 'false');
+    window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
+  },
+
   saveAuthData(data: LoginResponse): void {
-    localStorage.setItem('token', data.token);
-    localStorage.setItem('userEmail', data.user.email);
-    localStorage.setItem('userName', data.user.name);
-    localStorage.setItem('userId', data.user.id.toString());
-
-    // Simpan NIM/NIP jika ada
-    if (data.user.nim_nip) {
-      localStorage.setItem('userNim', data.user.nim_nip);
-    }
-
-    if (data.user.role) {
-      localStorage.setItem('role', data.user.role.name);
-      localStorage.setItem('roleId', data.user.role.id.toString());
-    }
-
-    if (data.user.unit) {
-      localStorage.setItem('userUnit', data.user.unit.name);
-      localStorage.setItem('unitId', data.user.unit.id.toString());
-    }
-
-    // Simpan unit category untuk dynamic workflow selection
-    if (data.unit_category) {
-      localStorage.setItem('userUnitCategory', data.unit_category);
-    } else if (data.user.unit?.category) {
-      localStorage.setItem('userUnitCategory', data.user.unit.category);
-    }
-
-    localStorage.setItem('isProfileCompleted', data.user.is_profile_completed ? 'true' : 'false');
-
-    // Beri tahu komponen di tab yang sama (event 'storage' hanya untuk tab lain),
-    // mis. modal Lengkapi Profil yang perlu muncul tepat setelah login SSO.
-    window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
+    this.saveUser(data.user, data.token);
   },
 
-  /**
-   * Hapus data autentikasi dari localStorage
-   */
   clearAuthData(): void {
-    localStorage.removeItem('token');
-    localStorage.removeItem('userEmail');
-    localStorage.removeItem('userName');
-    localStorage.removeItem('userId');
-    localStorage.removeItem('userNim');
-    localStorage.removeItem('role');
-    localStorage.removeItem('roleId');
-    localStorage.removeItem('userUnit');
-    localStorage.removeItem('unitId');
-    localStorage.removeItem('userUnitCategory');
-    localStorage.removeItem('isProfileCompleted');
+    ['token', 'userEmail', 'userName', 'userId', 'userNim', 'role', 'roleName', 'roleId', 'userUnit', 'unitId', 'isProfileCompleted']
+      .forEach((key) => localStorage.removeItem(key));
     window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
   },
 
-  /**
-   * Cek apakah user sudah login
-   */
   isAuthenticated(): boolean {
     return !!localStorage.getItem('token');
   },
 
-  /**
-   * Get role dari localStorage
-   */
   getRole(): string | null {
     return localStorage.getItem('role');
   },
 
-  /**
-   * Mendapatkan path halaman utama sesuai role
-   */
-  getRolePath(role: string): string {
-    const roleRoutes: Record<string, string> = {
-      // Admin & Pimpinan
-      Admin: '/admin/',
-      'Wakil Dekan 1': '/wadek1/',
-
-      // Staff Fakultas
-      Kemahasiswaan: '/kemahasiswaan/',
-      'Sumber Daya': '/sumber-daya/',
-
-      // Dosen & Ketua Departemen (approval only, tapi kalau login redirect ke dashboard)
-      'Dosen Pendamping Ormawa': '/dosen-pendamping/',
-      'Ketua Departemen': '/ketua-departemen/',
-
-      // Ketua Organisasi (BEM, HIMA, UKM ke ketua-ormawa)
-      'Ketua Ormawa': '/ketua-ormawa/',
-
-      // Senat punya route sendiri
-      Senat: '/senat/',
-
-      // Akun baru SSO yang role-nya belum ditetapkan admin
-      'Menunggu Penetapan': '/menunggu-penetapan/',
-
-      // Sekretaris & Mahasiswa -> Peminjam
-      Sekretaris: '/peminjam/',
-      Peminjam: '/peminjam/',
-    };
-
-    return roleRoutes[role] || '/peminjam/'; // Default ke peminjam
+  getRoleSlug(): RoleSlug | null {
+    const value = localStorage.getItem('role');
+    return isRoleSlug(value) ? value : null;
   },
 
-  /**
-   * Redirect ke halaman sesuai role
-   */
-  redirectByRole(role: string, navigate?: (options: { to: string }) => void): void {
-    const path = this.getRolePath(role);
-    
+  getRolePath(value?: string | null): string {
+    return getRolePath(value ?? this.getRole());
+  },
+
+  redirectByRole(role?: string | null, navigate?: (options: { to: string }) => void): void {
+    const path = getRolePath(role);
     if (navigate) {
-      // Use TanStack Router navigate (automatically handles basepath)
       navigate({ to: path });
-    } else {
-      // Fallback to window.location (must prefix with BASE_URL for sub-path deployment)
-      const baseUrl = import.meta.env.BASE_URL || '/';
-      // Ensure we don't double slash
-      const fullPath = `${baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl}${path}`;
-      window.location.href = fullPath;
+      return;
     }
+    const baseUrl = import.meta.env.BASE_URL || '/';
+    const fullPath = `${baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl}${path}`;
+    window.location.href = fullPath;
   },
 
-  /**
-   * Update profile (NIM/NIP, Unit, Role)
-   */
-  async updateProfile(data: { name: string; nim_nip: string; unit_id: number }) {
-    const response = await api.patch('/user/profile', data);
-    return response.data;
+  async updateProfile(data: { name: string; nim_nip: string }): Promise<AuthUser> {
+    const response = await api.patch<{ success: boolean; message: string; data: AuthUser }>('/user/profile', data);
+    return response.data.data;
   },
 };

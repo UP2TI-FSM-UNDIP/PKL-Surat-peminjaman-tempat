@@ -45,11 +45,10 @@ function SsoCallbackPage() {
           message: 'SSO Login successful',
           token,
           user: userResponse,
-          unit_category: userResponse?.unit?.category ?? null,
         });
 
         // Redirect to the appropriate dashboard based on role
-        const role = userResponse?.role?.name ?? '';
+        const role = userResponse?.role?.slug ?? '';
         const isCompleted = userResponse?.is_profile_completed ?? true;
 
         if (!isCompleted) {
