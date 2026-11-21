@@ -1,6 +1,7 @@
 // src/types/document.ts
 import { DOCUMENT_STATUS, DOCUMENT_ACTIONS } from '@/constants/document';
 import type { PaginatedData } from './pagination';
+import type { ReservationContent, RoomBookingSummary } from './reservation';
 
 export type DocumentStatus =
   (typeof DOCUMENT_STATUS)[keyof typeof DOCUMENT_STATUS];
@@ -33,6 +34,7 @@ export interface BookingContent {
   purpose?: string;
   event_name?: string;
   ketua_pelaksana_nama?: string;
+  /** @deprecated dihapus di Task 14; gunakan ketua_pelaksana_identitas. */
   ketua_pelaksana_nim?: string;
   ketua_pelaksana_hp?: string;
 
@@ -42,11 +44,15 @@ export interface BookingContent {
   objectives?: string;
   benefits?: string;
   target_audience?: string;
+  /** @deprecated dihapus di Task 14. */
   location?: string;
+  /** @deprecated dihapus di Task 14. */
   equipment?: string;
+  /** @deprecated dihapus di Task 14. */
   invitations?: string;
 
   // Index signature agar tetap kompatibel jika ada field tambahan lain
+  /** @deprecated dihapus di Task 14; gunakan tipe ReservationContent. */
   [key: string]: string | number | boolean | null | undefined;
 }
 
@@ -63,9 +69,7 @@ export interface DocumentLog {
 }
 
 // Document Interface (Generic TContent)
-export interface Document<
-  TContent = Record<string, string | number | boolean | null>,
-> {
+export interface Document<TContent = ReservationContent> {
   id: number;
   workflow_id: number;
   title: string;
@@ -79,9 +83,20 @@ export interface Document<
   current_step_order: number;
 
   // File Paths
+  /** @deprecated dihapus di Task 14. */
   file_executive_summary?: string;
+  /** @deprecated dihapus di Task 14. */
   file_approval_sheet?: string;
   file_proposal?: string;
+
+  reservation_deadline?: string | null;
+  proposal_completed_at?: string | null;
+  expired_at?: string | null;
+  cancelled_at?: string | null;
+  cancelled_by?: number | null;
+  deadline_policy_id?: number | null;
+  deadline_rule_snapshot?: Record<string, unknown> | null;
+  room_bookings?: RoomBookingSummary[];
 
   completed_at?: string;
   created_at: string;
