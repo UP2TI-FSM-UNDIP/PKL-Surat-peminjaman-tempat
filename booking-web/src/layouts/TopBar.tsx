@@ -79,7 +79,7 @@ export function TopBar({
       sessionStorage.removeItem(DEV_LOGIN_OPT_OUT_KEY);
       const response = await devService.login(session.default_user_id);
       authService.saveAuthData(response);
-      authService.redirectByRole(response.user.role?.name ?? 'Admin');
+      authService.redirectByRole(response.user.role?.slug);
     } catch {
       // Biarkan pengguna memakai tombol login biasa bila dev login gagal.
     }
@@ -132,7 +132,17 @@ export function TopBar({
         {/* Trigger sidebar untuk layout dengan sidebar (admin, role, dll) */}
         {hasSidebar && <SidebarTrigger className='md:hidden text-white' />}
         <div className='flex items-center gap-3'>
-          <img src={`${import.meta.env.BASE_URL}logo-fsm.png`} alt='FSM Logo' className='h-8 sm:h-12 w-auto' />
+          <Link
+            to='/'
+            aria-label='Beranda'
+            className='-m-1 inline-flex shrink-0 items-center rounded-lg p-1 transition-transform duration-200 hover:scale-[1.03] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80'
+          >
+            <img
+              src={`${import.meta.env.BASE_URL}logo-fsm.png`}
+              alt='FSM Logo'
+              className='h-8 sm:h-12 w-auto'
+            />
+          </Link>
         </div>
       </div>
       <div className='flex items-center gap-2 sm:gap-4'>

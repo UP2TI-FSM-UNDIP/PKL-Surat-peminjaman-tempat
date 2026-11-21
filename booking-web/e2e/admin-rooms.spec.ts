@@ -7,7 +7,7 @@ test('admin dapat mencari ruangan seed', async ({ page, request }) => {
 
   await loginAs(page, request, 'admin');
 
-  await page.goto('admin/rooms/');
+  await page.goto('./admin/rooms');
 
   await expect(
     page.getByRole('heading', { name: 'Manajemen Ruang' }),
@@ -28,4 +28,20 @@ test('admin dapat mencari ruangan seed', async ({ page, request }) => {
   ).toBeVisible();
 
   assertNoPageErrors();
+});
+
+for (const role of ['wadek2', 'manajer-tata-usaha', 'spv-sumberdaya'] as const) {
+  test(`${role} dapat membuka manajemen ruang`, async ({ page, request }) => {
+    await loginAs(page, request, role);
+    await page.goto('./admin/rooms');
+    await expect(
+      page.getByRole('heading', { name: 'Manajemen Ruang' }),
+    ).toBeVisible();
+  });
+}
+
+test('peminjam ditolak dari manajemen ruang admin', async ({ page, request }) => {
+  await loginAs(page, request, 'peminjam');
+  await page.goto('./admin/rooms');
+  await expect(page).toHaveURL(/\/peminjam\/?$/);
 });

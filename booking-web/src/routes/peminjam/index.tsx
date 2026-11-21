@@ -62,7 +62,7 @@ function RouteComponent() {
   ).length;
 
   const goToPinjam = (status: string) =>
-    navigate({ to: '/peminjam/pinjam', search: { status } } as never);
+    navigate({ to: '/peminjam/pinjam', search: { status } });
 
   return (
     <div className="space-y-6">
@@ -78,23 +78,14 @@ function RouteComponent() {
           <Button
             variant="outline"
             className="gap-2"
-            onClick={() =>
-              navigate({
-                to: '/peminjam/pinjam/detail-tempat',
-                search: {
-                  editId: undefined, roomId: undefined, bookingDate: undefined,
-                  startTime: undefined, endTime: undefined, purpose: undefined,
-                  ketuaNama: undefined, ketuaNim: undefined, ketuaHp: undefined,
-                },
-              })
-            }
+            onClick={() => navigate({ to: '/peminjam/pinjam/baru' })}
           >
             <Send className="w-4 h-4" />
             Ajukan Peminjaman
           </Button>
           <Button
             className="gap-2"
-            onClick={() => navigate({ to: '/peminjam/reservasi' } as never)}
+            onClick={() => navigate({ to: '/peminjam/pinjam/baru' })}
           >
             <CalendarCheck className="w-4 h-4" />
             Reservasi

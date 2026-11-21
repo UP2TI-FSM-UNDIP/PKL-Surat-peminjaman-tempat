@@ -18,6 +18,7 @@ class UpdateReservationProposalRequest extends FormRequest
             'content.equipment_items' => 'nullable|array',
             'content.equipment_items.*.nama' => 'required_with:content.equipment_items|string|max:255',
             'content.equipment_items.*.jumlah' => 'required_with:content.equipment_items|integer|min:1',
+            'clear_equipment' => 'nullable|boolean',
             'proposal' => 'nullable|file|mimes:pdf|max:20480',
         ];
     }

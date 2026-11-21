@@ -7,8 +7,9 @@ test('admin dev login membuka dashboard', async ({ page, request }) => {
 
   await loginAs(page, request, 'admin');
 
-  await page.goto('admin/');
+  await page.goto('./admin/');
 
+  await expect(page).toHaveURL(/\/admin\/$/);
   await expect(
     page.getByRole('heading', { name: 'Dashboard' }),
   ).toBeVisible();

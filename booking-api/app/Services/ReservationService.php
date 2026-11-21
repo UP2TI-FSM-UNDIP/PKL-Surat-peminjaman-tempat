@@ -125,6 +125,9 @@ class ReservationService
 
         $allowed = ['event_name', 'event_nature', 'event_form', 'objectives', 'benefits', 'target_audience', 'equipment_items'];
         $merge = array_intersect_key($content, array_flip($allowed));
+        if ((bool) ($data['clear_equipment'] ?? false)) {
+            $merge['equipment_items'] = [];
+        }
         $document->update([
             'content' => array_merge($current, $merge),
             'file_proposal' => $file ? $file->store('documents/proposals', 'private') : $document->file_proposal,

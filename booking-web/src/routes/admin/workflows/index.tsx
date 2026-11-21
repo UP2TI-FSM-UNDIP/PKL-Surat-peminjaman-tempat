@@ -5,15 +5,15 @@ import {
   workflowService,
   type Workflow,
   type WorkflowStep,
-  type CreateWorkflowData,
 } from '@/services/workflow.service';
 import { roleService, type Role } from '@/services/role.service';
 import { categories, scopeTypes } from '@/services/workflow.constants';
 import { Button } from '@/components/ui/button/button';
 import { Input } from '@/components/ui/input';
+import { SegmentedControl } from '@/components/ui/segmented-control';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -29,9 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { CreateWorkflowDialog } from '@/components/ui/workflows/CreateWorkflowDialog';
 import { WorkflowDetailDialog } from '@/components/ui/workflows/WorkflowDetailDialog';
-import { WorkflowDeleteDialog } from '@/components/ui/workflows/WorkflowDeleteDialog';
 import { WorkflowTable } from '@/components/ui/workflows/WorkflowTable';
 import { WorkflowStepDialog } from '@/components/ui/workflows/WorkflowStepDialog';
 import { WorkflowStepDeleteDialog } from '@/components/ui/workflows/WorkflowStepDeleteDialog';
@@ -50,10 +48,8 @@ function RouteComponent() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   // Modal states
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(
     null,
   );
@@ -76,9 +72,6 @@ function RouteComponent() {
   });
 
   // Form states for steps
-  const [steps, setSteps] = useState<
-    Omit<WorkflowStep, 'id' | 'workflow_id' | 'created_at' | 'updated_at'>[]
-  >([]);
   const [stepFormData, setStepFormData] = useState({
     step_order: 1,
     step_name: '',
@@ -157,12 +150,6 @@ function RouteComponent() {
     setExpandedWorkflows(newExpanded);
   };
 
-  const handleCreateWorkflow = () => {
-    setFormData({ name: '', description: '', applies_to_category: 'HMD' });
-    setSteps([]);
-    setIsCreateModalOpen(true);
-  };
-
   const handleEditWorkflow = (workflow: Workflow) => {
     setSelectedWorkflow(workflow);
     setFormData({
@@ -176,73 +163,6 @@ function RouteComponent() {
   const handleViewWorkflow = (workflow: Workflow) => {
     setSelectedWorkflow(workflow);
     setIsDetailModalOpen(true);
-  };
-
-  const handleDeleteWorkflow = (workflow: Workflow) => {
-    setSelectedWorkflow(workflow);
-    setIsDeleteDialogOpen(true);
-  };
-
-  const addStepToForm = () => {
-    if (!stepFormData.step_name || !stepFormData.target_role_slug) {
-      alert('Harap isi nama step dan role target');
-      return;
-    }
-
-    const newStep = {
-      step_order: steps.length + 1,
-      step_name: stepFormData.step_name,
-      target_role_slug: stepFormData.target_role_slug,
-      scope_type: stepFormData.scope_type,
-      target_category_lookup:
-        stepFormData.scope_type === 'SPECIFIC_CATEGORY'
-          ? stepFormData.target_category_lookup
-          : null,
-    };
-
-    setSteps([...steps, newStep]);
-    setStepFormData({
-      step_order: steps.length + 2,
-      step_name: '',
-      target_role_slug: '',
-      scope_type: 'SELF',
-      target_category_lookup: '',
-    });
-  };
-
-  const removeStepFromForm = (index: number) => {
-    const newSteps = steps.filter((_, i) => i !== index);
-    // Re-order steps
-    const reorderedSteps = newSteps.map((step, i) => ({
-      ...step,
-      step_order: i + 1,
-    }));
-    setSteps(reorderedSteps);
-  };
-
-  const submitCreateWorkflow = async () => {
-    if (!formData.name || steps.length === 0) {
-      alert('Harap isi nama workflow dan minimal 1 step');
-      return;
-    }
-
-    try {
-      const createData: CreateWorkflowData = {
-        name: formData.name,
-        description: formData.description || undefined,
-        applies_to_category: formData.applies_to_category,
-        steps: steps,
-      };
-
-      await workflowService.createWorkflow(createData);
-      setIsCreateModalOpen(false);
-      loadWorkflows();
-      setFormData({ name: '', description: '', applies_to_category: 'HMD' });
-      setSteps([]);
-    } catch (err) {
-      const error = err as AxiosError<{ message: string }>;
-      alert(error.response?.data?.message || 'Gagal membuat workflow');
-    }
   };
 
   const submitEditWorkflow = async () => {
@@ -263,20 +183,6 @@ function RouteComponent() {
     } catch (err) {
       const error = err as AxiosError<{ message: string }>;
       alert(error.response?.data?.message || 'Gagal mengupdate workflow');
-    }
-  };
-
-  const confirmDeleteWorkflow = async () => {
-    if (!selectedWorkflow) return;
-
-    try {
-      await workflowService.deleteWorkflow(selectedWorkflow.id);
-      setIsDeleteDialogOpen(false);
-      loadWorkflows();
-      setSelectedWorkflow(null);
-    } catch (err) {
-      const error = err as AxiosError<{ message: string }>;
-      alert(error.response?.data?.message || 'Gagal menghapus workflow');
     }
   };
 
@@ -421,48 +327,36 @@ function RouteComponent() {
         </div>
       )}
 
-      {/* Search and Create Button */}
-      <div className='mb-4 sm:mb-6 flex flex-row justify-between gap-2'>
+      {/* Search */}
+      <div className='mb-4 sm:mb-6 flex items-center gap-2'>
         <div className='relative flex-1'>
-          <Search className='absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 h-3 w-3 sm:h-4 sm:w-4 text-gray-400' />
+          <Search className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400' />
           <Input
             type='text'
             placeholder='Cari workflow...'
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className='pl-7 sm:pl-10 text-sm h-9 sm:h-10'
+            className='pl-10 text-sm h-11 border-gray-200 focus:ring-blue-500 rounded-xl shadow-sm w-full bg-white'
           />
         </div>
-        <Button
-          onClick={handleCreateWorkflow}
-          className='whitespace-nowrap h-10 sm:h-11 px-4 sm:px-6 text-sm sm:text-base'
-        >
-          <Plus className='h-5 w-5 mr-2' />
-          <span>Buat Workflow</span>
-        </Button>
       </div>
 
       {/* Filter Buttons */}
-      <div className='mb-4 flex flex-wrap gap-2'>
-        <Button
-          variant={selectedCategory === null ? 'default' : 'outline'}
-          size='sm'
-          onClick={() => setSelectedCategory(null)}
-          className='text-xs sm:text-sm'
-        >
-          Semua
-        </Button>
-        {categories.map((cat) => (
-          <Button
-            key={cat.value}
-            variant={selectedCategory === cat.value ? 'default' : 'outline'}
-            size='sm'
-            onClick={() => setSelectedCategory(cat.value)}
-            className='text-xs sm:text-sm'
-          >
-            {cat.label}
-          </Button>
-        ))}
+      <div className='mb-4'>
+        <SegmentedControl
+          ariaLabel='Filter kategori workflow'
+          value={selectedCategory ?? 'all'}
+          onChange={(value) =>
+            setSelectedCategory(value === 'all' ? null : value)
+          }
+          options={[
+            { value: 'all', label: 'Semua' },
+            ...categories.map((cat) => ({
+              value: cat.value,
+              label: cat.label,
+            })),
+          ]}
+        />
       </div>
 
       {/* Workflows Table */}
@@ -473,29 +367,10 @@ function RouteComponent() {
         onView={handleViewWorkflow}
         onManageSteps={handleManageSteps}
         onEdit={handleEditWorkflow}
-        onDelete={handleDeleteWorkflow}
         onEditStep={handleEditStep}
         onDeleteStep={handleDeleteStep}
         getScopeTypeLabel={getScopeTypeLabel}
         getCategoryLabel={getCategoryLabel}
-      />
-
-      {/* Create Workflow Modal */}
-      <CreateWorkflowDialog
-        open={isCreateModalOpen}
-        onOpenChange={setIsCreateModalOpen}
-        formData={formData}
-        setFormData={setFormData}
-        categories={categories}
-        steps={steps}
-        removeStepFromForm={removeStepFromForm}
-        stepFormData={stepFormData}
-        setStepFormData={setStepFormData}
-        roles={roles}
-        scopeTypes={scopeTypes}
-        getScopeTypeLabel={getScopeTypeLabel}
-        addStepToForm={addStepToForm}
-        submitCreateWorkflow={submitCreateWorkflow}
       />
 
       {/* Edit Workflow Modal */}
@@ -564,14 +439,6 @@ function RouteComponent() {
         selectedWorkflow={selectedWorkflow}
         getScopeTypeLabel={getScopeTypeLabel}
         getCategoryLabel={getCategoryLabel}
-      />
-
-      {/* Delete Workflow Dialog */}
-      <WorkflowDeleteDialog
-        open={isDeleteDialogOpen}
-        onOpenChange={setIsDeleteDialogOpen}
-        workflowName={selectedWorkflow?.name ?? ''}
-        onConfirm={confirmDeleteWorkflow}
       />
 
       {/* Add Step Modal */}

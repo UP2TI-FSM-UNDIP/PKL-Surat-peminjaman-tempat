@@ -3,5 +3,5 @@ minio/minio.exe
 
 docs/
 .codegraph/
-PLAN.md
 SPEC.md
+.superpowers/

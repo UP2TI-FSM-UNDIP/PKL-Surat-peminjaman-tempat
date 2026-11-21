@@ -7,10 +7,12 @@ import React from 'react';
 export const Route = createFileRoute('/admin')({
   beforeLoad: ({ location }) => {
     if (!authService.isAuthenticated()) throw redirect({ to: '/' });
-    const role = authService.getRole() || '';
-    const validPath = authService.getRolePath(role);
-    if (!location.pathname.startsWith(validPath.replace(/\/$/, ''))) {
-      throw redirect({ to: validPath });
+    const slug = authService.getRoleSlug();
+    const path = location.pathname;
+    const isRooms = path === '/admin/rooms' || path.startsWith('/admin/rooms/');
+    const allowedRoomManagers = ['admin', 'wadek2', 'manajer-tata-usaha', 'spv-sumberdaya'];
+    if (slug !== 'admin' && !(isRooms && slug && allowedRoomManagers.includes(slug))) {
+      throw redirect({ to: authService.getRolePath(slug) });
     }
   },
   component: RouteComponent,
@@ -18,7 +20,8 @@ export const Route = createFileRoute('/admin')({
 
 function RouteComponent() {
   const [open, setOpen] = React.useState(false);
-  const menuConfig = getMenuConfig('admin');
+  const slug = authService.getRoleSlug() ?? 'admin';
+  const menuConfig = getMenuConfig(slug);
 
   return (
     <SidebarProvider open={open} onOpenChange={setOpen} className='gap-0'>

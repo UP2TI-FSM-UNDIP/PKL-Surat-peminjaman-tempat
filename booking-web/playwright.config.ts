@@ -28,7 +28,7 @@ export default defineConfig({
   webServer: [
     {
       command:
-        'touch database/e2e.sqlite && php artisan config:clear && php artisan migrate:fresh --seed --force && php artisan serve --host=127.0.0.1 --port=18000',
+        'touch database/e2e.sqlite && php artisan config:clear && php artisan migrate:fresh --seed --force && php artisan db:seed --class=E2eRoomSeeder --force && php artisan db:seed --class=E2eUserSeeder --force && php artisan serve --host=127.0.0.1 --port=18000',
       cwd: apiDir,
       url: 'http://127.0.0.1:18000/up',
       timeout: 120_000,
@@ -40,6 +40,7 @@ export default defineConfig({
         DB_CONNECTION: 'sqlite',
         DB_DATABASE: e2eDb,
         AUTH_DEV_LOGIN: 'true',
+        AUTH_LOCAL_LOGIN: 'all',
         FRONTEND_URL: 'http://127.0.0.1:20181,http://localhost:20181',
         FRONTEND_APP_URL: 'http://127.0.0.1:20181/peminjaman-ruang',
         SESSION_DRIVER: 'array',
@@ -47,6 +48,7 @@ export default defineConfig({
         QUEUE_CONNECTION: 'sync',
         MAIL_MAILER: 'array',
         FILESYSTEM_DISK: 'local',
+        PRIVATE_FILESYSTEM_DRIVER: 'local',
       },
     },
     {

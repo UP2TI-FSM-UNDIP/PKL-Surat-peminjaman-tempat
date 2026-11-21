@@ -2,7 +2,23 @@ import { expect, type APIRequestContext, type Page } from '@playwright/test';
 
 const API_BASE = 'http://127.0.0.1:18000/api';
 
-type DevRole = 'admin' | 'peminjam';
+export type DevRole =
+  | 'admin'
+  | 'wadek2'
+  | 'manajer-tata-usaha'
+  | 'spv-sumberdaya'
+  | 'peminjam'
+  | 'dosen';
+
+/** Email akun seed deterministik untuk setiap role. */
+const ROLE_EMAILS: Record<DevRole, string> = {
+  admin: 'admin@fsm.undip.ac.id',
+  wadek2: 'wadek2@fsm.undip.ac.id',
+  'manajer-tata-usaha': 'tu@fsm.undip.ac.id',
+  'spv-sumberdaya': 'spv@fsm.undip.ac.id',
+  peminjam: 'mahasiswa@student.undip.ac.id',
+  dosen: 'dosen@undip.ac.id',
+};
 
 interface DevAccount {
   user_id: number;
@@ -23,14 +39,13 @@ interface AuthUser {
   email: string;
   nim_nip?: string | null;
   is_profile_completed: boolean;
-  role?: { id: number; name: string } | null;
+  role?: { id: number; name: string; slug: string } | null;
   unit?: { id: number; name: string; category?: string | null } | null;
 }
 
 interface LoginResponse {
   token: string;
   user: AuthUser;
-  unit_category?: string | null;
 }
 
 export async function loginAs(
@@ -44,19 +59,15 @@ export async function loginAs(
   const session = (await sessionResponse.json()) as DevSession;
   expect(session.enabled).toBe(true);
 
-  const userId =
-    role === 'admin'
-      ? session.default_user_id
-      : session.accounts.find(
-          (account) => account.email === 'mahasiswa@student.undip.ac.id',
-        )?.user_id;
+  const email = ROLE_EMAILS[role];
+  const account = session.accounts.find((item) => item.email === email);
 
-  if (!userId) {
-    throw new Error(`Akun dev untuk role ${role} tidak ditemukan`);
+  if (!account) {
+    throw new Error(`Akun dev untuk role ${role} (${email}) tidak ditemukan`);
   }
 
   const loginResponse = await request.post(`${API_BASE}/dev/login`, {
-    data: { user_id: userId },
+    data: { user_id: account.user_id },
   });
   expect(loginResponse.ok()).toBeTruthy();
 
@@ -73,7 +84,8 @@ export async function loginAs(
     }
 
     if (data.user.role) {
-      localStorage.setItem('role', data.user.role.name);
+      localStorage.setItem('role', data.user.role.slug);
+      localStorage.setItem('roleName', data.user.role.name);
       localStorage.setItem('roleId', String(data.user.role.id));
     }
 
@@ -82,9 +94,7 @@ export async function loginAs(
       localStorage.setItem('unitId', String(data.user.unit.id));
     }
 
-    if (data.unit_category) {
-      localStorage.setItem('userUnitCategory', data.unit_category);
-    } else if (data.user.unit?.category) {
+    if (data.user.unit?.category) {
       localStorage.setItem('userUnitCategory', data.user.unit.category);
     }
 
@@ -92,5 +102,37 @@ export async function loginAs(
       'isProfileCompleted',
       data.user.is_profile_completed ? 'true' : 'false',
     );
+  }, auth);
+}
+
+export async function loginWithoutRole(page: Page, request: APIRequestContext): Promise<void> {
+  const response = await request.post(`${API_BASE}/login`, {
+    data: { email: 'norole@example.test', password: 'password' },
+  });
+  expect(response.ok()).toBeTruthy();
+  const auth = (await response.json()) as LoginResponse;
+  await page.addInitScript((data: LoginResponse) => {
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('userEmail', data.user.email);
+    localStorage.setItem('userName', data.user.name);
+    localStorage.setItem('userId', String(data.user.id));
+    localStorage.setItem('isProfileCompleted', 'true');
+  }, auth);
+}
+
+export async function loginAsProfile(page: Page, request: APIRequestContext): Promise<void> {
+  const response = await request.post(`${API_BASE}/login`, {
+    data: { email: 'profile@example.test', password: 'password' },
+  });
+  expect(response.ok()).toBeTruthy();
+  const auth = (await response.json()) as LoginResponse;
+  await page.addInitScript((data: LoginResponse) => {
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('userEmail', data.user.email);
+    localStorage.setItem('userName', data.user.name);
+    localStorage.setItem('userId', String(data.user.id));
+    localStorage.setItem('role', 'peminjam');
+    localStorage.setItem('roleName', 'Mahasiswa');
+    localStorage.setItem('isProfileCompleted', 'false');
   }, auth);
 }

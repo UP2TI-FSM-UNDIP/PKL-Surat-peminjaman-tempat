@@ -1,6 +1,7 @@
 // src/types/document.ts
 import { DOCUMENT_STATUS, DOCUMENT_ACTIONS } from '@/constants/document';
 import type { PaginatedData } from './pagination';
+import type { ReservationContent, RoomBookingSummary } from './reservation';
 
 export type DocumentStatus =
   (typeof DOCUMENT_STATUS)[keyof typeof DOCUMENT_STATUS];
@@ -25,30 +26,7 @@ export interface UserShort {
   };
 }
 
-export interface BookingContent {
-  room_id?: number;
-  booking_date?: string;
-  start_time?: string;
-  end_time?: string;
-  purpose?: string;
-  event_name?: string;
-  ketua_pelaksana_nama?: string;
-  ketua_pelaksana_nim?: string;
-  ketua_pelaksana_hp?: string;
-
-  // Step 2: Proposal fields
-  event_nature?: string;
-  event_form?: string;
-  objectives?: string;
-  benefits?: string;
-  target_audience?: string;
-  location?: string;
-  equipment?: string;
-  invitations?: string;
-
-  // Index signature agar tetap kompatibel jika ada field tambahan lain
-  [key: string]: string | number | boolean | null | undefined;
-}
+export type BookingContent = ReservationContent;
 
 // Log Interface
 export interface DocumentLog {
@@ -63,9 +41,7 @@ export interface DocumentLog {
 }
 
 // Document Interface (Generic TContent)
-export interface Document<
-  TContent = Record<string, string | number | boolean | null>,
-> {
+export interface Document<TContent = ReservationContent> {
   id: number;
   workflow_id: number;
   title: string;
@@ -79,9 +55,16 @@ export interface Document<
   current_step_order: number;
 
   // File Paths
-  file_executive_summary?: string;
-  file_approval_sheet?: string;
   file_proposal?: string;
+
+  reservation_deadline?: string | null;
+  proposal_completed_at?: string | null;
+  expired_at?: string | null;
+  cancelled_at?: string | null;
+  cancelled_by?: number | null;
+  deadline_policy_id?: number | null;
+  deadline_rule_snapshot?: Record<string, unknown> | null;
+  room_bookings?: RoomBookingSummary[];
 
   completed_at?: string;
   created_at: string;
@@ -125,18 +108,4 @@ export interface DocumentsResponse {
 export interface SingleDocumentResponse {
   success: boolean;
   data: Document;
-}
-
-// Input Types
-export interface CreateDocumentData {
-  workflow_id: number;
-  title: string;
-  content?: Record<string, string | number | boolean | null>;
-  meta_data?: Record<string, string | number | boolean | null>;
-}
-
-export interface UpdateDocumentData {
-  title?: string;
-  content?: Record<string, string | number | boolean | null>;
-  meta_data?: Record<string, string | number | boolean | null>;
 }

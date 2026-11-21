@@ -3,14 +3,17 @@ import { createFileRoute, Outlet, redirect } from '@tanstack/react-router';
 import React from 'react';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { SideBar, TopBar, getMenuConfig } from '@/layouts';
+import { isPathInRole } from '@/lib/roleRoutes';
 
 export const Route = createFileRoute('/peminjam')({
   beforeLoad: ({ location }) => {
     if (!authService.isAuthenticated()) throw redirect({ to: '/' });
-    const role = authService.getRole() || '';
-    const validPath = authService.getRolePath(role);
-    if (!location.pathname.startsWith(validPath.replace(/\/$/, ''))) {
-      throw redirect({ to: validPath });
+    const slug = authService.getRoleSlug();
+    if (slug !== 'peminjam' && slug !== 'dosen') {
+      throw redirect({ to: authService.getRolePath(slug) });
+    }
+    if (!isPathInRole(location.pathname, '/peminjam')) {
+      throw redirect({ to: '/peminjam' });
     }
   },
   component: RouteComponent,

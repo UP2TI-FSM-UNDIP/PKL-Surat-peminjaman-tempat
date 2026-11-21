@@ -80,6 +80,14 @@ export const bookingService = {
   },
 
   /**
+   * Alias baca daftar booking dengan dukungan pagination per_page.
+   */
+  async list(filters?: BookingFilters & { per_page?: number }): Promise<RoomBooking[]> {
+    const response = await api.get<BookingResponse>('/room-bookings', { params: filters });
+    return response.data.data?.data ?? [];
+  },
+
+  /**
    * Get single booking detail
    */
   async getBooking(id: number): Promise<RoomBooking> {
@@ -90,101 +98,30 @@ export const bookingService = {
   },
 
   /**
-   * Check if document already has a room booking
+   * Ambil QR code booking sebagai blob beserta object URL.
    */
-  async getBookingByDocumentId(
-    documentId: number,
-  ): Promise<RoomBooking | null> {
-    try {
-      const bookings = await this.getBookings({ document_id: documentId });
-      return bookings.length > 0 ? bookings[0] : null;
-    } catch (error) {
-      console.error('Error checking document booking:', error);
-      return null;
-    }
+  async fetchQr(bookingId: number): Promise<{ blob: Blob; objectUrl: string }> {
+    const response = await api.get<Blob>(`/room-bookings/${bookingId}/qrcode`, {
+      responseType: 'blob',
+    });
+    return { blob: response.data, objectUrl: URL.createObjectURL(response.data) };
   },
 
   /**
-   * Create new room booking
+   * Ambil data receipt booking.
    */
-  async createBooking(data: {
-    document_id: number;
-    room_id: number;
-    booking_date: string;
-    start_time: string;
-    end_time: string;
-    purpose: string;
-    special_requirements?: string;
-    expected_participants?: number;
-  }): Promise<RoomBooking> {
-    const response = await api.post<SingleBookingResponse>(
-      '/room-bookings',
-      data,
+  async receipt(bookingId: number): Promise<Record<string, unknown>> {
+    const response = await api.get<{ success: boolean; data: Record<string, unknown> }>(
+      `/room-bookings/${bookingId}/receipt`,
     );
     return response.data.data;
   },
 
   /**
-   * Update existing booking (only pending bookings)
+   * Alias complete booking.
    */
-  async updateBooking(
-    id: number,
-    data: Partial<RoomBooking>,
-  ): Promise<RoomBooking> {
-    const response = await api.put<SingleBookingResponse>(
-      `/room-bookings/${id}`,
-      data,
-    );
-    return response.data.data;
-  },
-
-  /**
-   * Delete booking (soft delete)
-   */
-  async deleteBooking(id: number): Promise<void> {
-    await api.delete(`/room-bookings/${id}`);
-  },
-
-  /**
-   * Approve booking
-   */
-  async approveBooking(id: number): Promise<RoomBooking> {
-    const response = await api.post<SingleBookingResponse>(
-      `/room-bookings/${id}/approve`,
-    );
-    return response.data.data;
-  },
-
-  /**
-   * Reject booking
-   */
-  async rejectBooking(id: number, reason: string): Promise<RoomBooking> {
-    const response = await api.post<SingleBookingResponse>(
-      `/room-bookings/${id}/reject`,
-      {
-        reason: reason,
-      },
-    );
-    return response.data.data;
-  },
-
-  /**
-   * Cancel booking
-   */
-  async cancelBooking(id: number): Promise<RoomBooking> {
-    const response = await api.post<SingleBookingResponse>(
-      `/room-bookings/${id}/cancel`,
-    );
-    return response.data.data;
-  },
-
-  /**
-   * Complete booking
-   */
-  async completeBooking(id: number): Promise<RoomBooking> {
-    const response = await api.post<SingleBookingResponse>(
-      `/room-bookings/${id}/complete`,
-    );
+  async complete(bookingId: number): Promise<RoomBooking> {
+    const response = await api.post<SingleBookingResponse>(`/room-bookings/${bookingId}/complete`);
     return response.data.data;
   },
 

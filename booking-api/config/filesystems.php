@@ -61,7 +61,11 @@ return [
         ],
 
         'private' => [
-            'driver' => 's3', // Arahkan ke driver S3 (MinIO)
+            'driver' => env('PRIVATE_FILESYSTEM_DRIVER', 's3'), // default produksi: S3/MinIO
+            // Prefix S3 harus tetap kosong. Root hanya untuk driver local (E2E).
+            'root' => env('PRIVATE_FILESYSTEM_DRIVER', 's3') === 'local'
+                ? storage_path('app/private')
+                : null,
             'key' => env('AWS_ACCESS_KEY_ID'),
             'secret' => env('AWS_SECRET_ACCESS_KEY'),
             'region' => env('AWS_DEFAULT_REGION'),

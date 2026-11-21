@@ -7,6 +7,19 @@ use Illuminate\Database\Seeder;
 
 class RoleSeeder extends Seeder
 {
+    /** Role dari alur lama yang tidak boleh tersisa di database. */
+    private const LEGACY_SLUGS = [
+        'wadek1',
+        'kemahasiswaan',
+        'sumber-daya',
+        'ketua-departemen',
+        'dosen-pendamping',
+        'ketua-ormawa',
+        'senat',
+        'sekretaris',
+        'menunggu-penetapan',
+    ];
+
     public function run(): void
     {
         $roles = [
@@ -22,6 +35,10 @@ class RoleSeeder extends Seeder
             Role::updateOrCreate(['slug' => $role['slug']], $role);
         }
 
-        $this->command?->info('Role seeder: 6 role bisnis.');
+        // User yang masih memakai role legacy menjadi tanpa role (pending),
+        // sesuai kontrak clean cut: tidak ada role lama di database.
+        Role::whereIn('slug', self::LEGACY_SLUGS)->delete();
+
+        $this->command?->info('Role seeder: 6 role bisnis, role legacy dibersihkan.');
     }
 }

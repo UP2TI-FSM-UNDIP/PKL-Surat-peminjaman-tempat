@@ -5,8 +5,6 @@ import type {
   Document,
   DocumentsResponse,
   SingleDocumentResponse,
-  CreateDocumentData,
-  UpdateDocumentData,
 } from '@/types/document';
 
 // Export Document type for use in other files
@@ -66,49 +64,6 @@ export const documentService = {
     return response.data.data;
   },
 
-  /**
-   * Buat dokumen baru
-   * Mendukung JSON biasa atau FormData (file upload)
-   */
-  async createDocument(data: CreateDocumentData | FormData): Promise<Document> {
-    const headers =
-      data instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : {};
-
-    const response = await api.post<SingleDocumentResponse>(
-      '/documents',
-      data,
-      { headers },
-    );
-    return response.data.data;
-  },
-
-  /**
-   * Update dokumen
-   * Menangani logika '_method: PUT' untuk FormData di Laravel
-   */
-  async updateDocument(
-    id: number,
-    data: UpdateDocumentData | FormData,
-  ): Promise<Document> {
-    if (data instanceof FormData) {
-      data.append('_method', 'PUT');
-      const response = await api.post<SingleDocumentResponse>(
-        `/documents/${id}`,
-        data,
-        {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        },
-      );
-      return response.data.data;
-    }
-
-    const response = await api.put<SingleDocumentResponse>(
-      `/documents/${id}`,
-      data,
-    );
-    return response.data.data;
-  },
-
   // --- WORKFLOW ACTIONS ---
 
   async submitDocument(id: number): Promise<Document> {
@@ -118,55 +73,17 @@ export const documentService = {
     return response.data.data;
   },
 
-  async approveDocument(
-    id: number,
-    signature: string,
-    note?: string,
-  ): Promise<Document> {
-    const response = await api.post<SingleDocumentResponse>(
-      `/documents/${id}/approve`,
-      { signature, note },
-    );
-    return response.data.data;
-  },
-
-  async rejectDocument(id: number, note: string): Promise<Document> {
-    const response = await api.post<SingleDocumentResponse>(
-      `/documents/${id}/reject`,
-      { note },
-    );
-    return response.data.data;
-  },
-
-  async reviseDocument(
-    id: number,
-    targetUserId: number,
-    note: string,
-  ): Promise<Document> {
-    const response = await api.post<SingleDocumentResponse>(
-      `/documents/${id}/revise`,
-      {
-        target_user_id: targetUserId,
-        note,
-      },
-    );
-    return response.data.data;
-  },
-
-  // --- GENERATE FILES ---
-
-  async generateExecutiveSummary(documentId: number) {
-    const response = await api.post<{
-      data: { file_path: string; download_url: string };
-    }>(`/documents/${documentId}/generate/executive-summary`);
-    return response.data.data;
-  },
-
-  async generateApprovalSheet(documentId: number) {
-    const response = await api.post<{
-      data: { file_path: string; download_url: string };
-    }>(`/documents/${documentId}/generate/approval-sheet`);
-    return response.data.data;
+  /**
+   * Ambil file dokumen sebagai blob beserta object URL untuk preview.
+   */
+  async fetchFileUrl(documentId: number, type: 'proposal' = 'proposal') {
+    const response = await api.get<Blob>(`/documents/${documentId}/file/${type}`, {
+      responseType: 'blob',
+    });
+    if (response.data.type === 'application/json') {
+      throw new Error('File tidak ditemukan atau tidak dapat diakses.');
+    }
+    return { blob: response.data, objectUrl: URL.createObjectURL(response.data) };
   },
 
   // --- UTILITIES ---

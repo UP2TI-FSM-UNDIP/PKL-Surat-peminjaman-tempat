@@ -1,6 +1,115 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
+/* --- Motion Utilities --- */
+@utility ease-spring {
+  --tw-ease: cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition-timing-function: var(--tw-ease);
+}
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@keyframes check-pop {
+  0% {
+    opacity: 0;
+    scale: 0.4;
+    rotate: -12deg;
+  }
+  60% {
+    opacity: 1;
+    scale: 1.12;
+    rotate: 3deg;
+  }
+  100% {
+    opacity: 1;
+    scale: 1;
+    rotate: 0deg;
+  }
+}
+
+@keyframes marker-sweep {
+  from {
+    transform: scaleX(0);
+    opacity: 0.3;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    scale: 0.96;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+@keyframes dialog-out {
+  from {
+    opacity: 1;
+    scale: 1;
+  }
+  to {
+    opacity: 0;
+    scale: 0.96;
+  }
+}
+
+/* --- Landing Page Motion --- */
+.marker-highlight {
+  position: relative;
+  display: inline-block;
+  isolation: isolate;
+}
+
+.marker-highlight::after {
+  content: '';
+  position: absolute;
+  inset: 0.38em -0.08em 0.02em;
+  z-index: -1;
+  border-radius: 0.15em;
+  background: oklch(0.92 0.15 95 / 0.55);
+  transform: scaleX(0);
+  transform-origin: left center;
+  animation: marker-sweep 650ms cubic-bezier(0.22, 1, 0.36, 1) 300ms forwards;
+}
+
+.roll-link {
+  position: relative;
+  display: inline-grid;
+  overflow: hidden;
+}
+
+.roll-link__label {
+  grid-area: 1 / 1;
+  transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.roll-link__label:last-child {
+  transform: translateY(110%);
+}
+
+@media (hover: hover) {
+  .roll-link:hover .roll-link__label:first-child {
+    transform: translateY(-110%);
+  }
+
+  .roll-link:hover .roll-link__label:last-child {
+    transform: translateY(0);
+  }
+}
+
 /* Docx Preview Styles */
 .docx-wrapper {
   padding: 30px;
@@ -212,6 +321,39 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Elemen interaktif selalu memakai pointer; yang disabled tetap dikecualikan. */
+  :is(
+    button,
+    select,
+    a[href],
+    summary,
+    [role='button'],
+    [role='link'],
+    [role='menuitem'],
+    [role='menuitemcheckbox'],
+    [role='menuitemradio'],
+    [role='option'],
+    [role='tab'],
+    [role='checkbox'],
+    [role='radio'],
+    [role='switch']
+  ):not(:disabled):not([aria-disabled='true']):not([data-disabled]) {
+    cursor: pointer;
+  }
+
+  /* FullCalendar: event dan sel tanggal memang membuka detail/pilihan. */
+  .fc-event,
+  .fc-daygrid-day,
+  .fc-timegrid-slot {
+    cursor: pointer;
+  }
+
+  .fc-not-allowed,
+  .fc-not-allowed .fc-event,
+  .fc-day-disabled {
+    cursor: not-allowed;
+  }
 }
 
 /* --- FullCalendar Base Styles --- */
@@ -249,5 +391,17 @@
   .fc-responsive .fc .fc-daygrid-day-top,
   .fc-responsive .fc .fc-col-header-cell {
     font-size: 0.75rem;
+  }
+}
+
+/* --- Reduced Motion --- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

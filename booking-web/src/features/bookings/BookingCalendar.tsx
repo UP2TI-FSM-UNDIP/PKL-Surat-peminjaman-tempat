@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import type { EventInput } from '@fullcalendar/core';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -9,35 +10,24 @@ import { DateSelectionModal } from './DateSelectionModal';
 import { bookingService, type RoomBooking } from '@/services/booking.service';
 
 export default function BookingCalendar() {
-  const [bookings, setBookings] = useState<RoomBooking[]>([]);
   const [selectedBooking, setSelectedBooking] = useState<RoomBooking | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDateSelectionModalOpen, setIsDateSelectionModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   // Refs untuk resize detection
   const calendarRef = useRef<FullCalendar>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Fetch bookings from API
-  useEffect(() => {
-    const fetchBookings = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const data = await bookingService.getBookings();
-        setBookings(data ?? []);
-      } catch (err) {
-        console.error('Failed to fetch bookings:', err);
-        setError('Gagal memuat data booking. Silakan coba lagi.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchBookings();
-  }, []);
+  const {
+    data: bookings = [],
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ['room-bookings', 'calendar'],
+    queryFn: () => bookingService.list({ per_page: 500 }),
+  });
 
   // ResizeObserver: update kalender saat container berubah ukuran (sidebar toggle)
   useEffect(() => {
@@ -99,9 +89,9 @@ export default function BookingCalendar() {
   return (
     <>
       <div ref={containerRef} className='bg-white rounded-lg shadow-sm border border-gray-200 p-4 fc-responsive'>
-        {error && (
+        {isError && (
           <div className='mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm'>
-            {error}
+            Gagal memuat data booking. Silakan coba lagi.
           </div>
         )}
 
