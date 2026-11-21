@@ -169,6 +169,16 @@ export const documentService = {
     return response.data.data;
   },
 
+  /**
+   * Ambil file dokumen sebagai blob beserta object URL untuk preview.
+   */
+  async fetchFileUrl(documentId: number, type: 'proposal' = 'proposal') {
+    const response = await api.get<Blob>(`/documents/${documentId}/file/${type}`, {
+      responseType: 'blob',
+    });
+    return { blob: response.data, objectUrl: URL.createObjectURL(response.data) };
+  },
+
   // --- UTILITIES ---
 
   /**
