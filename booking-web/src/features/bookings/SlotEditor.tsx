@@ -25,14 +25,14 @@ export function SlotEditor({ control, setValue, mode, rooms, rulesByDate, maxRow
   const bookingDate = useWatch({ control, name: 'booking_date' });
 
   useEffect(() => {
-    fields.forEach((_, index) => {
+    for (let index = 0; index < fields.length; index += 1) {
       if (mode === 'one_room_many_dates' && roomId) {
         setValue(`slots.${index}.room_id`, roomId, { shouldDirty: true });
       }
       if (mode === 'one_date_many_rooms' && bookingDate) {
         setValue(`slots.${index}.booking_date`, bookingDate, { shouldDirty: true });
       }
-    });
+    }
   }, [bookingDate, fields.length, mode, roomId, setValue]);
 
   const addRow = () => {

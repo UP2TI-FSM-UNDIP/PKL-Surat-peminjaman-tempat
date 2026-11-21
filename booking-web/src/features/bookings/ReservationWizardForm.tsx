@@ -53,7 +53,7 @@ export function ReservationWizardForm({ intent, submitLabel = 'Simpan Reservasi'
   const queryClient = useQueryClient();
 
   const roomsQuery = useQuery({ queryKey: ['rooms', 'ACTIVE'], queryFn: () => roomService.getRooms({ status: 'ACTIVE' }) });
-  const rooms = roomsQuery.data ?? [];
+  const rooms = useMemo(() => roomsQuery.data ?? [], [roomsQuery.data]);
   const dates = slots.map((slot) => slot.booking_date);
   const { rulesByDate, isLoading: rulesLoading } = useBookingRules(dates);
   const roomsById = useMemo<Record<number, RoomAdjacency | undefined>>(
