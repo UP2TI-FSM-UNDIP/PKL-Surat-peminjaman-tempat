@@ -1,31 +1,24 @@
 // src/utils/documentUtils.ts
 import type { Document } from '@/types/document';
-import { BOOKING_RULES } from '@/lib/bookingRules';
-
-/** Draft yang tidak diajukan dalam sekian hari akan dilepas (lihat booking.hold_days di backend). */
-const DRAFT_HOLD_DAYS = 14;
 
 export const documentHelpers = {
   // --- 1. Helpers Umum ---
   getRoomInfo: (doc: Document) => {
-    const { room_code, room_id } = doc.content || {};
-    if (room_id) {
-      return `Ruang ${room_code || room_id}`;
+    const slot = doc.content?.slots?.[0];
+    if (slot?.room_id) {
+      return `Ruang ${slot.room_code || slot.room_id}`;
     }
     return '-';
   },
 
   getBookingDate: (doc: Document) => {
-    if (doc.content?.booking_date) {
-      // Gunakan string jika content.booking_date bertipe string/number
-      return new Date(String(doc.content.booking_date)).toLocaleDateString(
-        'id-ID',
-        {
-          day: 'numeric',
-          month: 'long',
-          year: 'numeric',
-        },
-      );
+    const bookingDate = doc.content?.slots?.[0]?.booking_date;
+    if (bookingDate) {
+      return new Date(bookingDate).toLocaleDateString('id-ID', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      });
     }
     return '-';
   },
@@ -43,16 +36,10 @@ export const documentHelpers = {
     return eventName ? String(eventName) : 'Tidak ada nama';
   },
 
-  // --- 2. Helpers Ketua Pelaksana (Pengganti fungsi lama Anda) ---
+  // --- 2. Helpers Ketua Pelaksana ---
   getKetuaPelaksanaNama: (doc: Document) => {
     return doc.content?.ketua_pelaksana_nama
       ? String(doc.content.ketua_pelaksana_nama)
-      : '-';
-  },
-
-  getKetuaPelaksanaNim: (doc: Document) => {
-    return doc.content?.ketua_pelaksana_nim
-      ? String(doc.content.ketua_pelaksana_nim)
       : '-';
   },
 
@@ -63,36 +50,18 @@ export const documentHelpers = {
   },
 
   // --- 3. Deadline pengajuan ---
-  /**
-   * Deadline melengkapi & mengajukan dokumen = yang paling awal di antara:
-   * - 14 hari sejak dokumen dibuat (draft yang ditelantarkan dilepas), dan
-   * - batas minimal pengajuan sebelum hari-H (mis. 8 hari sebelum tanggal
-   *   peminjaman), karena setelah itu server menolak pengajuan.
-   * Dengan begitu deadline tidak pernah melewati tanggal yang direservasi.
-   */
-  getDeadline: (doc: Document) => {
-    const deadline = new Date(doc.created_at);
-    deadline.setDate(deadline.getDate() + DRAFT_HOLD_DAYS);
-
-    const bookingDate = doc.content?.booking_date;
-    if (typeof bookingDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(bookingDate)) {
-      const lastSubmitDay = new Date(`${bookingDate}T23:59:59`);
-      lastSubmitDay.setDate(lastSubmitDay.getDate() - BOOKING_RULES.minDaysAhead);
-      if (lastSubmitDay < deadline) return lastSubmitDay;
-    }
-
-    return deadline;
-  },
+  getDeadline: (doc: Document) =>
+    doc.reservation_deadline
+      ? new Date(`${doc.reservation_deadline}T23:59:59`)
+      : null,
 
   /**
-   * Hitung sisa hari hingga deadline
+   * Hitung sisa hari hingga deadline.
    */
   getDaysRemaining: (doc: Document) => {
-    const now = new Date();
     const deadline = documentHelpers.getDeadline(doc);
-    const diffTime = deadline.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
+    if (!deadline) return null;
+    return Math.ceil((deadline.getTime() - Date.now()) / 86_400_000);
   },
 
   /**
@@ -105,6 +74,7 @@ export const documentHelpers = {
     }
 
     const daysRemaining = documentHelpers.getDaysRemaining(doc);
+    if (daysRemaining === null) return 'safe';
 
     if (daysRemaining < 0) return 'expired';
     if (daysRemaining <= 2) return 'critical';
@@ -119,6 +89,9 @@ export const documentHelpers = {
     const daysRemaining = documentHelpers.getDaysRemaining(doc);
     const deadline = documentHelpers.getDeadline(doc);
 
+    if (daysRemaining === null || !deadline) {
+      return '-';
+    }
     if (daysRemaining < 0) {
       return `Expired ${Math.abs(daysRemaining)} hari lalu`;
     }

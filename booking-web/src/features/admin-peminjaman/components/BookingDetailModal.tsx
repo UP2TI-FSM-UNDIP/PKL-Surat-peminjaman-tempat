@@ -1,5 +1,4 @@
 import React from 'react';
-import { Trash2 } from 'lucide-react';
 import {
     Dialog,
     DialogContent,
@@ -7,15 +6,12 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button/button';
 import type { RoomBooking } from '@/services/room.service';
 
 interface BookingDetailModalProps {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
     booking: RoomBooking | null;
-    onDeleteClick: (booking: RoomBooking) => void;
-    isDeleting: boolean;
     statusBadge: (status: string) => React.ReactNode;
 }
 
@@ -23,8 +19,6 @@ export function BookingDetailModal({
     isOpen,
     onOpenChange,
     booking,
-    onDeleteClick,
-    isDeleting,
     statusBadge
 }: BookingDetailModalProps) {
     if (!booking) return null;
@@ -90,20 +84,6 @@ export function BookingDetailModal({
                         <div>
                             <p className='text-sm font-medium text-gray-500'>Dokumen</p>
                             <p className='text-sm text-gray-900'>{booking.document.title || '-'}</p>
-                        </div>
-                    )}
-                    {booking.status !== 'APPROVED' && (
-                        <div className='pt-2 border-t'>
-                            <Button
-                                variant='destructive'
-                                size='sm'
-                                onClick={() => onDeleteClick(booking)}
-                                disabled={isDeleting}
-                                className='w-full'
-                            >
-                                <Trash2 className='w-4 h-4 mr-2' />
-                                Hapus Peminjaman
-                            </Button>
                         </div>
                     )}
                 </div>

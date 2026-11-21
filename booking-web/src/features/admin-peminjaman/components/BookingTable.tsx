@@ -1,4 +1,4 @@
-import { Eye, Trash2 } from 'lucide-react';
+import { Eye } from 'lucide-react';
 import {
     Table,
     TableBody,
@@ -13,9 +13,6 @@ import type { RoomBooking } from '@/services/room.service';
 interface BookingTableProps {
     bookings: RoomBooking[];
     onDetail: (booking: RoomBooking) => void;
-    onDelete: (booking: RoomBooking) => void;
-    isDeleting: boolean;
-    deletingId: number | null;
     statusBadge: (status: string) => React.ReactNode;
     search: string;
     statusFilter: string;
@@ -24,9 +21,6 @@ interface BookingTableProps {
 export function BookingTable({
     bookings,
     onDetail,
-    onDelete,
-    isDeleting,
-    deletingId,
     statusBadge,
     search,
     statusFilter
@@ -99,16 +93,6 @@ export function BookingTable({
                                         title='Lihat Detail'
                                     >
                                         <Eye className='h-3.5 w-3.5 md:h-4 md:w-4' />
-                                    </Button>
-                                    <Button
-                                        variant='ghost'
-                                        size='sm'
-                                        onClick={() => onDelete(item)}
-                                        disabled={(isDeleting && deletingId === item.id) || item.status === 'APPROVED'}
-                                        className='h-6 w-6 sm:h-8 sm:w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50'
-                                        title={item.status === 'APPROVED' ? 'Tidak bisa hapus yang sudah approved' : 'Hapus'}
-                                    >
-                                        <Trash2 className={`h-3.5 w-3.5 md:h-4 md:w-4 ${item.status === 'APPROVED' ? 'text-gray-300' : ''}`} />
                                     </Button>
                                 </div>
                             </TableCell>

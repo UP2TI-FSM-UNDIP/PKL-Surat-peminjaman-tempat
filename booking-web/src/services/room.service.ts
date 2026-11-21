@@ -292,11 +292,4 @@ export const roomService = {
     // Backend returns paginated response
     return response.data.data?.data ?? [];
   },
-
-  /**
-   * Delete a room booking (soft delete)
-   */
-  async deleteBooking(id: number): Promise<void> {
-    await api.delete(`/room-bookings/${id}`);
-  },
 };

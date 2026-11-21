@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useSearch } from '@tanstack/react-router';
-import { toast } from 'sonner';
 import { AxiosError } from 'axios';
 import { roomService, type RoomBooking } from '@/services/room.service';
 
@@ -15,36 +14,15 @@ export function useAdminBookings(fullPath: string) {
     const { status, search } = useSearch({ from: fullPath as any }) as PeminjamanSearch;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const navigate = useNavigate({ from: fullPath as any });
-    const queryClient = useQueryClient();
 
     // Modals state
     const [selectedBooking, setSelectedBooking] = useState<RoomBooking | null>(null);
     const [isDetailOpen, setIsDetailOpen] = useState(false);
-    const [bookingToDelete, setBookingToDelete] = useState<RoomBooking | null>(null);
-    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
     // Queries
     const { data: bookings = [], isLoading, isError, refetch } = useQuery<RoomBooking[], AxiosError>({
         queryKey: ['bookings'],
         queryFn: () => roomService.getBookings(),
-    });
-
-    // Mutations
-    const deleteMutation = useMutation({
-        mutationFn: (id: number) => roomService.deleteBooking(id),
-        onSuccess: () => {
-            toast.success('Peminjaman berhasil dihapus');
-            queryClient.invalidateQueries({ queryKey: ['bookings'] });
-            setIsDeleteDialogOpen(false);
-            if (selectedBooking) {
-                setIsDetailOpen(false);
-                setSelectedBooking(null);
-            }
-        },
-        onError: (err: AxiosError<{ message: string }>) => {
-            const message = err.response?.data?.message || 'Gagal menghapus peminjaman';
-            toast.error(message);
-        },
     });
 
     // Filter logic
@@ -99,17 +77,6 @@ export function useAdminBookings(fullPath: string) {
         setIsDetailOpen(true);
     };
 
-    const handleDeleteClick = (booking: RoomBooking) => {
-        setBookingToDelete(booking);
-        setIsDeleteDialogOpen(true);
-    };
-
-    const confirmDelete = () => {
-        if (bookingToDelete) {
-            deleteMutation.mutate(bookingToDelete.id);
-        }
-    };
-
     return {
         // State
         status,
@@ -118,20 +85,14 @@ export function useAdminBookings(fullPath: string) {
         filteredBookings,
         isLoading,
         isError,
-        isDeleting: deleteMutation.isPending,
         selectedBooking,
         isDetailOpen,
-        isDeleteDialogOpen,
-        bookingToDelete,
 
         // Actions
         refetch,
         handleStatusChange,
         handleSearchChange,
         handleDetail,
-        handleDeleteClick,
-        confirmDelete,
         setIsDetailOpen,
-        setIsDeleteDialogOpen
     };
 }

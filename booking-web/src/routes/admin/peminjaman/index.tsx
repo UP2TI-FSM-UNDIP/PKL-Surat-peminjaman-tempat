@@ -8,8 +8,7 @@ import { bookingService } from '@/services/booking.service';
 import {
     useAdminBookings,
     BookingTable,
-    BookingDetailModal,
-    DeleteConfirmationDialog
+    BookingDetailModal
 } from '@/features/admin-peminjaman';
 
 type PeminjamanSearch = {
@@ -35,18 +34,12 @@ function RouteComponent() {
         filteredBookings,
         isLoading,
         isError,
-        isDeleting,
         selectedBooking,
         isDetailOpen,
-        isDeleteDialogOpen,
-        bookingToDelete,
         handleStatusChange,
         handleSearchChange,
         handleDetail,
-        handleDeleteClick,
-        confirmDelete,
         setIsDetailOpen,
-        setIsDeleteDialogOpen,
         refetch
     } = useAdminBookings(Route.fullPath);
 
@@ -197,9 +190,6 @@ function RouteComponent() {
                     <BookingTable
                         bookings={filteredBookings}
                         onDetail={handleDetail}
-                        onDelete={handleDeleteClick}
-                        isDeleting={isDeleting}
-                        deletingId={bookingToDelete?.id ?? null}
                         statusBadge={getStatusBadge}
                         search={search}
                         statusFilter={status}
@@ -221,16 +211,7 @@ function RouteComponent() {
                 isOpen={isDetailOpen}
                 onOpenChange={setIsDetailOpen}
                 booking={selectedBooking}
-                onDeleteClick={handleDeleteClick}
-                isDeleting={isDeleting}
                 statusBadge={getStatusBadge}
-            />
-
-            <DeleteConfirmationDialog
-                isOpen={isDeleteDialogOpen}
-                onOpenChange={setIsDeleteDialogOpen}
-                onConfirm={confirmDelete}
-                isDeleting={isDeleting}
             />
         </div>
     );

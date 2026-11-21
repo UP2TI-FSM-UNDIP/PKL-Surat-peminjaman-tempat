@@ -26,35 +26,7 @@ export interface UserShort {
   };
 }
 
-export interface BookingContent {
-  room_id?: number;
-  booking_date?: string;
-  start_time?: string;
-  end_time?: string;
-  purpose?: string;
-  event_name?: string;
-  ketua_pelaksana_nama?: string;
-  /** @deprecated dihapus di Task 14; gunakan ketua_pelaksana_identitas. */
-  ketua_pelaksana_nim?: string;
-  ketua_pelaksana_hp?: string;
-
-  // Step 2: Proposal fields
-  event_nature?: string;
-  event_form?: string;
-  objectives?: string;
-  benefits?: string;
-  target_audience?: string;
-  /** @deprecated dihapus di Task 14. */
-  location?: string;
-  /** @deprecated dihapus di Task 14. */
-  equipment?: string;
-  /** @deprecated dihapus di Task 14. */
-  invitations?: string;
-
-  // Index signature agar tetap kompatibel jika ada field tambahan lain
-  /** @deprecated dihapus di Task 14; gunakan tipe ReservationContent. */
-  [key: string]: string | number | boolean | null | undefined;
-}
+export type BookingContent = ReservationContent;
 
 // Log Interface
 export interface DocumentLog {
@@ -83,10 +55,6 @@ export interface Document<TContent = ReservationContent> {
   current_step_order: number;
 
   // File Paths
-  /** @deprecated dihapus di Task 14. */
-  file_executive_summary?: string;
-  /** @deprecated dihapus di Task 14. */
-  file_approval_sheet?: string;
   file_proposal?: string;
 
   reservation_deadline?: string | null;
@@ -140,18 +108,4 @@ export interface DocumentsResponse {
 export interface SingleDocumentResponse {
   success: boolean;
   data: Document;
-}
-
-// Input Types
-export interface CreateDocumentData {
-  workflow_id: number;
-  title: string;
-  content?: Record<string, string | number | boolean | null>;
-  meta_data?: Record<string, string | number | boolean | null>;
-}
-
-export interface UpdateDocumentData {
-  title?: string;
-  content?: Record<string, string | number | boolean | null>;
-  meta_data?: Record<string, string | number | boolean | null>;
 }

@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button/button';
 import { Calendar, FileText, Info } from 'lucide-react';
-import { getBookingDateIssue } from '@/lib/bookingRules';
+import { useBookingRules } from '@/hooks/useBookingRules';
 
 interface DateSelectionModalProps {
     open: boolean;
@@ -16,51 +16,20 @@ interface DateSelectionModalProps {
     selectedDate: string | null;
 }
 
+const WEEKDAY_WARNING =
+    'Peminjaman pada hari Senin–Jumat tetap dapat dilakukan untuk ruang yang diizinkan admin untuk hari kerja, dengan syarat telah dikomunikasikan dengan Bidang Akademik FSM terlebih dahulu.';
+
 export function DateSelectionModal({
     open,
     onOpenChange,
     selectedDate,
 }: DateSelectionModalProps) {
     const navigate = useNavigate();
+    const { rulesByDate } = useBookingRules(selectedDate ? [selectedDate] : []);
+    const dayRule = selectedDate ? rulesByDate[selectedDate] : undefined;
 
-    // Tanggal yang diklik di kalender ikut dibawa ke form, kecuali jika tidak
-    // memenuhi aturan peminjaman (form akan dibuka tanpa tanggal).
-    const dateIssue = selectedDate ? getBookingDateIssue(selectedDate) : null;
-    const prefillDate = selectedDate && !dateIssue ? selectedDate : undefined;
-
-    const handleReservasi = () => {
-        navigate({
-            to: '/peminjam/reservasi',
-            search: {
-                roomId: undefined,
-                roomCode: undefined,
-                bookingDate: prefillDate,
-                startTime: undefined,
-                endTime: undefined,
-                purpose: undefined,
-                ketuaNama: undefined,
-                ketuaNim: undefined,
-                ketuaHp: undefined,
-            },
-        });
-        onOpenChange(false);
-    };
-
-    const handleAjukanPinjam = () => {
-        navigate({
-            to: '/peminjam/pinjam/detail-tempat',
-            search: {
-                editId: undefined,
-                roomId: undefined,
-                bookingDate: prefillDate,
-                startTime: undefined,
-                endTime: undefined,
-                purpose: undefined,
-                ketuaNama: undefined,
-                ketuaNim: undefined,
-                ketuaHp: undefined,
-            },
-        });
+    const handleContinue = () => {
+        navigate({ to: '/peminjam/pinjam/baru' });
         onOpenChange(false);
     };
 
@@ -74,6 +43,10 @@ export function DateSelectionModal({
             day: 'numeric',
         });
     };
+
+    const dateIssue = dayRule && !dayRule.is_bookable
+        ? dayRule.message || 'Tanggal ini tidak bisa dipinjam.'
+        : null;
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -101,29 +74,36 @@ export function DateSelectionModal({
                     </div>
                 )}
 
+                {dayRule?.day_type === 'weekday' && dayRule.is_bookable && (
+                    <div className='flex gap-2 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800'>
+                        <Info className='w-4 h-4 mt-0.5 shrink-0' />
+                        <p>{WEEKDAY_WARNING}</p>
+                    </div>
+                )}
+
                 <div className='grid gap-4 py-4'>
                     <Button
-                        onClick={handleReservasi}
+                        onClick={handleContinue}
                         className='w-full h-auto py-6 flex flex-col items-center gap-3 bg-blue-600 hover:bg-blue-700'
                     >
                         <Calendar className='w-8 h-8' />
                         <div className='text-center'>
                             <div className='font-semibold text-lg'>Reservasi</div>
                             <div className='text-xs font-normal opacity-90 mt-1'>
-                                Langsung reservasi ruangan untuk tanggal tertentu
+                                Untuk yang belum melengkapi dokumen/proposal
                             </div>
                         </div>
                     </Button>
 
                     <Button
-                        onClick={handleAjukanPinjam}
+                        onClick={handleContinue}
                         className='w-full h-auto py-6 flex flex-col items-center gap-3 bg-green-600 hover:bg-green-700'
                     >
                         <FileText className='w-8 h-8' />
                         <div className='text-center'>
                             <div className='font-semibold text-lg'>Ajukan Pinjam</div>
                             <div className='text-xs font-normal opacity-90 mt-1'>
-                                Ajukan peminjaman melalui proses persetujuan
+                                Untuk yang sudah melengkapi dokumen/proposal
                             </div>
                         </div>
                     </Button>

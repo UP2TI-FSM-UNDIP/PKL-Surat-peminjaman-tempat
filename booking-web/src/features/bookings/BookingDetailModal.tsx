@@ -4,11 +4,10 @@ import * as React from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { X, Download } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import api from '@/lib/axios';
 import { Button } from '@/components/ui/button/button';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
-import type { RoomBooking } from '@/services/booking.service';
+import { bookingService, type RoomBooking } from '@/services/booking.service';
 
 interface Props {
   open: boolean;
@@ -18,7 +17,7 @@ interface Props {
 
 const statusMap = {
   approved: { text: 'Disetujui', variant: 'success' },
-  pending: { text: 'Menunggu', variant: 'warning' },
+  pending: { text: 'Ditahan', variant: 'warning' },
   rejected: { text: 'Ditolak', variant: 'destructive' },
   cancelled: { text: 'Dibatalkan', variant: 'secondary' },
   completed: { text: 'Selesai', variant: 'default' },
@@ -202,12 +201,11 @@ function BookingStatus({
  */
 function BookingQrCode({ bookingId, enabled }: { bookingId: number; enabled: boolean }) {
   const { data: blob } = useQuery({
-    queryKey: ['booking-qrcode', bookingId],
+    queryKey: ['booking-qrcode-blob', bookingId],
     queryFn: async () => {
-      const res = await api.get<Blob>(`/room-bookings/${bookingId}/qrcode`, {
-        responseType: 'blob',
-      });
-      return res.data;
+      const { blob, objectUrl } = await bookingService.fetchQr(bookingId);
+      URL.revokeObjectURL(objectUrl);
+      return blob;
     },
     enabled,
     retry: false,
