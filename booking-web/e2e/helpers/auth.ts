@@ -104,3 +104,35 @@ export async function loginAs(
     );
   }, auth);
 }
+
+export async function loginWithoutRole(page: Page, request: APIRequestContext): Promise<void> {
+  const response = await request.post(`${API_BASE}/login`, {
+    data: { email: 'norole@example.test', password: 'password' },
+  });
+  expect(response.ok()).toBeTruthy();
+  const auth = (await response.json()) as LoginResponse;
+  await page.addInitScript((data: LoginResponse) => {
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('userEmail', data.user.email);
+    localStorage.setItem('userName', data.user.name);
+    localStorage.setItem('userId', String(data.user.id));
+    localStorage.setItem('isProfileCompleted', 'true');
+  }, auth);
+}
+
+export async function loginAsProfile(page: Page, request: APIRequestContext): Promise<void> {
+  const response = await request.post(`${API_BASE}/login`, {
+    data: { email: 'profile@example.test', password: 'password' },
+  });
+  expect(response.ok()).toBeTruthy();
+  const auth = (await response.json()) as LoginResponse;
+  await page.addInitScript((data: LoginResponse) => {
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('userEmail', data.user.email);
+    localStorage.setItem('userName', data.user.name);
+    localStorage.setItem('userId', String(data.user.id));
+    localStorage.setItem('role', 'peminjam');
+    localStorage.setItem('roleName', 'Mahasiswa');
+    localStorage.setItem('isProfileCompleted', 'false');
+  }, auth);
+}

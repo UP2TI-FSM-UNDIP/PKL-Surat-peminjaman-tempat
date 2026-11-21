@@ -7,7 +7,7 @@ test('admin dapat mencari ruangan seed', async ({ page, request }) => {
 
   await loginAs(page, request, 'admin');
 
-  await page.goto('admin/rooms/');
+  await page.goto('./admin/rooms');
 
   await expect(
     page.getByRole('heading', { name: 'Manajemen Ruang' }),

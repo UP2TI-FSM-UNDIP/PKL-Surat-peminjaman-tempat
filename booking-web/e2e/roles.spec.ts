@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { loginAs } from './helpers/auth';
+import { loginAs, loginWithoutRole } from './helpers/auth';
 
 const cases = [
   ['admin', '/admin/'],
@@ -17,3 +17,10 @@ for (const [role, path] of cases) {
     await expect(page).toHaveURL(new RegExp(`${path.replace(/\//g, '\\/')}$`));
   });
 }
+
+test('user tanpa role diarahkan ke menunggu-role', async ({ page, request }) => {
+  await loginWithoutRole(page, request);
+  await page.goto('./');
+  await expect(page).toHaveURL(/\/menunggu-role$/);
+  await expect(page.getByText('Menunggu penetapan role')).toBeVisible();
+});
