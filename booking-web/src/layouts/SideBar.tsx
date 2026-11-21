@@ -70,27 +70,28 @@ export function SideBar({ menuSections, footerLink }: SideBarProps) {
                     <SidebarMenuButton
                       asChild
                       isActive={isActive}
-                      className={
+                      className={cn(
+                        'group/sidebar-item',
                         isActive
-                          ? 'bg-primary/20! border-l-4! border-primary! hover:bg-primary/30!'
-                          : 'hover:bg-accent/50! hover:border-l-4! hover:border-primary/30!'
-                      }
+                          ? 'bg-primary! text-primary-foreground! hover:bg-primary!'
+                          : 'hover:bg-secondary! hover:text-secondary-foreground!',
+                      )}
                     >
                       <Link to={item.url}>
                         <item.icon
                           className={
                             isActive
-                              ? 'text-primary'
-                              : 'text-muted-foreground'
+                              ? 'text-primary-foreground'
+                              : 'text-muted-foreground transition-colors group-hover/sidebar-item:text-secondary-foreground'
                           }
                         />
                         <span
                           className={cn(
-                            'transition-[opacity,transform] duration-200',
+                            'transition-[opacity,transform,color] duration-200',
                             'group-data-[collapsible=icon]:-translate-x-1 group-data-[collapsible=icon]:opacity-0',
                             isActive
-                              ? 'text-foreground! font-semibold!'
-                              : 'text-foreground',
+                              ? 'text-primary-foreground! font-semibold!'
+                              : 'text-foreground transition-colors group-hover/sidebar-item:text-secondary-foreground',
                           )}
                         >
                           {item.title}
