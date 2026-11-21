@@ -1,8 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { useMutation } from '@tanstack/react-query';
 import { Search } from 'lucide-react';
 
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button/button';
+import { bookingService } from '@/services/booking.service';
 import {
     useAdminBookings,
     BookingTable,
@@ -11,11 +13,11 @@ import {
 } from '@/features/admin-peminjaman';
 
 type PeminjamanSearch = {
-    status: string;
-    search: string;
+    status?: string;
+    search?: string;
 };
 
-export const Route = createFileRoute('/admin/peminjaman')({
+export const Route = createFileRoute('/admin/peminjaman/')({
     validateSearch: (search: Record<string, unknown>): PeminjamanSearch => {
         return {
             status: (search.status as string) || 'ALL',
@@ -47,6 +49,16 @@ function RouteComponent() {
         setIsDeleteDialogOpen,
         refetch
     } = useAdminBookings(Route.fullPath);
+
+    const complete = useMutation({
+        mutationFn: (bookingId: number) => bookingService.complete(bookingId),
+        onSuccess: () => refetch(),
+    });
+
+    const today = new Date().toISOString().slice(0, 10);
+    const overdueBookings = bookings.filter(
+        (booking) => booking.status === 'APPROVED' && booking.booking_date < today,
+    );
 
     const getStatusBadge = (statusStr: string) => {
         const statusConfig: Record<string, { bg: string; text: string; label: string }> = {
@@ -132,6 +144,42 @@ function RouteComponent() {
                     })}
                 </div>
             </div>
+
+            {/* Booking lewat waktu */}
+            {overdueBookings.length > 0 && (
+                <div className='mb-4 sm:mb-6 rounded-lg border border-amber-200 bg-amber-50 p-3 sm:p-4'>
+                    <p className='text-sm font-semibold text-amber-900'>Booking lewat waktu</p>
+                    <p className='text-xs text-amber-800 mb-3'>
+                        Booking berikut sudah melewati tanggal pelaksanaan dan masih berstatus Approved.
+                    </p>
+                    <ul className='space-y-2'>
+                        {overdueBookings.map((booking) => (
+                            <li
+                                key={booking.id}
+                                className='flex flex-wrap items-center justify-between gap-2 rounded-md border border-amber-200 bg-white px-3 py-2'
+                            >
+                                <span className='text-xs sm:text-sm text-gray-700'>
+                                    {booking.room?.code || booking.room?.name || '-'} ·{' '}
+                                    {new Date(booking.booking_date).toLocaleDateString('id-ID', {
+                                        day: 'numeric',
+                                        month: 'short',
+                                        year: 'numeric',
+                                    })}{' '}
+                                    · {booking.booked_by_user?.name || booking.bookedBy?.name || '-'}
+                                </span>
+                                <Button
+                                    size='sm'
+                                    variant='outline'
+                                    onClick={() => complete.mutate(booking.id)}
+                                    disabled={complete.isPending}
+                                >
+                                    Selesaikan
+                                </Button>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
 
             {/* Table Section */}
             <div className='bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden relative'>
