@@ -366,9 +366,12 @@
   --fc-button-active-border-color: oklch(0.55 0.18 245);
 }
 
-/* View switcher kalender: pill yang sama dengan SegmentedControl. */
+/* View switcher kalender: pill dengan indikator geser seperti SegmentedControl. */
 .fc-responsive .fc .fc-toolbar-chunk:last-child > .fc-button-group {
-  display: inline-flex;
+  position: relative;
+  isolation: isolate;
+  display: inline-grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.25rem;
   padding: 0.25rem;
   border: 1px solid var(--border);
@@ -377,9 +380,30 @@
   box-shadow: none;
 }
 
+.fc-responsive
+  .fc
+  .fc-toolbar-chunk:last-child
+  > .fc-button-group::before {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  top: 0.25rem;
+  bottom: 0.25rem;
+  left: 0.25rem;
+  width: calc((100% - 1rem) / 3);
+  border-radius: 9999px;
+  background: var(--primary);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+  pointer-events: none;
+  transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
 .fc-responsive .fc .fc-toolbar-chunk:last-child > .fc-button-group > .fc-button {
+  position: relative;
+  z-index: 1;
   margin: 0;
-  padding: 0.3rem 0.75rem;
+  padding: 0.3rem 0.5rem;
   border: 0;
   border-radius: 9999px;
   background: transparent;
@@ -388,6 +412,7 @@
   font-size: 0.75rem;
   font-weight: 600;
   line-height: 1rem;
+  text-align: center;
   transition:
     background-color 150ms ease,
     color 150ms ease;
@@ -406,9 +431,45 @@
   .fc
   .fc-toolbar-chunk:last-child
   > .fc-button-group
-  > .fc-button.fc-button-active {
-  background: var(--primary);
+  > .fc-button.fc-button-active,
+.fc-responsive
+  .fc
+  .fc-toolbar-chunk:last-child
+  > .fc-button-group
+  > .fc-button.fc-button-active:hover {
+  background: transparent;
   color: var(--primary-foreground);
+}
+
+.fc-responsive
+  .fc
+  .fc-toolbar-chunk:last-child
+  > .fc-button-group:has(> .fc-button:nth-child(2).fc-button-active)::before {
+  transform: translateX(calc(100% + 0.25rem));
+}
+
+.fc-responsive
+  .fc
+  .fc-toolbar-chunk:last-child
+  > .fc-button-group:has(> .fc-button:nth-child(3).fc-button-active)::before {
+  transform: translateX(calc(200% + 0.5rem));
+}
+
+@supports not selector(:has(*)) {
+  .fc-responsive
+    .fc
+    .fc-toolbar-chunk:last-child
+    > .fc-button-group::before {
+    display: none;
+  }
+
+  .fc-responsive
+    .fc
+    .fc-toolbar-chunk:last-child
+    > .fc-button-group
+    > .fc-button.fc-button-active {
+    background: var(--primary);
+  }
 }
 
 /* --- FullCalendar: responsive tweaks for mobile --- */
