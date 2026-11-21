@@ -45,6 +45,8 @@ export const DocumentStatusBadge: React.FC<{ doc: Document }> = ({ doc }) => {
       text: 'text-orange-800',
       label: 'Perlu Revisi',
     },
+    EXPIRED: { bg: 'bg-gray-100', text: 'text-gray-800', label: 'Kedaluwarsa' },
+    CANCELLED: { bg: 'bg-red-100', text: 'text-red-800', label: 'Dibatalkan' },
   };
 
   const config = statusConfig[doc.status];
