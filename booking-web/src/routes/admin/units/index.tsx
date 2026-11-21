@@ -5,6 +5,7 @@ import api from '@/lib/axios';
 import { unitService, UNIT_CATEGORIES, type Unit, type UnitCategory } from '@/services/unit.service';
 import { Button } from '@/components/ui/button/button';
 import { Input } from '@/components/ui/input';
+import { SegmentedControl } from '@/components/ui/segmented-control';
 import { Plus, Pencil, Trash2, Search, Eye } from 'lucide-react';
 import {
   Table,
@@ -333,25 +334,20 @@ function RouteComponent() {
 
         {/* Filters Row - Chips */}
         <div className='flex flex-col md:flex-row items-start md:items-center gap-4 pt-1'>
-          <div className='flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-hide max-w-full'>
-            {[
-              { id: 'all', label: 'Semua Kategori' },
-              ...UNIT_CATEGORIES.map((c) => ({ id: c.value, label: c.label })),
-            ].map((cat) => (
-              <Button
-                key={cat.id}
-                variant={selectedCategory === cat.id ? 'default' : 'outline'}
-                size='sm'
-                onClick={() => setSelectedCategory(cat.id as 'all' | UnitCategory)}
-                className={`h-9 px-4 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${selectedCategory === cat.id
-                  ? 'bg-blue-600 text-white shadow-md'
-                  : 'bg-white text-gray-600 hover:bg-gray-50 border-gray-200'
-                  }`}
-              >
-                {cat.label}
-              </Button>
-            ))}
-          </div>
+          <SegmentedControl
+            ariaLabel='Filter kategori unit'
+            value={selectedCategory}
+            onChange={(value) =>
+              setSelectedCategory(value as 'all' | UnitCategory)
+            }
+            options={[
+              { value: 'all', label: 'Semua Kategori' },
+              ...UNIT_CATEGORIES.map((c) => ({
+                value: c.value,
+                label: c.label,
+              })),
+            ]}
+          />
         </div>
       </div>
 

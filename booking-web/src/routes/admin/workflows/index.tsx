@@ -11,6 +11,7 @@ import { roleService, type Role } from '@/services/role.service';
 import { categories, scopeTypes } from '@/services/workflow.constants';
 import { Button } from '@/components/ui/button/button';
 import { Input } from '@/components/ui/input';
+import { SegmentedControl } from '@/components/ui/segmented-control';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, Search } from 'lucide-react';
@@ -422,47 +423,42 @@ function RouteComponent() {
       )}
 
       {/* Search and Create Button */}
-      <div className='mb-4 sm:mb-6 flex flex-row justify-between gap-2'>
+      <div className='mb-4 sm:mb-6 flex items-center gap-2'>
         <div className='relative flex-1'>
-          <Search className='absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 h-3 w-3 sm:h-4 sm:w-4 text-gray-400' />
+          <Search className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400' />
           <Input
             type='text'
             placeholder='Cari workflow...'
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className='pl-7 sm:pl-10 text-sm h-9 sm:h-10'
+            className='pl-10 text-sm h-11 border-gray-200 focus:ring-blue-500 rounded-xl shadow-sm w-full bg-white'
           />
         </div>
         <Button
           onClick={handleCreateWorkflow}
-          className='whitespace-nowrap h-10 sm:h-11 px-4 sm:px-6 text-sm sm:text-base'
+          className='whitespace-nowrap h-11 px-5 text-sm font-semibold rounded-xl shadow-sm flex items-center gap-2'
         >
-          <Plus className='h-5 w-5 mr-2' />
+          <Plus className='h-5 w-5' />
           <span>Buat Workflow</span>
         </Button>
       </div>
 
       {/* Filter Buttons */}
-      <div className='mb-4 flex flex-wrap gap-2'>
-        <Button
-          variant={selectedCategory === null ? 'default' : 'outline'}
-          size='sm'
-          onClick={() => setSelectedCategory(null)}
-          className='text-xs sm:text-sm'
-        >
-          Semua
-        </Button>
-        {categories.map((cat) => (
-          <Button
-            key={cat.value}
-            variant={selectedCategory === cat.value ? 'default' : 'outline'}
-            size='sm'
-            onClick={() => setSelectedCategory(cat.value)}
-            className='text-xs sm:text-sm'
-          >
-            {cat.label}
-          </Button>
-        ))}
+      <div className='mb-4'>
+        <SegmentedControl
+          ariaLabel='Filter kategori workflow'
+          value={selectedCategory ?? 'all'}
+          onChange={(value) =>
+            setSelectedCategory(value === 'all' ? null : value)
+          }
+          options={[
+            { value: 'all', label: 'Semua' },
+            ...categories.map((cat) => ({
+              value: cat.value,
+              label: cat.label,
+            })),
+          ]}
+        />
       </div>
 
       {/* Workflows Table */}
