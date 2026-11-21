@@ -98,6 +98,7 @@ class DevAuthController extends Controller
         return User::query()
             ->with(['role:id,name,slug', 'unit:id,name,code,category'])
             ->whereNotNull('role_id')
+            ->whereHas('role', fn ($query) => $query->whereIn('slug', self::ROLE_ORDER))
             ->get()
             ->sortBy(function (User $user) use ($preferred): string {
                 $roleIndex = array_search($user->role?->slug, self::ROLE_ORDER, true);
