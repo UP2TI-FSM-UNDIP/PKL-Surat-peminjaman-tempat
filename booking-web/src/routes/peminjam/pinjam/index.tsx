@@ -3,6 +3,7 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { SegmentedControl } from '@/components/ui/segmented-control';
 import { documentService } from '@/services/document.service';
 import { DocumentStatusBadge } from '@/components/DocumentStatusBadge';
 
@@ -36,11 +37,18 @@ function SubmissionListPage() {
         <h1 className="text-2xl font-semibold">Daftar Pengajuan</h1>
         <Link to="/peminjam/pinjam/baru"><Button>Buat Reservasi</Button></Link>
       </div>
-      <div className="flex flex-wrap gap-2">
-        {filters.map(([value, label]) => (
-          <Button key={value} variant={status === value ? 'default' : 'outline'} size="sm" onClick={() => { setStatus(value); setPage(1); }}>{label}</Button>
-        ))}
-      </div>
+      <SegmentedControl
+        ariaLabel='Filter status pengajuan'
+        value={status || 'ALL'}
+        onChange={(value) => {
+          setStatus(value === 'ALL' ? '' : value);
+          setPage(1);
+        }}
+        options={[
+          { value: 'ALL', label: 'Semua' },
+          ...filters.slice(1).map(([value, label]) => ({ value, label })),
+        ]}
+      />
       <Table>
         <TableHeader><TableRow><TableHead>Kegiatan</TableHead><TableHead>Slot</TableHead><TableHead>Deadline</TableHead><TableHead>Status</TableHead><TableHead /></TableRow></TableHeader>
         <TableBody>

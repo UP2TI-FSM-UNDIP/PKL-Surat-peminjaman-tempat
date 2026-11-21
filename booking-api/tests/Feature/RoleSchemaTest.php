@@ -21,4 +21,16 @@ class RoleSchemaTest extends TestCase
         $this->assertDatabaseMissing('roles', ['slug' => 'sekretaris']);
         $this->assertDatabaseMissing('roles', ['slug' => 'menunggu-penetapan']);
     }
+
+    public function test_role_seeder_removes_existing_legacy_roles(): void
+    {
+        Role::create(['name' => 'Sekretaris', 'slug' => 'sekretaris']);
+        Role::create(['name' => 'Ketua Ormawa', 'slug' => 'ketua-ormawa']);
+
+        $this->seed(RoleSeeder::class);
+
+        $this->assertSame(6, Role::count());
+        $this->assertDatabaseMissing('roles', ['slug' => 'sekretaris']);
+        $this->assertDatabaseMissing('roles', ['slug' => 'ketua-ormawa']);
+    }
 }

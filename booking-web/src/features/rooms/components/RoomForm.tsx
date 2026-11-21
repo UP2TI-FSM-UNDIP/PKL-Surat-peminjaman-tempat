@@ -8,14 +8,15 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import type { Room } from '@/services/room.service';
-import type { ChangeEvent } from 'react';
 import { RoomWeekdayFields } from './RoomWeekdayFields';
+import { FileDropZone } from '@/components/common/FileDropZone';
 import type { RoomFormData } from '../utils/roomForm';
 
 interface RoomFormProps {
   formData: RoomFormData;
   setFormData: (data: RoomFormData) => void;
-  onFileChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  onFileChange: (file: File | null) => void;
+  imageFile?: File | null;
   formError?: string;
   isSubmitting: boolean;
   onCancel: () => void;
@@ -27,6 +28,7 @@ export function RoomForm({
   formData,
   setFormData,
   onFileChange,
+  imageFile,
   formError,
   isSubmitting,
   onCancel,
@@ -132,14 +134,17 @@ export function RoomForm({
       )}
 
       <div className='grid gap-2'>
-        <label htmlFor='image' className='text-sm font-medium'>
+        <label className='text-sm font-medium'>
           Foto Ruangan {showStatus && '(Upload baru untuk mengganti)'}
         </label>
-        <Input
-          id='image'
-          type='file'
+        <FileDropZone
           accept='image/*'
-          onChange={onFileChange}
+          maxSizeMb={5}
+          onFile={(file) => onFileChange(file)}
+          onClear={() => onFileChange(null)}
+          file={imageFile}
+          title='Pilih atau seret foto ruangan'
+          hint='PNG, JPG, JPEG (Max 5MB)'
         />
       </div>
       {formError && (
