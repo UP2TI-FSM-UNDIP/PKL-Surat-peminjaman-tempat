@@ -12,7 +12,7 @@ export function ApprovalLayout({ role }: { role: RoleSlug }) {
       <SideBar menuSections={menu.menuSections} footerLink={menu.footerLink} />
       <main className="flex w-full min-w-0 flex-1 flex-col">
         <TopBar />
-        <div className="flex-1 space-y-6 p-6"><Outlet /></div>
+        <div className="mx-auto w-full max-w-7xl flex-1 space-y-6 p-6"><Outlet /></div>
       </main>
     </SidebarProvider>
   );
