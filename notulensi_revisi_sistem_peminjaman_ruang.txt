@@ -1,0 +1,76 @@
+REVISI SISTEM PEMINJAMAN RUANG FSM UNDIP
+URL Referensi: https://apps-fsm.undip.ac.id/peminjaman-ruang
+
+1. PERUBAHAN ALUR BISNIS & WORKFLOW APPROVAL
+- Akses Peminjaman Umum:
+  Seluruh mahasiswa dapat langsung mengajukan peminjaman/reservasi tanpa harus
+  tergabung dalam organisasi kemahasiswaan (Ormawa).
+
+- Pemangkasan Alur Persetujuan (Approval Berjenjang):
+  * Alur Lama : Sekretaris Ormawa -> Ketua Ormawa -> Senat Mahasiswa -> dst. -> Fakultas
+  * Alur Baru : Mahasiswa -> Supervisor (SPV) Sumberdaya -> Manajer Tata Usaha -> Wakil Dekan II
+
+- Penghapusan Fitur Generate Surat:
+  Seluruh proses pembuatan/generate surat otomatis dihapus. Sistem baru hanya
+  berfokus pada alur Reservasi dan Peminjaman.
+
+
+2. PEMBARUAN UI/UX DASHBOARD & KALENDER
+- Interaksi List Data Peminjaman:
+  Item peminjaman pada kalender dibuat interaktif (clickable) dengan pembagian
+  status berdasarkan warna:
+  * Hijau (Proposal Lengkap) : Jika diklik, muncul modal berisi rangkuman data
+                               dengan tampilan menyerupai tabel/Excel.
+  * Pink (Status Reservasi)  : Menandakan dokumen/proposal belum lengkap.
+
+- Modal Saat Klik Tanggal pada Kalender:
+  * Tombol "Reservasi"     : Tambahkan keterangan di bawah tombol:
+                             "Untuk yang belum melengkapi dokumen/proposal"
+  * Tombol "Ajukan Pinjam" : Tambahkan keterangan di bawah tombol:
+                             "Untuk yang sudah melengkapi dokumen/proposal"
+  * Revisi Peringatan Hari Kerja (Senin - Jumat):
+    Ubah teks peringatan lama ("Tanggal ini tidak bisa dipinjam...") menjadi
+    informasi bahwa peminjaman pada hari Senin - Jumat TETAP DAPAT DILAKUKAN,
+    khusus untuk Ruang Sidang, Pendopo, dan Studio, dengan syarat telah
+    dikomunikasikan dengan Bidang Akademik FSM terlebih dahulu.
+
+
+3. MEKANISME PEMINJAMAN, RESERVASI & INPUT FORM
+- Skema Multi-Ruang & Multi-Tanggal:
+  Dalam satu kali proses pengajuan (peminjaman maupun reservasi), pengguna dapat
+  memilih:
+  * 1 Ruang untuk banyak tanggal, ATAU
+  * 1 Tanggal untuk banyak ruang.
+
+- Opsi "Buka Sekat":
+  Jika pengguna memilih dua atau lebih ruangan yang posisinya bersebelahan
+  (contoh: A101 dan A102), tampilkan opsi checklist "Buka Sekat".
+
+- Input Kebutuhan Alat:
+  Tambahkan kolom input daftar alat yang dibutuhkan dengan format baris dinamis
+  menyerupai tabel Excel (kolom: Nama Alat dan Jumlah).
+
+
+4. ATURAN MASA BERLAKU RESERVASI (AUTO-CANCEL)
+Reservasi akan otomatis hangus/terhapus oleh sistem jika proposal tidak segera
+dilengkapi sesuai tenggat waktu sebelum hari pelaksanaan (Hari-H):
+
+- Pengajuan > H-15 sebelum Hari-H        : Batas lengkapi H-14 (lewat itu hangus)
+- Pengajuan H-14 s.d. > H-10 sebelum H   : Batas lengkapi H-9  (lewat itu hangus)
+- Pengajuan H-9 s.d. > H-6 sebelum H     : Batas lengkapi H-5  (lewat itu hangus)
+- Pengajuan H-5 s.d. Hari-H              : Batas lengkapi H-1  (lewat itu hangus)
+
+
+5. ATURAN KHUSUS HARI KERJA (SENIN - JUMAT)
+- Filter Ruangan:
+  Pada halaman form peminjaman/reservasi untuk tanggal di hari Senin - Jumat,
+  daftar pilihan ruangan hanya menampilkan: Ruang Sidang, Pendopo, dan Studio.
+
+- Batas Waktu Kegiatan:
+  * Ruang Sidang & Pendopo : Kegiatan maksimal selesai pukul 16.30 WIB.
+  * Studio                 : Kegiatan maksimal selesai pukul 18.00 WIB.
+  * Semua Ruang            : Kegiatan maksimal selesai pukul 16.30 WIB.
+
+- Setelah pengajuan reservvasi, pada pelengkapan pengajuan, bagian yang sudah diisi pada reservasi harusnya read only
+- Kolom undangan hapus
+- Bagian terakhir cukup summary dari pengisian form sebelumnya
