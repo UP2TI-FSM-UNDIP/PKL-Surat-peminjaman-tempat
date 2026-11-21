@@ -47,6 +47,7 @@ export default defineConfig({
         QUEUE_CONNECTION: 'sync',
         MAIL_MAILER: 'array',
         FILESYSTEM_DISK: 'local',
+        PRIVATE_FILESYSTEM_DRIVER: 'local',
       },
     },
     {
