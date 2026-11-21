@@ -18,16 +18,23 @@ export function buildProposalFormData(input: {
 
   ALLOWED_TEXT_FIELDS.forEach((key) => {
     const value = input.content[key];
-    if (value !== undefined && value !== null && String(value).trim() !== '') {
-      form.append(`content[${key}]`, String(value));
-    }
+    // Kirim string kosong secara eksplisit agar backend dapat menghapus nilai lama.
+    form.append(`content[${key}]`, value == null ? '' : String(value));
   });
 
-  input.content.equipment_items?.forEach((item, index) => {
-    if (!item.nama.trim() || !Number.isInteger(item.jumlah) || item.jumlah < 1) return;
+  const equipment = (input.content.equipment_items ?? []).filter(
+    (item) => item.nama.trim() && Number.isInteger(item.jumlah) && item.jumlah >= 1,
+  );
+
+  equipment.forEach((item, index) => {
     form.append(`content[equipment_items][${index}][nama]`, item.nama);
     form.append(`content[equipment_items][${index}][jumlah]`, String(item.jumlah));
   });
+
+  // FormData tidak bisa mengirim array kosong; flag ini membuat backend menghapus alat.
+  if (equipment.length === 0) {
+    form.append('clear_equipment', '1');
+  }
 
   if (input.proposal) {
     form.append('proposal', input.proposal);
