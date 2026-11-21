@@ -6,15 +6,22 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { documentService } from '@/services/document.service';
 import { DocumentStatusBadge } from '@/components/DocumentStatusBadge';
 
-export const Route = createFileRoute('/peminjam/pinjam/')({ component: SubmissionListPage });
+export const Route = createFileRoute('/peminjam/pinjam/')({
+  validateSearch: (search: Record<string, unknown>): { status: string } => {
+    const value = typeof search.status === 'string' ? search.status : '';
+    return { status: value === 'ALL' ? '' : value };
+  },
+  component: SubmissionListPage,
+});
 
 const filters = [
-  ['', 'Semua'], ['DRAFT', 'Draft'], ['IN_PROGRESS', 'Diajukan'], ['APPROVED', 'Disetujui'],
+  ['', 'Semua'], ['DRAFT', 'Draft'], ['REVISION', 'Revisi'], ['IN_PROGRESS', 'Diajukan'], ['APPROVED', 'Disetujui'],
   ['REJECTED', 'Ditolak'], ['EXPIRED', 'Kedaluwarsa'], ['CANCELLED', 'Dibatalkan'],
 ] as const;
 
 function SubmissionListPage() {
-  const [status, setStatus] = useState('');
+  const { status: initialStatus } = Route.useSearch();
+  const [status, setStatus] = useState(initialStatus);
   const [page, setPage] = useState(1);
   const query = useQuery({
     queryKey: ['documents', 'my', status, page],

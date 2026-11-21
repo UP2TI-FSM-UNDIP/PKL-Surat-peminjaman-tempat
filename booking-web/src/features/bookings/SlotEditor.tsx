@@ -23,6 +23,7 @@ export function SlotEditor({ control, setValue, mode, rooms, rulesByDate, maxRow
   const { fields, append, remove } = useFieldArray({ control, name: 'slots' });
   const roomId = useWatch({ control, name: 'room_id' });
   const bookingDate = useWatch({ control, name: 'booking_date' });
+  const slots = useWatch({ control, name: 'slots' }) ?? [];
 
   useEffect(() => {
     for (let index = 0; index < fields.length; index += 1) {
@@ -54,11 +55,11 @@ export function SlotEditor({ control, setValue, mode, rooms, rulesByDate, maxRow
         <span />
       </div>
       {fields.map((field, index) => {
-        const date = mode === 'one_room_many_dates'
-          ? undefined
-          : bookingDate;
+        const rowSlot = slots[index];
+        const date = mode === 'one_room_many_dates' ? rowSlot?.booking_date : bookingDate;
+        const rowRoomId = mode === 'one_room_many_dates' ? roomId : rowSlot?.room_id;
         const rule = rulesByDate[date ?? ''];
-        const maxEnd = rule?.rooms.find((room) => room.id === (mode === 'one_room_many_dates' ? roomId : undefined))?.max_end_time ?? '16:30';
+        const maxEnd = rule?.rooms.find((room) => room.id === rowRoomId)?.max_end_time ?? '16:30';
         return (
           <div key={field.id} className="space-y-1 rounded-md border p-3">
             <div className="grid gap-2 md:grid-cols-[1fr_1fr_110px_110px_44px] md:items-center">

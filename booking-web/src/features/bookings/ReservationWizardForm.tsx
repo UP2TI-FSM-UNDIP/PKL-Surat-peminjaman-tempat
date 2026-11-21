@@ -202,14 +202,17 @@ export function ReservationWizardForm({ intent, submitLabel = 'Simpan Reservasi'
         <div className="space-y-2">
           <Label htmlFor="ketua_pelaksana_nama">Nama ketua pelaksana</Label>
           <Input id="ketua_pelaksana_nama" {...register('ketua_pelaksana_nama', { required: 'Wajib diisi' })} />
+          {errors.ketua_pelaksana_nama && <p className="text-xs text-destructive">{errors.ketua_pelaksana_nama.message}</p>}
         </div>
         <div className="space-y-2">
           <Label htmlFor="ketua_pelaksana_identitas">NIM/NIP/NIDN</Label>
           <Input id="ketua_pelaksana_identitas" {...register('ketua_pelaksana_identitas', { required: 'Wajib diisi', pattern: { value: /^(?:\d{10}|\d{14}|\d{18})$/, message: '10, 14, atau 18 digit' } })} />
+          {errors.ketua_pelaksana_identitas && <p className="text-xs text-destructive">{errors.ketua_pelaksana_identitas.message}</p>}
         </div>
         <div className="space-y-2">
           <Label htmlFor="ketua_pelaksana_hp">Nomor HP</Label>
           <Input id="ketua_pelaksana_hp" {...register('ketua_pelaksana_hp', { required: 'Wajib diisi', pattern: { value: /^\d{12,13}$/, message: '12–13 digit' } })} />
+          {errors.ketua_pelaksana_hp && <p className="text-xs text-destructive">{errors.ketua_pelaksana_hp.message}</p>}
         </div>
         <div className="space-y-2">
           <Label htmlFor="expected_participants">Perkiraan peserta (opsional)</Label>

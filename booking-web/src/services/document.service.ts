@@ -80,6 +80,9 @@ export const documentService = {
     const response = await api.get<Blob>(`/documents/${documentId}/file/${type}`, {
       responseType: 'blob',
     });
+    if (response.data.type === 'application/json') {
+      throw new Error('File tidak ditemukan atau tidak dapat diakses.');
+    }
     return { blob: response.data, objectUrl: URL.createObjectURL(response.data) };
   },
 

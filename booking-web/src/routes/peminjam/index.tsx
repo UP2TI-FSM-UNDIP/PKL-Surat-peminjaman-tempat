@@ -62,7 +62,7 @@ function RouteComponent() {
   ).length;
 
   const goToPinjam = (status: string) =>
-    navigate({ to: '/peminjam/pinjam', search: { status } } as never);
+    navigate({ to: '/peminjam/pinjam', search: { status } });
 
   return (
     <div className="space-y-6">
