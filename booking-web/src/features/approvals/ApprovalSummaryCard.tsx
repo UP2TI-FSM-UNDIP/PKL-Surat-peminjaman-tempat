@@ -12,11 +12,18 @@ export function ApprovalSummaryCard({ document, summary }: {
   summary: ReservationSummary;
 }) {
   const openProposal = async () => {
+    const tab = window.open('', '_blank');
+    if (!tab) {
+      toast.error('Popup diblokir. Izinkan popup untuk melihat proposal.');
+      return;
+    }
+    tab.opener = null;
     try {
       const { objectUrl } = await fileService.fetchBlobUrl(`/documents/${document.id}/file/proposal`);
-      window.open(objectUrl, '_blank', 'noopener');
+      tab.location.href = objectUrl;
       window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
     } catch (error) {
+      tab.close();
       toast.error(getErrorMessage(error, 'Proposal tidak dapat dibuka.'));
     }
   };

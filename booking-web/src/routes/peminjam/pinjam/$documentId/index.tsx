@@ -22,7 +22,7 @@ function DetailPage() {
   const queryClient = useQueryClient();
   const [cancelOpen, setCancelOpen] = useState(false);
   const [reason, setReason] = useState('');
-  const [receipt, setReceipt] = useState<Record<string, unknown> | null>(null);
+  const [receipts, setReceipts] = useState<Record<number, Record<string, unknown>>>({});
 
   const documentQuery = useQuery({ queryKey: ['document', id], queryFn: () => documentService.getDocument(id) });
   const summaryQuery = useQuery({ queryKey: ['reservation-summary', id], queryFn: () => reservationService.summary(id) });
@@ -46,11 +46,18 @@ function DetailPage() {
   if (!document || !summary) return <p>Dokumen tidak ditemukan.</p>;
 
   const openProposal = async () => {
+    const tab = window.open('', '_blank');
+    if (!tab) {
+      toast.error('Popup diblokir. Izinkan popup untuk melihat proposal.');
+      return;
+    }
+    tab.opener = null;
     try {
       const { objectUrl } = await documentService.fetchFileUrl(id);
-      window.open(objectUrl, '_blank', 'noopener');
+      tab.location.href = objectUrl;
       window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
     } catch (error) {
+      tab.close();
       toast.error(getErrorMessage(error, 'Proposal tidak dapat dibuka.'));
     }
   };
@@ -99,8 +106,24 @@ function DetailPage() {
           <CardHeader><CardTitle className="text-base">Bukti peminjaman {booking.id}</CardTitle></CardHeader>
           <CardContent><BookingQr bookingId={booking.id} /></CardContent>
           <CardContent className="space-y-2">
-            <Button variant="outline" onClick={async () => setReceipt(await bookingService.receipt(booking.id))}>Lihat receipt</Button>
-            {receipt && <pre className="max-h-64 overflow-auto rounded bg-muted p-2 text-xs">{JSON.stringify(receipt, null, 2)}</pre>}
+            <Button
+              variant="outline"
+              onClick={async () => {
+                try {
+                  const data = await bookingService.receipt(booking.id);
+                  setReceipts((current) => ({ ...current, [booking.id]: data }));
+                } catch (error) {
+                  toast.error(getErrorMessage(error, 'Gagal memuat receipt.'));
+                }
+              }}
+            >
+              Lihat receipt
+            </Button>
+            {receipts[booking.id] && (
+              <pre className="max-h-64 overflow-auto rounded bg-muted p-2 text-xs">
+                {JSON.stringify(receipts[booking.id], null, 2)}
+              </pre>
+            )}
           </CardContent>
         </Card>
       ))}

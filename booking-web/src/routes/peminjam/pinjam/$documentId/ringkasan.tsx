@@ -38,6 +38,7 @@ function SummaryPage() {
       await navigate({ to: '/peminjam/pinjam/$documentId', params: { documentId } });
     },
     onError: async (error) => {
+      setOpen(false);
       const status = getErrorStatus(error);
       const errors = (error as AxiosError<{ errors?: Record<string, unknown> }>).response?.data?.errors ?? {};
       if (status === 422 && 'missing' in errors) {

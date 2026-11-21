@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button/button';
@@ -20,7 +20,7 @@ export function BookingPolicyForm() {
   const queryClient = useQueryClient();
   const policyQuery = useQuery({ queryKey: ['booking-policy'], queryFn: () => bookingPolicyService.get() });
   const auditsQuery = useQuery({ queryKey: ['booking-policy-audits', 1], queryFn: () => bookingPolicyService.audits(1) });
-  const { register, control, reset, handleSubmit } = useForm<PolicyDraft>({
+  const { register, control, reset, handleSubmit, formState: { isDirty } } = useForm<PolicyDraft>({
     defaultValues: {
       name: 'Kebijakan Peminjaman', min_booking_days: 1, max_dates_per_room: 10,
       max_rooms_per_date: 5, max_total_room_hours: null, tiers: [],
@@ -29,9 +29,11 @@ export function BookingPolicyForm() {
   const draft = useWatch({ control }) as PolicyDraft;
   const debounced = useDebounce(draft, 400);
   const [recalc, setRecalc] = useState<{ count: number; affected: Array<{ document_id: number; deadline: string }> } | null>(null);
+  const hydratedPolicyId = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!policyQuery.data) return;
+    if (!policyQuery.data || hydratedPolicyId.current === policyQuery.data.id) return;
+    hydratedPolicyId.current = policyQuery.data.id;
     reset({
       name: policyQuery.data.name,
       min_booking_days: policyQuery.data.min_booking_days,
@@ -61,7 +63,8 @@ export function BookingPolicyForm() {
   });
 
   const calculate = useMutation({
-    mutationFn: (dryRun: boolean) => bookingPolicyService.recalculate(dryRun),
+    mutationFn: (input: { dryRun: boolean; policyId: number }) =>
+      bookingPolicyService.recalculate(input.dryRun, input.policyId),
     onSuccess: (result) => {
       if (result.dry_run) setRecalc({ count: result.count, affected: result.affected });
       else {
@@ -73,10 +76,26 @@ export function BookingPolicyForm() {
   });
 
   if (policyQuery.isLoading) return <p>Memuat kebijakan…</p>;
+  if (policyQuery.isError || !policyQuery.data) {
+    return (
+      <Card>
+        <CardHeader><CardTitle>Kebijakan Peminjaman</CardTitle></CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-destructive">
+            {getErrorMessage(policyQuery.error, 'Gagal memuat kebijakan. Default tidak ditampilkan agar tidak menimpa kebijakan aktif.')}
+          </p>
+          <Button type="button" variant="outline" onClick={() => void policyQuery.refetch()}>Coba lagi</Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const policyId = policyQuery.data.id;
+  const recalcDisabled = calculate.isPending || isDirty;
   const invalid = Object.keys(errors).length > 0 || previewQuery.data?.valid === false;
 
   return (
-    <form className="space-y-6" onSubmit={handleSubmit((values) => save.mutate(values))}>
+    <form className="space-y-6" onSubmit={handleSubmit((values) => save.mutate(values))} onChange={() => setRecalc(null)}>
       <h1 className="text-2xl font-semibold">Kebijakan Peminjaman</h1>
       <Card>
         <CardHeader><CardTitle>Parameter</CardTitle></CardHeader>
@@ -110,8 +129,24 @@ export function BookingPolicyForm() {
 
       <div className="flex flex-wrap gap-2">
         <Button type="submit" disabled={invalid || save.isPending}>Simpan</Button>
-        <Button type="button" variant="outline" onClick={() => calculate.mutate(true)} disabled={calculate.isPending}>Hitung ulang draf</Button>
-        {recalc && <Button type="button" variant="destructive" onClick={() => calculate.mutate(false)}>Terapkan ke {recalc.count} dokumen</Button>}
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => calculate.mutate({ dryRun: true, policyId })}
+          disabled={recalcDisabled}
+        >
+          {isDirty ? 'Simpan dulu untuk hitung ulang' : 'Hitung ulang kebijakan'}
+        </Button>
+        {recalc && (
+          <Button
+            type="button"
+            variant="destructive"
+            onClick={() => calculate.mutate({ dryRun: false, policyId })}
+            disabled={recalcDisabled}
+          >
+            Terapkan ke {recalc.count} dokumen
+          </Button>
+        )}
       </div>
       {recalc && (
         <div className="space-y-2 rounded-md border p-3">
