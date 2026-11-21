@@ -30,7 +30,7 @@ const DialogContent = React.forwardRef<
 		<DialogOverlay />
 		<DialogPrimitive.Content
 			ref={ref}
-			className={`fixed left-1/2 top-1/2 z-50 grid w-full -translate-x-1/2 -translate-y-1/2 gap-4 border bg-white p-6 shadow-lg duration-300 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:rounded-lg ${className || ''}`}
+			className={`fixed left-1/2 top-1/2 z-50 grid w-full -translate-x-1/2 -translate-y-1/2 gap-4 border bg-white p-6 shadow-lg data-[state=open]:animate-[dialog-in_200ms_cubic-bezier(0.22,1,0.36,1)] data-[state=closed]:animate-[dialog-out_150ms_ease-in] sm:rounded-lg ${className || ''}`}
 			{...props}
 		>
 			{children}

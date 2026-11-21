@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { SegmentedControl } from '@/components/ui/segmented-control';
 import {
   Plus,
   Pencil,
@@ -15,7 +16,6 @@ import { DetailRoomModal } from '@/features/rooms/components/DetailRoomModal';
 import { DeleteRoomDialog } from '@/features/rooms/components/DeleteRoomDialog';
 import { RoomEditWarnings } from '@/features/rooms/components/RoomEditWarnings';
 import { useRooms } from '@/features/rooms/hooks/useRooms';
-import type { Room } from '@/services/room.service';
 import {
   Table,
   TableBody,
@@ -78,6 +78,7 @@ function RouteComponent() {
     handleDetail,
     handleDelete,
     handleFileChange,
+    roomImage,
     handleSubmitCreate,
     handleSubmitEdit,
     handleConfirmDelete,
@@ -141,27 +142,17 @@ function RouteComponent() {
 
         {/* Filters Row */}
         <div className='flex flex-col md:flex-row items-start md:items-center gap-4 pt-1'>
-          <div className='flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-hide max-w-full'>
-            {[
-              { id: 'all', label: 'Semua Status' },
-              { id: 'ACTIVE', label: 'Aktif' },
-              { id: 'MAINTENANCE', label: 'Maintenance' },
-              { id: 'INACTIVE', label: 'Nonaktif' }
-            ].map((status) => (
-              <Button
-                key={status.id}
-                variant={selectedStatus === status.id ? 'default' : 'outline'}
-                size='sm'
-                onClick={() => setSelectedStatus(status.id as Room['status'] | 'all')}
-                className={`h-9 px-4 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${selectedStatus === status.id
-                  ? 'bg-blue-600 text-white shadow-md'
-                  : 'bg-white text-gray-600 hover:bg-gray-50 border-gray-200'
-                  }`}
-              >
-                {status.label}
-              </Button>
-            ))}
-          </div>
+          <SegmentedControl
+            ariaLabel='Filter status ruangan'
+            value={selectedStatus}
+            onChange={setSelectedStatus}
+            options={[
+              { value: 'all', label: 'Semua Status' },
+              { value: 'ACTIVE', label: 'Aktif' },
+              { value: 'MAINTENANCE', label: 'Maintenance' },
+              { value: 'INACTIVE', label: 'Nonaktif' },
+            ]}
+          />
 
           <div className='w-full md:w-[200px]'>
             <Select
@@ -358,6 +349,7 @@ function RouteComponent() {
               formData={formData}
               setFormData={setFormData}
               onFileChange={handleFileChange}
+              imageFile={roomImage}
               formError={formError}
               isSubmitting={isSubmitting}
               onCancel={() => setIsCreateModalOpen(false)}
@@ -385,6 +377,7 @@ function RouteComponent() {
               formData={formData}
               setFormData={setFormData}
               onFileChange={handleFileChange}
+              imageFile={roomImage}
               formError={formError}
               isSubmitting={isSubmitting}
               onCancel={() => setIsEditModalOpen(false)}

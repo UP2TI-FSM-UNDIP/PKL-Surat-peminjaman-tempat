@@ -3,6 +3,7 @@ import { useState, useMemo } from 'react';
 import { Plus, FilePlus, AlertCircle, Clock, AlertTriangle, Eye, Search } from 'lucide-react';
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button/button';
+import { SegmentedControl } from '@/components/ui/segmented-control';
 
 import { documentService } from '@/services/document.service';
 import { DocumentStatusBadge } from '@/components/DocumentStatusBadge';
@@ -229,27 +230,19 @@ function RouteComponent() {
           />
         </div>
 
-        <div className='flex gap-1 flex-wrap'>
-          {([
-            { label: 'Semua', value: 'ALL' },
-            { label: 'Draft', value: 'DRAFT' },
-            { label: 'Diproses', value: 'IN_PROGRESS' },
-            { label: 'Revisi', value: 'REVISION' },
-            { label: 'Disetujui', value: 'APPROVED' },
-            { label: 'Ditolak', value: 'REJECTED' },
-          ] as const).map((tab) => (
-            <button
-              key={tab.value}
-              onClick={() => setStatusFilter(tab.value)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${statusFilter === tab.value
-                ? 'bg-blue-600 text-white border-blue-600'
-                : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
-                }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+        <SegmentedControl
+          ariaLabel='Filter status pengajuan'
+          value={statusFilter}
+          onChange={setStatusFilter}
+          options={[
+            { value: 'ALL', label: 'Semua' },
+            { value: 'DRAFT', label: 'Draft' },
+            { value: 'IN_PROGRESS', label: 'Diproses' },
+            { value: 'REVISION', label: 'Revisi' },
+            { value: 'APPROVED', label: 'Disetujui' },
+            { value: 'REJECTED', label: 'Ditolak' },
+          ]}
+        />
       </div>
 
       <DataTable
