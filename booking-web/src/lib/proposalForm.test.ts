@@ -20,4 +20,21 @@ describe('buildProposalFormData', () => {
     });
     expect(form.get('content[slots]')).toBeNull();
   });
+
+  it('mengirim nilai kosong dan flag hapus alat', () => {
+    const form = buildProposalFormData({
+      content: { event_name: 'Seminar', benefits: '', equipment_items: [] },
+      proposal: null,
+    });
+    expect(form.get('content[benefits]')).toBe('');
+    expect(form.get('clear_equipment')).toBe('1');
+  });
+
+  it('tidak mengirim flag hapus alat bila ada alat valid', () => {
+    const form = buildProposalFormData({
+      content: { equipment_items: [{ nama: 'Proyektor', jumlah: 1 }] },
+      proposal: null,
+    });
+    expect(form.get('clear_equipment')).toBeNull();
+  });
 });
