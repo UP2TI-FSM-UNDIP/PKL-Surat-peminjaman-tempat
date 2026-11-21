@@ -125,7 +125,7 @@ class ReservationService
 
         $allowed = ['event_name', 'event_nature', 'event_form', 'objectives', 'benefits', 'target_audience', 'equipment_items'];
         $merge = array_intersect_key($content, array_flip($allowed));
-        if (($data['clear_equipment'] ?? false) === true) {
+        if ((bool) ($data['clear_equipment'] ?? false)) {
             $merge['equipment_items'] = [];
         }
         $document->update([

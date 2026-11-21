@@ -33,7 +33,7 @@ class ProposalClearTest extends TestCase
                 'event_name' => '',
                 'benefits' => '',
             ],
-            'clear_equipment' => true,
+            'clear_equipment' => '1',
         ])->assertOk();
 
         $fresh = $document->fresh();
