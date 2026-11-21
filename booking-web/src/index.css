@@ -366,16 +366,71 @@
   --fc-button-active-border-color: oklch(0.55 0.18 245);
 }
 
+/* View switcher kalender: pill yang sama dengan SegmentedControl. */
+.fc-responsive .fc .fc-toolbar-chunk:last-child > .fc-button-group {
+  display: inline-flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  background: var(--muted);
+  box-shadow: none;
+}
+
+.fc-responsive .fc .fc-toolbar-chunk:last-child > .fc-button-group > .fc-button {
+  margin: 0;
+  padding: 0.3rem 0.75rem;
+  border: 0;
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--muted-foreground);
+  box-shadow: none;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1rem;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+.fc-responsive
+  .fc
+  .fc-toolbar-chunk:last-child
+  > .fc-button-group
+  > .fc-button:hover {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.fc-responsive
+  .fc
+  .fc-toolbar-chunk:last-child
+  > .fc-button-group
+  > .fc-button.fc-button-active {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
 /* --- FullCalendar: responsive tweaks for mobile --- */
 /* Scoped to the wrapper class `fc-responsive` added to BookingCalendar */
 @media (max-width: 640px) {
   .fc-responsive .fc .fc-toolbar {
-    padding: 0.25rem 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0;
+  }
+
+  .fc-responsive .fc .fc-toolbar-chunk:nth-child(2) {
+    order: -1;
+    flex: 1 0 100%;
+    justify-content: center;
   }
 
   .fc-responsive .fc .fc-toolbar-title {
     font-size: 1rem;
     line-height: 1.25rem;
+    text-align: center;
   }
 
   .fc-responsive .fc .fc-button {
