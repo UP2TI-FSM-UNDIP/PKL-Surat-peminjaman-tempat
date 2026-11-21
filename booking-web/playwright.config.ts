@@ -28,7 +28,7 @@ export default defineConfig({
   webServer: [
     {
       command:
-        'touch database/e2e.sqlite && php artisan config:clear && php artisan migrate:fresh --seed --force && php artisan serve --host=127.0.0.1 --port=18000',
+        'touch database/e2e.sqlite && php artisan config:clear && php artisan migrate:fresh --seed --force && php artisan db:seed --class=E2eRoomSeeder --force && php artisan serve --host=127.0.0.1 --port=18000',
       cwd: apiDir,
       url: 'http://127.0.0.1:18000/up',
       timeout: 120_000,
