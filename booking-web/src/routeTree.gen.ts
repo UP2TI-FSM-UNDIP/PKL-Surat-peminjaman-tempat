@@ -13,26 +13,34 @@ import { Route as TandaTanganRouteImport } from './routes/tanda-tangan'
 import { Route as SignDocumentRouteImport } from './routes/sign-document'
 import { Route as RedirectRouteImport } from './routes/redirect'
 import { Route as PreviewDocumentRouteImport } from './routes/preview-document'
+import { Route as MenungguRoleRouteImport } from './routes/menunggu-role'
 import { Route as MenungguPenetapanRouteImport } from './routes/menunggu-penetapan'
+import { Route as Wadek2RouteRouteImport } from './routes/wadek2/route'
 import { Route as Wadek1RouteRouteImport } from './routes/wadek1/route'
 import { Route as SumberDayaRouteRouteImport } from './routes/sumber-daya/route'
+import { Route as SpvSumberdayaRouteRouteImport } from './routes/spv-sumberdaya/route'
 import { Route as SenatRouteRouteImport } from './routes/senat/route'
 import { Route as PeminjamRouteRouteImport } from './routes/peminjam/route'
+import { Route as ManajerTataUsahaRouteRouteImport } from './routes/manajer-tata-usaha/route'
 import { Route as KetuaOrmawaRouteRouteImport } from './routes/ketua-ormawa/route'
 import { Route as KetuaDepartemenRouteRouteImport } from './routes/ketua-departemen/route'
 import { Route as KemahasiswaanRouteRouteImport } from './routes/kemahasiswaan/route'
 import { Route as DosenPendampingRouteRouteImport } from './routes/dosen-pendamping/route'
 import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as Wadek2IndexRouteImport } from './routes/wadek2/index'
 import { Route as Wadek1IndexRouteImport } from './routes/wadek1/index'
 import { Route as SumberDayaIndexRouteImport } from './routes/sumber-daya/index'
+import { Route as SpvSumberdayaIndexRouteImport } from './routes/spv-sumberdaya/index'
 import { Route as SenatIndexRouteImport } from './routes/senat/index'
 import { Route as PeminjamIndexRouteImport } from './routes/peminjam/index'
+import { Route as ManajerTataUsahaIndexRouteImport } from './routes/manajer-tata-usaha/index'
 import { Route as KetuaOrmawaIndexRouteImport } from './routes/ketua-ormawa/index'
 import { Route as KetuaDepartemenIndexRouteImport } from './routes/ketua-departemen/index'
 import { Route as KemahasiswaanIndexRouteImport } from './routes/kemahasiswaan/index'
 import { Route as DosenPendampingIndexRouteImport } from './routes/dosen-pendamping/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as Wadek2RiwayatRouteImport } from './routes/wadek2/riwayat'
 import { Route as Wadek1SignDocumentRouteImport } from './routes/wadek1/sign-document'
 import { Route as Wadek1RiwayatPersetujuanRouteImport } from './routes/wadek1/riwayat-persetujuan'
 import { Route as Wadek1PreviewDocumentRouteImport } from './routes/wadek1/preview-document'
@@ -44,10 +52,12 @@ import { Route as SumberDayaPreviewDocumentRouteImport } from './routes/sumber-d
 import { Route as SumberDayaManajemenRuangRouteImport } from './routes/sumber-daya/manajemen-ruang'
 import { Route as SumberDayaApproveDocumentRouteImport } from './routes/sumber-daya/approve-document'
 import { Route as SsoCallbackRouteImport } from './routes/sso/callback'
+import { Route as SpvSumberdayaRiwayatRouteImport } from './routes/spv-sumberdaya/riwayat'
 import { Route as SenatSignDocumentRouteImport } from './routes/senat/sign-document'
 import { Route as SenatRiwayatPersetujuanRouteImport } from './routes/senat/riwayat-persetujuan'
 import { Route as SenatPreviewDocumentRouteImport } from './routes/senat/preview-document'
 import { Route as PeminjamReservasiRouteImport } from './routes/peminjam/reservasi'
+import { Route as ManajerTataUsahaRiwayatRouteImport } from './routes/manajer-tata-usaha/riwayat'
 import { Route as KetuaOrmawaSignDocumentRouteImport } from './routes/ketua-ormawa/sign-document'
 import { Route as KetuaOrmawaRiwayatPersetujuanRouteImport } from './routes/ketua-ormawa/riwayat-persetujuan'
 import { Route as KetuaOrmawaPreviewDocumentRouteImport } from './routes/ketua-ormawa/preview-document'
@@ -96,9 +106,19 @@ const PreviewDocumentRoute = PreviewDocumentRouteImport.update({
   path: '/preview-document',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MenungguRoleRoute = MenungguRoleRouteImport.update({
+  id: '/menunggu-role',
+  path: '/menunggu-role',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MenungguPenetapanRoute = MenungguPenetapanRouteImport.update({
   id: '/menunggu-penetapan',
   path: '/menunggu-penetapan',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Wadek2RouteRoute = Wadek2RouteRouteImport.update({
+  id: '/wadek2',
+  path: '/wadek2',
   getParentRoute: () => rootRouteImport,
 } as any)
 const Wadek1RouteRoute = Wadek1RouteRouteImport.update({
@@ -111,6 +131,11 @@ const SumberDayaRouteRoute = SumberDayaRouteRouteImport.update({
   path: '/sumber-daya',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SpvSumberdayaRouteRoute = SpvSumberdayaRouteRouteImport.update({
+  id: '/spv-sumberdaya',
+  path: '/spv-sumberdaya',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SenatRouteRoute = SenatRouteRouteImport.update({
   id: '/senat',
   path: '/senat',
@@ -119,6 +144,11 @@ const SenatRouteRoute = SenatRouteRouteImport.update({
 const PeminjamRouteRoute = PeminjamRouteRouteImport.update({
   id: '/peminjam',
   path: '/peminjam',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ManajerTataUsahaRouteRoute = ManajerTataUsahaRouteRouteImport.update({
+  id: '/manajer-tata-usaha',
+  path: '/manajer-tata-usaha',
   getParentRoute: () => rootRouteImport,
 } as any)
 const KetuaOrmawaRouteRoute = KetuaOrmawaRouteRouteImport.update({
@@ -151,6 +181,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Wadek2IndexRoute = Wadek2IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => Wadek2RouteRoute,
+} as any)
 const Wadek1IndexRoute = Wadek1IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -161,6 +196,11 @@ const SumberDayaIndexRoute = SumberDayaIndexRouteImport.update({
   path: '/',
   getParentRoute: () => SumberDayaRouteRoute,
 } as any)
+const SpvSumberdayaIndexRoute = SpvSumberdayaIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => SpvSumberdayaRouteRoute,
+} as any)
 const SenatIndexRoute = SenatIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -170,6 +210,11 @@ const PeminjamIndexRoute = PeminjamIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => PeminjamRouteRoute,
+} as any)
+const ManajerTataUsahaIndexRoute = ManajerTataUsahaIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ManajerTataUsahaRouteRoute,
 } as any)
 const KetuaOrmawaIndexRoute = KetuaOrmawaIndexRouteImport.update({
   id: '/',
@@ -195,6 +240,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AdminRouteRoute,
+} as any)
+const Wadek2RiwayatRoute = Wadek2RiwayatRouteImport.update({
+  id: '/riwayat',
+  path: '/riwayat',
+  getParentRoute: () => Wadek2RouteRoute,
 } as any)
 const Wadek1SignDocumentRoute = Wadek1SignDocumentRouteImport.update({
   id: '/sign-document',
@@ -257,6 +307,11 @@ const SsoCallbackRoute = SsoCallbackRouteImport.update({
   path: '/sso/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SpvSumberdayaRiwayatRoute = SpvSumberdayaRiwayatRouteImport.update({
+  id: '/riwayat',
+  path: '/riwayat',
+  getParentRoute: () => SpvSumberdayaRouteRoute,
+} as any)
 const SenatSignDocumentRoute = SenatSignDocumentRouteImport.update({
   id: '/sign-document',
   path: '/sign-document',
@@ -276,6 +331,11 @@ const PeminjamReservasiRoute = PeminjamReservasiRouteImport.update({
   id: '/reservasi',
   path: '/reservasi',
   getParentRoute: () => PeminjamRouteRoute,
+} as any)
+const ManajerTataUsahaRiwayatRoute = ManajerTataUsahaRiwayatRouteImport.update({
+  id: '/riwayat',
+  path: '/riwayat',
+  getParentRoute: () => ManajerTataUsahaRouteRoute,
 } as any)
 const KetuaOrmawaSignDocumentRoute = KetuaOrmawaSignDocumentRouteImport.update({
   id: '/sign-document',
@@ -437,11 +497,15 @@ export interface FileRoutesByFullPath {
   '/kemahasiswaan': typeof KemahasiswaanRouteRouteWithChildren
   '/ketua-departemen': typeof KetuaDepartemenRouteRouteWithChildren
   '/ketua-ormawa': typeof KetuaOrmawaRouteRouteWithChildren
+  '/manajer-tata-usaha': typeof ManajerTataUsahaRouteRouteWithChildren
   '/peminjam': typeof PeminjamRouteRouteWithChildren
   '/senat': typeof SenatRouteRouteWithChildren
+  '/spv-sumberdaya': typeof SpvSumberdayaRouteRouteWithChildren
   '/sumber-daya': typeof SumberDayaRouteRouteWithChildren
   '/wadek1': typeof Wadek1RouteRouteWithChildren
+  '/wadek2': typeof Wadek2RouteRouteWithChildren
   '/menunggu-penetapan': typeof MenungguPenetapanRoute
+  '/menunggu-role': typeof MenungguRoleRoute
   '/preview-document': typeof PreviewDocumentRoute
   '/redirect': typeof RedirectRoute
   '/sign-document': typeof SignDocumentRoute
@@ -459,10 +523,12 @@ export interface FileRoutesByFullPath {
   '/ketua-ormawa/preview-document': typeof KetuaOrmawaPreviewDocumentRoute
   '/ketua-ormawa/riwayat-persetujuan': typeof KetuaOrmawaRiwayatPersetujuanRoute
   '/ketua-ormawa/sign-document': typeof KetuaOrmawaSignDocumentRoute
+  '/manajer-tata-usaha/riwayat': typeof ManajerTataUsahaRiwayatRoute
   '/peminjam/reservasi': typeof PeminjamReservasiRoute
   '/senat/preview-document': typeof SenatPreviewDocumentRoute
   '/senat/riwayat-persetujuan': typeof SenatRiwayatPersetujuanRoute
   '/senat/sign-document': typeof SenatSignDocumentRoute
+  '/spv-sumberdaya/riwayat': typeof SpvSumberdayaRiwayatRoute
   '/sso/callback': typeof SsoCallbackRoute
   '/sumber-daya/approve-document': typeof SumberDayaApproveDocumentRoute
   '/sumber-daya/manajemen-ruang': typeof SumberDayaManajemenRuangRoute
@@ -474,15 +540,19 @@ export interface FileRoutesByFullPath {
   '/wadek1/preview-document': typeof Wadek1PreviewDocumentRoute
   '/wadek1/riwayat-persetujuan': typeof Wadek1RiwayatPersetujuanRoute
   '/wadek1/sign-document': typeof Wadek1SignDocumentRoute
+  '/wadek2/riwayat': typeof Wadek2RiwayatRoute
   '/admin/': typeof AdminIndexRoute
   '/dosen-pendamping/': typeof DosenPendampingIndexRoute
   '/kemahasiswaan/': typeof KemahasiswaanIndexRoute
   '/ketua-departemen/': typeof KetuaDepartemenIndexRoute
   '/ketua-ormawa/': typeof KetuaOrmawaIndexRoute
+  '/manajer-tata-usaha/': typeof ManajerTataUsahaIndexRoute
   '/peminjam/': typeof PeminjamIndexRoute
   '/senat/': typeof SenatIndexRoute
+  '/spv-sumberdaya/': typeof SpvSumberdayaIndexRoute
   '/sumber-daya/': typeof SumberDayaIndexRoute
   '/wadek1/': typeof Wadek1IndexRoute
+  '/wadek2/': typeof Wadek2IndexRoute
   '/peminjam/pinjam/detail-tempat': typeof PeminjamPinjamDetailTempatRoute
   '/peminjam/pinjam/edit-dokumen': typeof PeminjamPinjamEditDokumenRoute
   '/peminjam/pinjam/proposal': typeof PeminjamPinjamProposalRoute
@@ -501,6 +571,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/menunggu-penetapan': typeof MenungguPenetapanRoute
+  '/menunggu-role': typeof MenungguRoleRoute
   '/preview-document': typeof PreviewDocumentRoute
   '/redirect': typeof RedirectRoute
   '/sign-document': typeof SignDocumentRoute
@@ -518,10 +589,12 @@ export interface FileRoutesByTo {
   '/ketua-ormawa/preview-document': typeof KetuaOrmawaPreviewDocumentRoute
   '/ketua-ormawa/riwayat-persetujuan': typeof KetuaOrmawaRiwayatPersetujuanRoute
   '/ketua-ormawa/sign-document': typeof KetuaOrmawaSignDocumentRoute
+  '/manajer-tata-usaha/riwayat': typeof ManajerTataUsahaRiwayatRoute
   '/peminjam/reservasi': typeof PeminjamReservasiRoute
   '/senat/preview-document': typeof SenatPreviewDocumentRoute
   '/senat/riwayat-persetujuan': typeof SenatRiwayatPersetujuanRoute
   '/senat/sign-document': typeof SenatSignDocumentRoute
+  '/spv-sumberdaya/riwayat': typeof SpvSumberdayaRiwayatRoute
   '/sso/callback': typeof SsoCallbackRoute
   '/sumber-daya/approve-document': typeof SumberDayaApproveDocumentRoute
   '/sumber-daya/manajemen-ruang': typeof SumberDayaManajemenRuangRoute
@@ -533,15 +606,19 @@ export interface FileRoutesByTo {
   '/wadek1/preview-document': typeof Wadek1PreviewDocumentRoute
   '/wadek1/riwayat-persetujuan': typeof Wadek1RiwayatPersetujuanRoute
   '/wadek1/sign-document': typeof Wadek1SignDocumentRoute
+  '/wadek2/riwayat': typeof Wadek2RiwayatRoute
   '/admin': typeof AdminIndexRoute
   '/dosen-pendamping': typeof DosenPendampingIndexRoute
   '/kemahasiswaan': typeof KemahasiswaanIndexRoute
   '/ketua-departemen': typeof KetuaDepartemenIndexRoute
   '/ketua-ormawa': typeof KetuaOrmawaIndexRoute
+  '/manajer-tata-usaha': typeof ManajerTataUsahaIndexRoute
   '/peminjam': typeof PeminjamIndexRoute
   '/senat': typeof SenatIndexRoute
+  '/spv-sumberdaya': typeof SpvSumberdayaIndexRoute
   '/sumber-daya': typeof SumberDayaIndexRoute
   '/wadek1': typeof Wadek1IndexRoute
+  '/wadek2': typeof Wadek2IndexRoute
   '/peminjam/pinjam/detail-tempat': typeof PeminjamPinjamDetailTempatRoute
   '/peminjam/pinjam/edit-dokumen': typeof PeminjamPinjamEditDokumenRoute
   '/peminjam/pinjam/proposal': typeof PeminjamPinjamProposalRoute
@@ -565,11 +642,15 @@ export interface FileRoutesById {
   '/kemahasiswaan': typeof KemahasiswaanRouteRouteWithChildren
   '/ketua-departemen': typeof KetuaDepartemenRouteRouteWithChildren
   '/ketua-ormawa': typeof KetuaOrmawaRouteRouteWithChildren
+  '/manajer-tata-usaha': typeof ManajerTataUsahaRouteRouteWithChildren
   '/peminjam': typeof PeminjamRouteRouteWithChildren
   '/senat': typeof SenatRouteRouteWithChildren
+  '/spv-sumberdaya': typeof SpvSumberdayaRouteRouteWithChildren
   '/sumber-daya': typeof SumberDayaRouteRouteWithChildren
   '/wadek1': typeof Wadek1RouteRouteWithChildren
+  '/wadek2': typeof Wadek2RouteRouteWithChildren
   '/menunggu-penetapan': typeof MenungguPenetapanRoute
+  '/menunggu-role': typeof MenungguRoleRoute
   '/preview-document': typeof PreviewDocumentRoute
   '/redirect': typeof RedirectRoute
   '/sign-document': typeof SignDocumentRoute
@@ -587,10 +668,12 @@ export interface FileRoutesById {
   '/ketua-ormawa/preview-document': typeof KetuaOrmawaPreviewDocumentRoute
   '/ketua-ormawa/riwayat-persetujuan': typeof KetuaOrmawaRiwayatPersetujuanRoute
   '/ketua-ormawa/sign-document': typeof KetuaOrmawaSignDocumentRoute
+  '/manajer-tata-usaha/riwayat': typeof ManajerTataUsahaRiwayatRoute
   '/peminjam/reservasi': typeof PeminjamReservasiRoute
   '/senat/preview-document': typeof SenatPreviewDocumentRoute
   '/senat/riwayat-persetujuan': typeof SenatRiwayatPersetujuanRoute
   '/senat/sign-document': typeof SenatSignDocumentRoute
+  '/spv-sumberdaya/riwayat': typeof SpvSumberdayaRiwayatRoute
   '/sso/callback': typeof SsoCallbackRoute
   '/sumber-daya/approve-document': typeof SumberDayaApproveDocumentRoute
   '/sumber-daya/manajemen-ruang': typeof SumberDayaManajemenRuangRoute
@@ -602,15 +685,19 @@ export interface FileRoutesById {
   '/wadek1/preview-document': typeof Wadek1PreviewDocumentRoute
   '/wadek1/riwayat-persetujuan': typeof Wadek1RiwayatPersetujuanRoute
   '/wadek1/sign-document': typeof Wadek1SignDocumentRoute
+  '/wadek2/riwayat': typeof Wadek2RiwayatRoute
   '/admin/': typeof AdminIndexRoute
   '/dosen-pendamping/': typeof DosenPendampingIndexRoute
   '/kemahasiswaan/': typeof KemahasiswaanIndexRoute
   '/ketua-departemen/': typeof KetuaDepartemenIndexRoute
   '/ketua-ormawa/': typeof KetuaOrmawaIndexRoute
+  '/manajer-tata-usaha/': typeof ManajerTataUsahaIndexRoute
   '/peminjam/': typeof PeminjamIndexRoute
   '/senat/': typeof SenatIndexRoute
+  '/spv-sumberdaya/': typeof SpvSumberdayaIndexRoute
   '/sumber-daya/': typeof SumberDayaIndexRoute
   '/wadek1/': typeof Wadek1IndexRoute
+  '/wadek2/': typeof Wadek2IndexRoute
   '/peminjam/pinjam/detail-tempat': typeof PeminjamPinjamDetailTempatRoute
   '/peminjam/pinjam/edit-dokumen': typeof PeminjamPinjamEditDokumenRoute
   '/peminjam/pinjam/proposal': typeof PeminjamPinjamProposalRoute
@@ -635,11 +722,15 @@ export interface FileRouteTypes {
     | '/kemahasiswaan'
     | '/ketua-departemen'
     | '/ketua-ormawa'
+    | '/manajer-tata-usaha'
     | '/peminjam'
     | '/senat'
+    | '/spv-sumberdaya'
     | '/sumber-daya'
     | '/wadek1'
+    | '/wadek2'
     | '/menunggu-penetapan'
+    | '/menunggu-role'
     | '/preview-document'
     | '/redirect'
     | '/sign-document'
@@ -657,10 +748,12 @@ export interface FileRouteTypes {
     | '/ketua-ormawa/preview-document'
     | '/ketua-ormawa/riwayat-persetujuan'
     | '/ketua-ormawa/sign-document'
+    | '/manajer-tata-usaha/riwayat'
     | '/peminjam/reservasi'
     | '/senat/preview-document'
     | '/senat/riwayat-persetujuan'
     | '/senat/sign-document'
+    | '/spv-sumberdaya/riwayat'
     | '/sso/callback'
     | '/sumber-daya/approve-document'
     | '/sumber-daya/manajemen-ruang'
@@ -672,15 +765,19 @@ export interface FileRouteTypes {
     | '/wadek1/preview-document'
     | '/wadek1/riwayat-persetujuan'
     | '/wadek1/sign-document'
+    | '/wadek2/riwayat'
     | '/admin/'
     | '/dosen-pendamping/'
     | '/kemahasiswaan/'
     | '/ketua-departemen/'
     | '/ketua-ormawa/'
+    | '/manajer-tata-usaha/'
     | '/peminjam/'
     | '/senat/'
+    | '/spv-sumberdaya/'
     | '/sumber-daya/'
     | '/wadek1/'
+    | '/wadek2/'
     | '/peminjam/pinjam/detail-tempat'
     | '/peminjam/pinjam/edit-dokumen'
     | '/peminjam/pinjam/proposal'
@@ -699,6 +796,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/menunggu-penetapan'
+    | '/menunggu-role'
     | '/preview-document'
     | '/redirect'
     | '/sign-document'
@@ -716,10 +814,12 @@ export interface FileRouteTypes {
     | '/ketua-ormawa/preview-document'
     | '/ketua-ormawa/riwayat-persetujuan'
     | '/ketua-ormawa/sign-document'
+    | '/manajer-tata-usaha/riwayat'
     | '/peminjam/reservasi'
     | '/senat/preview-document'
     | '/senat/riwayat-persetujuan'
     | '/senat/sign-document'
+    | '/spv-sumberdaya/riwayat'
     | '/sso/callback'
     | '/sumber-daya/approve-document'
     | '/sumber-daya/manajemen-ruang'
@@ -731,15 +831,19 @@ export interface FileRouteTypes {
     | '/wadek1/preview-document'
     | '/wadek1/riwayat-persetujuan'
     | '/wadek1/sign-document'
+    | '/wadek2/riwayat'
     | '/admin'
     | '/dosen-pendamping'
     | '/kemahasiswaan'
     | '/ketua-departemen'
     | '/ketua-ormawa'
+    | '/manajer-tata-usaha'
     | '/peminjam'
     | '/senat'
+    | '/spv-sumberdaya'
     | '/sumber-daya'
     | '/wadek1'
+    | '/wadek2'
     | '/peminjam/pinjam/detail-tempat'
     | '/peminjam/pinjam/edit-dokumen'
     | '/peminjam/pinjam/proposal'
@@ -762,11 +866,15 @@ export interface FileRouteTypes {
     | '/kemahasiswaan'
     | '/ketua-departemen'
     | '/ketua-ormawa'
+    | '/manajer-tata-usaha'
     | '/peminjam'
     | '/senat'
+    | '/spv-sumberdaya'
     | '/sumber-daya'
     | '/wadek1'
+    | '/wadek2'
     | '/menunggu-penetapan'
+    | '/menunggu-role'
     | '/preview-document'
     | '/redirect'
     | '/sign-document'
@@ -784,10 +892,12 @@ export interface FileRouteTypes {
     | '/ketua-ormawa/preview-document'
     | '/ketua-ormawa/riwayat-persetujuan'
     | '/ketua-ormawa/sign-document'
+    | '/manajer-tata-usaha/riwayat'
     | '/peminjam/reservasi'
     | '/senat/preview-document'
     | '/senat/riwayat-persetujuan'
     | '/senat/sign-document'
+    | '/spv-sumberdaya/riwayat'
     | '/sso/callback'
     | '/sumber-daya/approve-document'
     | '/sumber-daya/manajemen-ruang'
@@ -799,15 +909,19 @@ export interface FileRouteTypes {
     | '/wadek1/preview-document'
     | '/wadek1/riwayat-persetujuan'
     | '/wadek1/sign-document'
+    | '/wadek2/riwayat'
     | '/admin/'
     | '/dosen-pendamping/'
     | '/kemahasiswaan/'
     | '/ketua-departemen/'
     | '/ketua-ormawa/'
+    | '/manajer-tata-usaha/'
     | '/peminjam/'
     | '/senat/'
+    | '/spv-sumberdaya/'
     | '/sumber-daya/'
     | '/wadek1/'
+    | '/wadek2/'
     | '/peminjam/pinjam/detail-tempat'
     | '/peminjam/pinjam/edit-dokumen'
     | '/peminjam/pinjam/proposal'
@@ -831,11 +945,15 @@ export interface RootRouteChildren {
   KemahasiswaanRouteRoute: typeof KemahasiswaanRouteRouteWithChildren
   KetuaDepartemenRouteRoute: typeof KetuaDepartemenRouteRouteWithChildren
   KetuaOrmawaRouteRoute: typeof KetuaOrmawaRouteRouteWithChildren
+  ManajerTataUsahaRouteRoute: typeof ManajerTataUsahaRouteRouteWithChildren
   PeminjamRouteRoute: typeof PeminjamRouteRouteWithChildren
   SenatRouteRoute: typeof SenatRouteRouteWithChildren
+  SpvSumberdayaRouteRoute: typeof SpvSumberdayaRouteRouteWithChildren
   SumberDayaRouteRoute: typeof SumberDayaRouteRouteWithChildren
   Wadek1RouteRoute: typeof Wadek1RouteRouteWithChildren
+  Wadek2RouteRoute: typeof Wadek2RouteRouteWithChildren
   MenungguPenetapanRoute: typeof MenungguPenetapanRoute
+  MenungguRoleRoute: typeof MenungguRoleRoute
   PreviewDocumentRoute: typeof PreviewDocumentRoute
   RedirectRoute: typeof RedirectRoute
   SignDocumentRoute: typeof SignDocumentRoute
@@ -874,11 +992,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PreviewDocumentRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/menunggu-role': {
+      id: '/menunggu-role'
+      path: '/menunggu-role'
+      fullPath: '/menunggu-role'
+      preLoaderRoute: typeof MenungguRoleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/menunggu-penetapan': {
       id: '/menunggu-penetapan'
       path: '/menunggu-penetapan'
       fullPath: '/menunggu-penetapan'
       preLoaderRoute: typeof MenungguPenetapanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/wadek2': {
+      id: '/wadek2'
+      path: '/wadek2'
+      fullPath: '/wadek2'
+      preLoaderRoute: typeof Wadek2RouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/wadek1': {
@@ -895,6 +1027,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SumberDayaRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/spv-sumberdaya': {
+      id: '/spv-sumberdaya'
+      path: '/spv-sumberdaya'
+      fullPath: '/spv-sumberdaya'
+      preLoaderRoute: typeof SpvSumberdayaRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/senat': {
       id: '/senat'
       path: '/senat'
@@ -907,6 +1046,13 @@ declare module '@tanstack/react-router' {
       path: '/peminjam'
       fullPath: '/peminjam'
       preLoaderRoute: typeof PeminjamRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/manajer-tata-usaha': {
+      id: '/manajer-tata-usaha'
+      path: '/manajer-tata-usaha'
+      fullPath: '/manajer-tata-usaha'
+      preLoaderRoute: typeof ManajerTataUsahaRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ketua-ormawa': {
@@ -951,6 +1097,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/wadek2/': {
+      id: '/wadek2/'
+      path: '/'
+      fullPath: '/wadek2/'
+      preLoaderRoute: typeof Wadek2IndexRouteImport
+      parentRoute: typeof Wadek2RouteRoute
+    }
     '/wadek1/': {
       id: '/wadek1/'
       path: '/'
@@ -965,6 +1118,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SumberDayaIndexRouteImport
       parentRoute: typeof SumberDayaRouteRoute
     }
+    '/spv-sumberdaya/': {
+      id: '/spv-sumberdaya/'
+      path: '/'
+      fullPath: '/spv-sumberdaya/'
+      preLoaderRoute: typeof SpvSumberdayaIndexRouteImport
+      parentRoute: typeof SpvSumberdayaRouteRoute
+    }
     '/senat/': {
       id: '/senat/'
       path: '/'
@@ -978,6 +1138,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/peminjam/'
       preLoaderRoute: typeof PeminjamIndexRouteImport
       parentRoute: typeof PeminjamRouteRoute
+    }
+    '/manajer-tata-usaha/': {
+      id: '/manajer-tata-usaha/'
+      path: '/'
+      fullPath: '/manajer-tata-usaha/'
+      preLoaderRoute: typeof ManajerTataUsahaIndexRouteImport
+      parentRoute: typeof ManajerTataUsahaRouteRoute
     }
     '/ketua-ormawa/': {
       id: '/ketua-ormawa/'
@@ -1013,6 +1180,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRouteRoute
+    }
+    '/wadek2/riwayat': {
+      id: '/wadek2/riwayat'
+      path: '/riwayat'
+      fullPath: '/wadek2/riwayat'
+      preLoaderRoute: typeof Wadek2RiwayatRouteImport
+      parentRoute: typeof Wadek2RouteRoute
     }
     '/wadek1/sign-document': {
       id: '/wadek1/sign-document'
@@ -1091,6 +1265,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SsoCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/spv-sumberdaya/riwayat': {
+      id: '/spv-sumberdaya/riwayat'
+      path: '/riwayat'
+      fullPath: '/spv-sumberdaya/riwayat'
+      preLoaderRoute: typeof SpvSumberdayaRiwayatRouteImport
+      parentRoute: typeof SpvSumberdayaRouteRoute
+    }
     '/senat/sign-document': {
       id: '/senat/sign-document'
       path: '/sign-document'
@@ -1118,6 +1299,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/peminjam/reservasi'
       preLoaderRoute: typeof PeminjamReservasiRouteImport
       parentRoute: typeof PeminjamRouteRoute
+    }
+    '/manajer-tata-usaha/riwayat': {
+      id: '/manajer-tata-usaha/riwayat'
+      path: '/riwayat'
+      fullPath: '/manajer-tata-usaha/riwayat'
+      preLoaderRoute: typeof ManajerTataUsahaRiwayatRouteImport
+      parentRoute: typeof ManajerTataUsahaRouteRoute
     }
     '/ketua-ormawa/sign-document': {
       id: '/ketua-ormawa/sign-document'
@@ -1411,6 +1599,21 @@ const KetuaOrmawaRouteRouteChildren: KetuaOrmawaRouteRouteChildren = {
 const KetuaOrmawaRouteRouteWithChildren =
   KetuaOrmawaRouteRoute._addFileChildren(KetuaOrmawaRouteRouteChildren)
 
+interface ManajerTataUsahaRouteRouteChildren {
+  ManajerTataUsahaRiwayatRoute: typeof ManajerTataUsahaRiwayatRoute
+  ManajerTataUsahaIndexRoute: typeof ManajerTataUsahaIndexRoute
+}
+
+const ManajerTataUsahaRouteRouteChildren: ManajerTataUsahaRouteRouteChildren = {
+  ManajerTataUsahaRiwayatRoute: ManajerTataUsahaRiwayatRoute,
+  ManajerTataUsahaIndexRoute: ManajerTataUsahaIndexRoute,
+}
+
+const ManajerTataUsahaRouteRouteWithChildren =
+  ManajerTataUsahaRouteRoute._addFileChildren(
+    ManajerTataUsahaRouteRouteChildren,
+  )
+
 interface PeminjamRouteRouteChildren {
   PeminjamReservasiRoute: typeof PeminjamReservasiRoute
   PeminjamIndexRoute: typeof PeminjamIndexRoute
@@ -1457,6 +1660,19 @@ const SenatRouteRouteWithChildren = SenatRouteRoute._addFileChildren(
   SenatRouteRouteChildren,
 )
 
+interface SpvSumberdayaRouteRouteChildren {
+  SpvSumberdayaRiwayatRoute: typeof SpvSumberdayaRiwayatRoute
+  SpvSumberdayaIndexRoute: typeof SpvSumberdayaIndexRoute
+}
+
+const SpvSumberdayaRouteRouteChildren: SpvSumberdayaRouteRouteChildren = {
+  SpvSumberdayaRiwayatRoute: SpvSumberdayaRiwayatRoute,
+  SpvSumberdayaIndexRoute: SpvSumberdayaIndexRoute,
+}
+
+const SpvSumberdayaRouteRouteWithChildren =
+  SpvSumberdayaRouteRoute._addFileChildren(SpvSumberdayaRouteRouteChildren)
+
 interface SumberDayaRouteRouteChildren {
   SumberDayaApproveDocumentRoute: typeof SumberDayaApproveDocumentRoute
   SumberDayaManajemenRuangRoute: typeof SumberDayaManajemenRuangRoute
@@ -1499,6 +1715,20 @@ const Wadek1RouteRouteWithChildren = Wadek1RouteRoute._addFileChildren(
   Wadek1RouteRouteChildren,
 )
 
+interface Wadek2RouteRouteChildren {
+  Wadek2RiwayatRoute: typeof Wadek2RiwayatRoute
+  Wadek2IndexRoute: typeof Wadek2IndexRoute
+}
+
+const Wadek2RouteRouteChildren: Wadek2RouteRouteChildren = {
+  Wadek2RiwayatRoute: Wadek2RiwayatRoute,
+  Wadek2IndexRoute: Wadek2IndexRoute,
+}
+
+const Wadek2RouteRouteWithChildren = Wadek2RouteRoute._addFileChildren(
+  Wadek2RouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRouteRoute: AdminRouteRouteWithChildren,
@@ -1506,11 +1736,15 @@ const rootRouteChildren: RootRouteChildren = {
   KemahasiswaanRouteRoute: KemahasiswaanRouteRouteWithChildren,
   KetuaDepartemenRouteRoute: KetuaDepartemenRouteRouteWithChildren,
   KetuaOrmawaRouteRoute: KetuaOrmawaRouteRouteWithChildren,
+  ManajerTataUsahaRouteRoute: ManajerTataUsahaRouteRouteWithChildren,
   PeminjamRouteRoute: PeminjamRouteRouteWithChildren,
   SenatRouteRoute: SenatRouteRouteWithChildren,
+  SpvSumberdayaRouteRoute: SpvSumberdayaRouteRouteWithChildren,
   SumberDayaRouteRoute: SumberDayaRouteRouteWithChildren,
   Wadek1RouteRoute: Wadek1RouteRouteWithChildren,
+  Wadek2RouteRoute: Wadek2RouteRouteWithChildren,
   MenungguPenetapanRoute: MenungguPenetapanRoute,
+  MenungguRoleRoute: MenungguRoleRoute,
   PreviewDocumentRoute: PreviewDocumentRoute,
   RedirectRoute: RedirectRoute,
   SignDocumentRoute: SignDocumentRoute,

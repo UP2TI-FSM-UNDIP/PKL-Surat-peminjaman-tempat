@@ -1,29 +1,24 @@
 import { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import App from './App'; // Import App yang sudah dipisah
+import App from './App';
 import { createRouter } from '@tanstack/react-router';
 import { routeTree } from './routeTree.gen';
-export type UserRole = 'admin' | 'mahasiswa' | 'dosen';
-
-export interface User {
-  id: number;
-  name: string;
-  role: UserRole;
-}
+import type { AuthUser } from './types/auth';
 
 export interface MyRouterContext {
   auth: {
     isAuthenticated: boolean;
-    user: User | null;
+    user: AuthUser | null;
   };
 }
 
 export const router = createRouter({
   routeTree,
   basepath: '/peminjaman-ruang',
+  trailingSlash: 'preserve',
   context: {
-    auth: undefined!,
+    auth: { isAuthenticated: false, user: null },
   },
 });
 
@@ -35,10 +30,9 @@ declare module '@tanstack/react-router' {
 
 const rootElement = document.getElementById('root')!;
 if (!rootElement.innerHTML) {
-  const root = ReactDOM.createRoot(rootElement);
-  root.render(
+  ReactDOM.createRoot(rootElement).render(
     <StrictMode>
       <App />
-    </StrictMode>
+    </StrictMode>,
   );
 }

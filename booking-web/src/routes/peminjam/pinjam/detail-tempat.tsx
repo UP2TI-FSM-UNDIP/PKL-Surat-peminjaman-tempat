@@ -8,7 +8,6 @@ import { documentService } from '@/services/document.service';
 import { authService } from '@/services/auth.service';
 import { BookingForm } from '@/features/bookings/BookingForm';
 import type { ReservationContent } from '@/types/booking';
-import type { UserShort } from '@/types/document';
 
 export const Route = createFileRoute('/peminjam/pinjam/detail-tempat')({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -41,7 +40,7 @@ function RouteComponent() {
   const {
     data: currentUser,
     isLoading: authLoading,
-  } = useQuery<UserShort>({
+  } = useQuery({
     queryKey: ['current-user'],
     queryFn: () => authService.getUser(),
     retry: false,

@@ -79,7 +79,7 @@ export function TopBar({
       sessionStorage.removeItem(DEV_LOGIN_OPT_OUT_KEY);
       const response = await devService.login(session.default_user_id);
       authService.saveAuthData(response);
-      authService.redirectByRole(response.user.role?.name ?? 'Admin');
+      authService.redirectByRole(response.user.role?.slug);
     } catch {
       // Biarkan pengguna memakai tombol login biasa bila dev login gagal.
     }

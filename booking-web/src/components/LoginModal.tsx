@@ -37,7 +37,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
         try {
             const response = await authService.login(formData);
             authService.saveAuthData(response);
-            authService.redirectByRole(response.user.role?.name || '', navigate);
+            authService.redirectByRole(response.user.role?.slug, navigate);
         } catch (err: unknown) {
             console.error('Login failed:', err);
             let errorMessage = 'Login gagal. Silakan coba lagi.';
