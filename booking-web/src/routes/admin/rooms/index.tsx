@@ -159,7 +159,7 @@ function RouteComponent() {
               value={capacityRange}
               onValueChange={setCapacityRange}
             >
-              <SelectTrigger className='h-9 text-xs sm:text-sm rounded-lg border-gray-200 shadow-sm bg-white'>
+              <SelectTrigger className='h-[38px]! text-xs sm:text-sm rounded-lg border-gray-200 shadow-sm bg-white'>
                 <div className='flex items-center gap-2'>
                   <Users className='h-3.5 w-3.5 text-gray-400' />
                   <SelectValue placeholder='Kapasitas' />
@@ -182,7 +182,7 @@ function RouteComponent() {
                 setWeekdayFilter(value as 'all' | 'yes' | 'no')
               }
             >
-              <SelectTrigger className='h-9 text-xs sm:text-sm rounded-lg border-gray-200 shadow-sm bg-white'>
+              <SelectTrigger className='h-[38px]! text-xs sm:text-sm rounded-lg border-gray-200 shadow-sm bg-white'>
                 <SelectValue placeholder='Flag weekday' />
               </SelectTrigger>
               <SelectContent>

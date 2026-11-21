@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { Search } from 'lucide-react';
 
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button/button';
+import { SegmentedControl } from '@/components/ui/segmented-control';
 import {
     useAdminBookings,
     BookingTable,
@@ -101,36 +101,16 @@ function RouteComponent() {
                         />
                     </div>
                 </div>
-                <div className='flex flex-wrap gap-2'>
-                    {[
+                <SegmentedControl
+                    ariaLabel='Filter status peminjaman'
+                    value={status}
+                    onChange={handleStatusChange}
+                    options={[
                         { value: 'ALL', label: 'Semua Status' },
                         { value: 'PENDING', label: 'Pending' },
                         { value: 'APPROVED', label: 'Approved' },
-                    ].map((item) => {
-                        const isActive = status === item.value;
-                        const baseStyles = "px-3 py-1.5 h-auto text-xs sm:text-sm rounded-full transition-all duration-200 border";
-
-                        const activeStyles: Record<string, string> = {
-                            ALL: "bg-blue-600 border-blue-600 text-white shadow-md hover:bg-blue-700",
-                            PENDING: "bg-yellow-500 border-yellow-500 text-white shadow-md hover:bg-yellow-600",
-                            APPROVED: "bg-green-600 border-green-600 text-white shadow-md hover:bg-green-700",
-                        };
-
-                        const inactiveStyles = "bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300";
-
-                        return (
-                            <Button
-                                key={item.value}
-                                variant='outline'
-                                onClick={() => handleStatusChange(item.value)}
-                                className={`${baseStyles} ${isActive ? activeStyles[item.value] : inactiveStyles}`}
-                            >
-                                {item.label}
-                                {isActive && <span className="ml-1.5 w-1.5 h-1.5 bg-white rounded-full animate-pulse" />}
-                            </Button>
-                        );
-                    })}
-                </div>
+                    ]}
+                />
             </div>
 
             {/* Table Section */}

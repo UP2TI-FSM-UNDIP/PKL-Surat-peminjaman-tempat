@@ -71,7 +71,7 @@ export function SegmentedControl<T extends string>({
   }, [measure]);
 
   return (
-    <div className={cn('max-w-full overflow-x-auto pb-1', className)}>
+    <div className={cn('max-w-full overflow-x-auto scrollbar-none', className)}>
       <div
         ref={trackRef}
         role='group'
