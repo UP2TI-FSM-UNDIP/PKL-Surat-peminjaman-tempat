@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { ApprovalQueuePage } from '@/features/approvals/ApprovalQueuePage';
 
 export const Route = createFileRoute('/manajer-tata-usaha/')({
-  component: () => <h1 className="text-xl font-semibold">Antrean Persetujuan</h1>,
+  component: () => <ApprovalQueuePage detailRoute="/manajer-tata-usaha/$documentId" />,
 });
