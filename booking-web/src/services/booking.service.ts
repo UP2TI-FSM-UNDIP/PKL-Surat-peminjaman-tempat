@@ -80,6 +80,14 @@ export const bookingService = {
   },
 
   /**
+   * Alias baca daftar booking dengan dukungan pagination per_page.
+   */
+  async list(filters?: BookingFilters & { per_page?: number }): Promise<RoomBooking[]> {
+    const response = await api.get<BookingResponse>('/room-bookings', { params: filters });
+    return response.data.data?.data ?? [];
+  },
+
+  /**
    * Get single booking detail
    */
   async getBooking(id: number): Promise<RoomBooking> {
@@ -185,6 +193,34 @@ export const bookingService = {
     const response = await api.post<SingleBookingResponse>(
       `/room-bookings/${id}/complete`,
     );
+    return response.data.data;
+  },
+
+  /**
+   * Ambil QR code booking sebagai blob beserta object URL.
+   */
+  async fetchQr(bookingId: number): Promise<{ blob: Blob; objectUrl: string }> {
+    const response = await api.get<Blob>(`/room-bookings/${bookingId}/qrcode`, {
+      responseType: 'blob',
+    });
+    return { blob: response.data, objectUrl: URL.createObjectURL(response.data) };
+  },
+
+  /**
+   * Ambil data receipt booking.
+   */
+  async receipt(bookingId: number): Promise<Record<string, unknown>> {
+    const response = await api.get<{ success: boolean; data: Record<string, unknown> }>(
+      `/room-bookings/${bookingId}/receipt`,
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Alias complete booking.
+   */
+  async complete(bookingId: number): Promise<RoomBooking> {
+    const response = await api.post<SingleBookingResponse>(`/room-bookings/${bookingId}/complete`);
     return response.data.data;
   },
 
