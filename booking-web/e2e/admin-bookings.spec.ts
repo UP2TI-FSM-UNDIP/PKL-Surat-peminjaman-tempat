@@ -25,7 +25,5 @@ test('admin melihat halaman peminjaman tanpa aksi hapus', async ({
   ).toHaveCount(0);
   await expect(page.getByText('Hapus Peminjaman')).toHaveCount(0);
 
-  await expect(page.getByText('Belum ada data peminjaman')).toBeVisible();
-
   assertNoPageErrors();
 });

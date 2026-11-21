@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { loginAs } from './helpers/auth';
+import { bookingDates } from './helpers/date';
 
 test.describe('reservasi multi-slot', () => {
   test.beforeEach(async ({ page, request }) => {
@@ -7,6 +8,7 @@ test.describe('reservasi multi-slot', () => {
   });
 
   test('membuat satu ruang banyak tanggal lalu masuk step proposal', async ({ page }) => {
+    const dates = bookingDates(test.info().retry);
     await page.goto('./peminjam/pinjam/baru');
     await page.getByRole('button', { name: '1 ruang, banyak tanggal' }).click();
     await page.getByLabel('Ruang').click();
@@ -16,9 +18,9 @@ test.describe('reservasi multi-slot', () => {
     await page.getByLabel('NIM/NIP/NIDN').fill('21040120140001');
     await page.getByLabel('Nomor HP').fill('081234567890');
     await page.getByRole('button', { name: 'Tambah tanggal' }).click();
-    const dates = page.getByLabel('Tanggal');
-    await dates.nth(0).fill('2026-12-01');
-    await dates.nth(1).fill('2026-12-02');
+    const dateInputs = page.getByLabel('Tanggal');
+    await dateInputs.nth(0).fill(dates.a);
+    await dateInputs.nth(1).fill(dates.b);
     await page.getByRole('button', { name: 'Simpan Reservasi' }).click();
     await expect(page).toHaveURL(/\/peminjam\/pinjam\/\d+\/proposal$/);
   });

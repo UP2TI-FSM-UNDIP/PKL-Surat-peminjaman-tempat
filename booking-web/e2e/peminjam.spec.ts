@@ -19,6 +19,7 @@ test('peminjam melihat daftar pengajuan dan wizard reservasi', async ({
   for (const label of [
     'Semua',
     'Draft',
+    'Revisi',
     'Diajukan',
     'Disetujui',
     'Ditolak',

@@ -1,7 +1,9 @@
 import { expect, test } from '@playwright/test';
 import { loginAs } from './helpers/auth';
+import { bookingDates } from './helpers/date';
 
 test('pembatalan reservasi mengubah status dan membatalkan booking', async ({ page, request }) => {
+  const dates = bookingDates(test.info().retry);
   await loginAs(page, request, 'peminjam');
   await page.goto('./peminjam/pinjam/baru');
   await page.getByRole('button', { name: '1 ruang, banyak tanggal' }).click();
@@ -12,7 +14,7 @@ test('pembatalan reservasi mengubah status dan membatalkan booking', async ({ pa
   await page.getByLabel('NIM/NIP/NIDN').fill('21040120140001');
   await page.getByLabel('Nomor HP').fill('081234567890');
   // Satu slot default sudah cukup; isi tanggal langsung.
-  await page.getByLabel('Tanggal').nth(0).fill('2026-12-04');
+  await page.getByLabel('Tanggal').nth(0).fill(dates.d);
   await page.getByRole('button', { name: 'Simpan Reservasi' }).click();
 
   await expect(page).toHaveURL(/\/peminjam\/pinjam\/\d+\/proposal$/);
