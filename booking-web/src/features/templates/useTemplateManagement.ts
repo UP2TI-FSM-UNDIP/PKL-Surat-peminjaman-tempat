@@ -171,26 +171,28 @@ export function useTemplateManagement() {
         setIsPreviewModalOpen(true);
     };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            const validTypes = [
-                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                'application/msword',
-            ];
-            if (!validTypes.includes(file.type)) {
-                setFormError('File harus berformat .docx atau .doc');
-                setSelectedFile(null);
-                return;
-            }
-            if (file.size > 10 * 1024 * 1024) {
-                setFormError('Ukuran file maksimal 10MB');
-                setSelectedFile(null);
-                return;
-            }
-            setSelectedFile(file);
-            setFormError('');
+    const handleFileChange = (file: File | null) => {
+        if (!file) {
+            setSelectedFile(null);
+            return;
         }
+
+        const validTypes = [
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'application/msword',
+        ];
+        if (!validTypes.includes(file.type)) {
+            setFormError('File harus berformat .docx atau .doc');
+            setSelectedFile(null);
+            return;
+        }
+        if (file.size > 10 * 1024 * 1024) {
+            setFormError('Ukuran file maksimal 10MB');
+            setSelectedFile(null);
+            return;
+        }
+        setSelectedFile(file);
+        setFormError('');
     };
 
     const handleUploadSubmit = (e: React.FormEvent) => {

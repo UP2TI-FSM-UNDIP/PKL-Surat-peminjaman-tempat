@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import SignatureCanvas from 'react-signature-canvas';
 import { Upload, Trash2, X, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button/button';
+import { FileDropZone } from '@/components/common/FileDropZone';
 import { signatureService } from '@/services/signature.service';
 import type { Signature } from '@/services/signature.service';
 import { getErrorMessage, getErrorStatus } from '@/lib/errors';
@@ -137,21 +138,7 @@ export function SignatureUpload({
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Validate file
-    if (file.size > 2 * 1024 * 1024) {
-      alert('Ukuran file maksimal 2MB');
-      return;
-    }
-
-    if (!['image/png', 'image/jpeg', 'image/jpg'].includes(file.type)) {
-      alert('Format file harus PNG, JPG, atau JPEG');
-      return;
-    }
-
+  const handleFileUpload = async (file: File) => {
     try {
       setLoading(true);
 
@@ -356,23 +343,15 @@ export function SignatureUpload({
 
       {mode === 'upload' && (
         <div className='space-y-4'>
-          <div className='border-2 border-dashed border-gray-300 rounded-lg p-8 text-center bg-gray-50'>
-            <Upload className='h-8 w-8 mx-auto mb-2 text-gray-400' />
-            <label className='cursor-pointer'>
-              <span className='text-sm text-blue-600 hover:text-blue-700'>
-                Pilih file tanda tangan
-              </span>
-              <input
-                type='file'
-                accept='image/png,image/jpeg,image/jpg'
-                onChange={handleFileUpload}
-                className='hidden'
-              />
-            </label>
-            <p className='text-xs text-gray-500 mt-2'>
-              PNG, JPG, JPEG (Max 2MB)
-            </p>
-          </div>
+          <FileDropZone
+            accept='image/png,image/jpeg,image/jpg'
+            maxSizeMb={2}
+            onFile={handleFileUpload}
+            onError={(message) => message && alert(message)}
+            disabled={loading}
+            title='Pilih atau seret file tanda tangan'
+            hint='PNG, JPG, JPEG (Max 2MB)'
+          />
           <Button
             type='button'
             variant='outline'

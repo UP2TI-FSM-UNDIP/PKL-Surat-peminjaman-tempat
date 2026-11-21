@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { FileDropZone } from '@/components/common/FileDropZone';
 import {
     Dialog,
     DialogContent,
@@ -24,7 +25,7 @@ interface TemplateEditModalProps {
     formData: TemplateFormData;
     onFormChange: (data: TemplateFormData) => void;
     selectedFile: File | null;
-    onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onFileChange: (file: File | null) => void;
     formError: string;
     isSubmitting: boolean;
     onSubmit: (e: React.FormEvent) => void;
@@ -83,19 +84,15 @@ export function TemplateEditModal({
                             <label className='text-sm font-medium mb-2 block'>
                                 File Template (Opsional)
                             </label>
-                            <Input
-                                type='file'
+                            <FileDropZone
                                 accept='.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-                                onChange={onFileChange}
+                                maxSizeMb={10}
+                                onFile={(file) => onFileChange(file)}
+                                onClear={() => onFileChange(null)}
+                                file={selectedFile}
+                                title='Pilih atau seret file template'
+                                hint='Kosongkan jika tidak ingin mengganti file (Maksimal 10MB)'
                             />
-                            <p className='text-xs text-gray-500 mt-1'>
-                                Kosongkan jika tidak ingin mengganti file
-                            </p>
-                            {selectedFile && (
-                                <p className='text-sm text-green-600 mt-1'>
-                                    File terpilih: {selectedFile.name}
-                                </p>
-                            )}
                         </div>
 
                         <div>
