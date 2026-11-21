@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { ApprovalHistoryPage } from '@/features/approvals/ApprovalHistoryPage';
 
 export const Route = createFileRoute('/spv-sumberdaya/riwayat')({
-  component: () => <h1 className="text-xl font-semibold">Riwayat Persetujuan</h1>,
+  component: () => <ApprovalHistoryPage detailRoute="/spv-sumberdaya/$documentId" />,
 });

@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { ApprovalHistoryPage } from '@/features/approvals/ApprovalHistoryPage';
 
 export const Route = createFileRoute('/wadek2/riwayat')({
-  component: () => <h1 className="text-xl font-semibold">Riwayat Persetujuan</h1>,
+  component: () => <ApprovalHistoryPage detailRoute="/wadek2/$documentId" />,
 });
