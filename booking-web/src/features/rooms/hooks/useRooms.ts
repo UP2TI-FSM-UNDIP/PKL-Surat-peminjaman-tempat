@@ -8,7 +8,7 @@ import {
     toRoomPayload,
     type RoomFormData,
 } from '@/features/rooms/utils/roomForm';
-import type { ChangeEvent, FormEvent } from 'react';
+import type { FormEvent } from 'react';
 
 export function useRooms() {
     const [rooms, setRooms] = useState<Room[]>([]);
@@ -99,8 +99,7 @@ export function useRooms() {
         setIsDeleteDialogOpen(true);
     };
 
-    const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0] ?? null;
+    const handleFileChange = (file: File | null) => {
         setRoomImage(file);
     };
 
@@ -253,6 +252,7 @@ export function useRooms() {
         handleDetail,
         handleDelete,
         handleFileChange,
+        roomImage,
         handleSubmitCreate,
         handleSubmitEdit,
         handleConfirmDelete,

@@ -228,25 +228,23 @@ export function useProposalForm() {
 
     // --- FILE CHANGE HANDLER ---
     const handleFileChange = useCallback(
-        (e: React.ChangeEvent<HTMLInputElement>) => {
+        (file: File | null) => {
             setFileError(null);
-            const file = e.target.files?.[0] ?? null;
 
-            if (file) {
-                if (file.size > 20 * 1024 * 1024) {
-                    setFileError('Ukuran file maksimal 20MB');
-                    e.target.value = '';
-                    return;
-                }
-                if (file.type !== 'application/pdf') {
-                    setFileError('Format file harus PDF');
-                    e.target.value = '';
-                    return;
-                }
-                setProposalFile(file);
-            } else {
+            if (!file) {
                 setProposalFile(null);
+                return;
             }
+
+            if (file.size > 20 * 1024 * 1024) {
+                setFileError('Ukuran file maksimal 20MB');
+                return;
+            }
+            if (file.type !== 'application/pdf') {
+                setFileError('Format file harus PDF');
+                return;
+            }
+            setProposalFile(file);
         },
         [],
     );

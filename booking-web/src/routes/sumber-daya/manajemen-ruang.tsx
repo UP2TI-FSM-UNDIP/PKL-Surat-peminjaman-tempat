@@ -1,10 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
-import type { ChangeEvent, FormEvent } from 'react';
+import type { FormEvent } from 'react';
 import { AxiosError } from 'axios';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button/button';
 import { Input } from '@/components/ui/input';
+import { FileDropZone } from '@/components/common/FileDropZone';
 import {
 	Plus,
 	Pencil,
@@ -146,8 +147,7 @@ function RouteComponent() {
 		setIsDeleteDialogOpen(true);
 	};
 
-	const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-		const file = event.target.files?.[0] ?? null;
+	const handleFileChange = (file: File | null) => {
 		setRoomImage(file);
 	};
 
@@ -562,14 +562,17 @@ function RouteComponent() {
 								}
 							/>
 							<div className='grid gap-2'>
-								<label htmlFor='image' className='text-sm font-medium'>
+								<label className='text-sm font-medium'>
 									Foto Ruangan
 								</label>
-								<Input
-									id='image'
-									type='file'
+								<FileDropZone
 									accept='image/*'
-									onChange={handleFileChange}
+									maxSizeMb={5}
+									onFile={handleFileChange}
+									onClear={() => setRoomImage(null)}
+									file={roomImage}
+									title='Pilih atau seret foto ruangan'
+									hint='PNG, JPG, JPEG (Max 5MB)'
 								/>
 							</div>
 							{formError && <p className='text-sm text-red-600'>{formError}</p>}
@@ -707,14 +710,17 @@ function RouteComponent() {
 								</Select>
 							</div>
 							<div className='grid gap-2'>
-								<label htmlFor='edit-image' className='text-sm font-medium'>
+								<label className='text-sm font-medium'>
 									Foto Ruangan (Upload baru untuk mengganti)
 								</label>
-								<Input
-									id='edit-image'
-									type='file'
+								<FileDropZone
 									accept='image/*'
-									onChange={handleFileChange}
+									maxSizeMb={5}
+									onFile={handleFileChange}
+									onClear={() => setRoomImage(null)}
+									file={roomImage}
+									title='Pilih atau seret foto ruangan'
+									hint='PNG, JPG, JPEG (Max 5MB)'
 								/>
 							</div>
 							{formError && <p className='text-sm text-red-600'>{formError}</p>}

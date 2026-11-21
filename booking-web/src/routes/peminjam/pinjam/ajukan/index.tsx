@@ -5,6 +5,7 @@ import { documentService } from '@/services/document.service';
 import { roomService } from '@/services/room.service';
 import type { CreateDocumentData } from '@/types/document';
 import { Button } from '@/components/ui/button/button';
+import { FileDropZone } from '@/components/common/FileDropZone';
 import { getErrorMessage, getValidationErrors } from '@/lib/errors';
 
 export const Route = createFileRoute('/peminjam/pinjam/ajukan/')({
@@ -184,20 +185,18 @@ export default function RouteComponent() {
             <label className='block text-sm font-medium mb-1'>
               Lampiran (PDF, opsional)
             </label>
-            <input
-              type='file'
-              accept='.pdf'
-              onChange={(e) => {
-                const f = e.target.files?.[0] ?? null;
-                if (f && f.type !== 'application/pdf') {
-                  setError('Lampiran harus berformat PDF');
-                  setAttachmentFile(null);
-                  return;
-                }
+            <FileDropZone
+              accept='.pdf,application/pdf'
+              maxSizeMb={20}
+              onFile={(file) => {
                 setError(null);
-                setAttachmentFile(f);
+                setAttachmentFile(file);
               }}
-              className='w-full'
+              onClear={() => setAttachmentFile(null)}
+              onError={(message) => message && setError(message)}
+              file={attachmentFile}
+              title='Pilih atau seret lampiran PDF'
+              hint='Format PDF (Max 20MB)'
             />
           </div>
           <div>

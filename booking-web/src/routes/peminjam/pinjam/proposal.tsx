@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { Stepper } from '@/components/common/Stepper';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button/button';
+import { FileDropZone } from '@/components/common/FileDropZone';
 import { AlertCircle } from 'lucide-react';
 import { useProposalForm, type ProposalFields } from '@/hooks/useProposalForm';
 
@@ -128,22 +129,16 @@ function RouteComponent() {
                 </div>
               )}
 
-              <Input
-                type='file'
-                accept='.pdf'
-                onChange={handleFileChange}
+              <FileDropZone
+                accept='.pdf,application/pdf'
+                maxSizeMb={20}
+                onFile={handleFileChange}
+                onClear={() => handleFileChange(null)}
+                file={proposalFile}
+                error={fileError}
+                title='Pilih atau seret file proposal'
+                hint='Format: PDF (Max 20MB)'
               />
-              <p className='text-xs text-gray-500'>Format: PDF (Max 20MB)</p>
-
-              {fileError && (
-                <p className='text-sm text-red-600'>{fileError}</p>
-              )}
-              {proposalFile && (
-                <p className='text-sm text-green-600'>
-                  ✓ File terpilih: {proposalFile.name} (
-                  {(proposalFile.size / 1024 / 1024).toFixed(2)} MB)
-                </p>
-              )}
             </div>
 
             {/* Buttons */}

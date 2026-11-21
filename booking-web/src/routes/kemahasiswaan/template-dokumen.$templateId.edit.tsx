@@ -1,10 +1,9 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { AxiosError } from 'axios';
 import {
   FileText,
   Download,
-  Upload,
   Save,
   ArrowLeft,
   CheckCircle,
@@ -12,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { FileDropZone } from '@/components/common/FileDropZone';
 import { TemplatePreview } from '@/features/templates/TemplatePreview';
 
 import { documentTemplateService } from '@/services/document-template.service';
@@ -40,7 +40,6 @@ function RouteComponent() {
   const [, setDetectedPlaceholders] = useState<string[]>(
     [],
   );
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Save states
   const [isSaving, setIsSaving] = useState(false);
@@ -75,29 +74,31 @@ function RouteComponent() {
     fetchTemplate();
   }, [fetchTemplate]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const validTypes = [
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'application/msword',
-      ];
-
-      if (!validTypes.includes(file.type)) {
-        setSaveError('File harus berformat .docx atau .doc');
-        setSelectedFile(null);
-        return;
-      }
-
-      if (file.size > 10 * 1024 * 1024) {
-        setSaveError('Ukuran file maksimal 10MB');
-        setSelectedFile(null);
-        return;
-      }
-
-      setSelectedFile(file);
-      setSaveError(null);
+  const handleFileChange = (file: File | null) => {
+    if (!file) {
+      setSelectedFile(null);
+      return;
     }
+
+    const validTypes = [
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/msword',
+    ];
+
+    if (!validTypes.includes(file.type)) {
+      setSaveError('File harus berformat .docx atau .doc');
+      setSelectedFile(null);
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      setSaveError('Ukuran file maksimal 10MB');
+      setSelectedFile(null);
+      return;
+    }
+
+    setSelectedFile(file);
+    setSaveError(null);
   };
 
   const handleSave = async () => {
@@ -127,10 +128,6 @@ function RouteComponent() {
       // Clear file input if file was uploaded
       if (selectedFile) {
         setSelectedFile(null);
-        // Reset file input using ref
-        if (fileInputRef.current) {
-          fileInputRef.current.value = '';
-        }
       }
 
       // Auto-hide success message after 3 seconds
@@ -344,22 +341,15 @@ function RouteComponent() {
                 <label className='text-sm font-medium mb-2 block'>
                   Ganti File Template
                 </label>
-                <Input
-                  ref={fileInputRef}
-                  id='file-input'
-                  type='file'
+                <FileDropZone
                   accept='.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-                  onChange={handleFileChange}
+                  maxSizeMb={10}
+                  onFile={handleFileChange}
+                  onClear={() => setSelectedFile(null)}
+                  file={selectedFile}
+                  title='Pilih atau seret file template'
+                  hint='Kosongkan jika tidak ingin mengganti file (Max: 10MB)'
                 />
-                <p className='text-xs text-gray-500 mt-1'>
-                  Kosongkan jika tidak ingin mengganti file (Max: 10MB)
-                </p>
-                {selectedFile && (
-                  <div className='mt-2 flex items-center gap-2 text-sm text-green-600 bg-green-50 px-3 py-2 rounded'>
-                    <Upload className='w-4 h-4' />
-                    <span>File baru: {selectedFile.name}</span>
-                  </div>
-                )}
               </div>
 
               <div className='pt-4 border-t'>
