@@ -71,6 +71,7 @@ import { Route as DosenPendampingSignDocumentRouteImport } from './routes/dosen-
 import { Route as DosenPendampingRiwayatPersetujuanRouteImport } from './routes/dosen-pendamping/riwayat-persetujuan'
 import { Route as DosenPendampingPreviewDocumentRouteImport } from './routes/dosen-pendamping/preview-document'
 import { Route as AdminPeminjamanRouteImport } from './routes/admin/peminjaman'
+import { Route as AdminKebijakanPeminjamanRouteImport } from './routes/admin/kebijakan-peminjaman'
 import { Route as PeminjamPinjamIndexRouteImport } from './routes/peminjam/pinjam/index'
 import { Route as KemahasiswaanTemplateDokumenIndexRouteImport } from './routes/kemahasiswaan/template-dokumen.index'
 import { Route as AdminWorkflowsIndexRouteImport } from './routes/admin/workflows/index'
@@ -415,6 +416,12 @@ const AdminPeminjamanRoute = AdminPeminjamanRouteImport.update({
   path: '/peminjaman',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminKebijakanPeminjamanRoute =
+  AdminKebijakanPeminjamanRouteImport.update({
+    id: '/kebijakan-peminjaman',
+    path: '/kebijakan-peminjaman',
+    getParentRoute: () => AdminRouteRoute,
+  } as any)
 const PeminjamPinjamIndexRoute = PeminjamPinjamIndexRouteImport.update({
   id: '/pinjam/',
   path: '/pinjam/',
@@ -523,6 +530,7 @@ export interface FileRoutesByFullPath {
   '/redirect': typeof RedirectRoute
   '/sign-document': typeof SignDocumentRoute
   '/tanda-tangan': typeof TandaTanganRoute
+  '/admin/kebijakan-peminjaman': typeof AdminKebijakanPeminjamanRoute
   '/admin/peminjaman': typeof AdminPeminjamanRoute
   '/dosen-pendamping/preview-document': typeof DosenPendampingPreviewDocumentRoute
   '/dosen-pendamping/riwayat-persetujuan': typeof DosenPendampingRiwayatPersetujuanRoute
@@ -591,6 +599,7 @@ export interface FileRoutesByTo {
   '/redirect': typeof RedirectRoute
   '/sign-document': typeof SignDocumentRoute
   '/tanda-tangan': typeof TandaTanganRoute
+  '/admin/kebijakan-peminjaman': typeof AdminKebijakanPeminjamanRoute
   '/admin/peminjaman': typeof AdminPeminjamanRoute
   '/dosen-pendamping/preview-document': typeof DosenPendampingPreviewDocumentRoute
   '/dosen-pendamping/riwayat-persetujuan': typeof DosenPendampingRiwayatPersetujuanRoute
@@ -672,6 +681,7 @@ export interface FileRoutesById {
   '/redirect': typeof RedirectRoute
   '/sign-document': typeof SignDocumentRoute
   '/tanda-tangan': typeof TandaTanganRoute
+  '/admin/kebijakan-peminjaman': typeof AdminKebijakanPeminjamanRoute
   '/admin/peminjaman': typeof AdminPeminjamanRoute
   '/dosen-pendamping/preview-document': typeof DosenPendampingPreviewDocumentRoute
   '/dosen-pendamping/riwayat-persetujuan': typeof DosenPendampingRiwayatPersetujuanRoute
@@ -754,6 +764,7 @@ export interface FileRouteTypes {
     | '/redirect'
     | '/sign-document'
     | '/tanda-tangan'
+    | '/admin/kebijakan-peminjaman'
     | '/admin/peminjaman'
     | '/dosen-pendamping/preview-document'
     | '/dosen-pendamping/riwayat-persetujuan'
@@ -822,6 +833,7 @@ export interface FileRouteTypes {
     | '/redirect'
     | '/sign-document'
     | '/tanda-tangan'
+    | '/admin/kebijakan-peminjaman'
     | '/admin/peminjaman'
     | '/dosen-pendamping/preview-document'
     | '/dosen-pendamping/riwayat-persetujuan'
@@ -902,6 +914,7 @@ export interface FileRouteTypes {
     | '/redirect'
     | '/sign-document'
     | '/tanda-tangan'
+    | '/admin/kebijakan-peminjaman'
     | '/admin/peminjaman'
     | '/dosen-pendamping/preview-document'
     | '/dosen-pendamping/riwayat-persetujuan'
@@ -1423,6 +1436,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminPeminjamanRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/kebijakan-peminjaman': {
+      id: '/admin/kebijakan-peminjaman'
+      path: '/kebijakan-peminjaman'
+      fullPath: '/admin/kebijakan-peminjaman'
+      preLoaderRoute: typeof AdminKebijakanPeminjamanRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/peminjam/pinjam/': {
       id: '/peminjam/pinjam/'
       path: '/pinjam'
@@ -1539,6 +1559,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteRouteChildren {
+  AdminKebijakanPeminjamanRoute: typeof AdminKebijakanPeminjamanRoute
   AdminPeminjamanRoute: typeof AdminPeminjamanRoute
   AdminIndexRoute: typeof AdminIndexRoute
   AdminRolesIndexRoute: typeof AdminRolesIndexRoute
@@ -1549,6 +1570,7 @@ interface AdminRouteRouteChildren {
 }
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
+  AdminKebijakanPeminjamanRoute: AdminKebijakanPeminjamanRoute,
   AdminPeminjamanRoute: AdminPeminjamanRoute,
   AdminIndexRoute: AdminIndexRoute,
   AdminRolesIndexRoute: AdminRolesIndexRoute,
