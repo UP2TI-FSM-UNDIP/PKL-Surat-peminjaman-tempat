@@ -12,6 +12,7 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar/sidebar';
 import { Link, useRouterState } from '@tanstack/react-router';
+import { cn } from '@/lib/utils';
 
 export type MenuItem = {
   title: string;
@@ -35,9 +36,12 @@ type SideBarProps = {
   footerLink?: SidebarFooterLink;
 };
 
+/** Samakan path yang diakhiri slash, mis. `/admin/` dan `/admin`. */
+const normalizePath = (path: string) => path.replace(/\/+$/, '') || '/';
+
 export function SideBar({ menuSections, footerLink }: SideBarProps) {
   const router = useRouterState();
-  const currentPath = router.location.pathname;
+  const currentPath = normalizePath(router.location.pathname);
 
   return (
     <Sidebar collapsible='icon'>
@@ -60,7 +64,7 @@ export function SideBar({ menuSections, footerLink }: SideBarProps) {
             </SidebarGroupLabel>
             <SidebarMenu>
               {section.items.map((item) => {
-                const isActive = currentPath === item.url;
+                const isActive = currentPath === normalizePath(item.url);
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
@@ -81,11 +85,13 @@ export function SideBar({ menuSections, footerLink }: SideBarProps) {
                           }
                         />
                         <span
-                          className={
+                          className={cn(
+                            'transition-[opacity,transform] duration-200',
+                            'group-data-[collapsible=icon]:-translate-x-1 group-data-[collapsible=icon]:opacity-0',
                             isActive
                               ? 'text-foreground! font-semibold!'
-                              : 'text-foreground'
-                          }
+                              : 'text-foreground',
+                          )}
                         >
                           {item.title}
                         </span>
