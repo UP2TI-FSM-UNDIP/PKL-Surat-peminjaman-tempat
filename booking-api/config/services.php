@@ -14,6 +14,14 @@ return [
     |
     */
 
+    'sso' => [
+        'api_url' => env('SSO_API_URL', 'https://apps-fsm.undip.ac.id/sso_api'),
+        'login_url' => env('SSO_LOGIN_URL', 'https://apps-fsm.undip.ac.id/sso/'),
+        'client_id' => env('SSO_CLIENT_ID'),
+        'client_secret' => env('SSO_CLIENT_SECRET'),
+        'redirect_uri' => env('SSO_REDIRECT_URI'),
+    ],
+
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],

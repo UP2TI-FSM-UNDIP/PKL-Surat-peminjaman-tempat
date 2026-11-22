@@ -47,7 +47,7 @@ class SsoAuthController extends Controller
 
         // Step 2: Validate token against SSO Engine
         // Always add "Bearer " prefix when calling SSO API
-        $ssoApiUrl = env('SSO_API_URL', 'https://apps-fsm.undip.ac.id/sso_api');
+        $ssoApiUrl = config('services.sso.api_url');
 
         try {
             $ssoResponse = Http::withToken($ssoToken)
@@ -178,7 +178,7 @@ class SsoAuthController extends Controller
             return response()->json(['message' => 'Token missing'], 400);
         }
 
-        $frontendUrl = env('FRONTEND_APP_URL', 'http://localhost:20081');
+        $frontendUrl = config('app.frontend_url');
 
         return redirect()->away("{$frontendUrl}/sso/callback?token={$token}");
     }
