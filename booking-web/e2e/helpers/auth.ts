@@ -1,6 +1,6 @@
 import { expect, type APIRequestContext, type Page } from '@playwright/test';
 
-const API_BASE = 'http://127.0.0.1:18000/api';
+export const API_BASE = 'http://127.0.0.1:18000/api';
 
 export type DevRole =
   | 'admin'
@@ -43,7 +43,7 @@ interface AuthUser {
   unit?: { id: number; name: string; category?: string | null } | null;
 }
 
-interface LoginResponse {
+export interface LoginResponse {
   token: string;
   user: AuthUser;
 }
@@ -52,7 +52,7 @@ export async function loginAs(
   page: Page,
   request: APIRequestContext,
   role: DevRole,
-): Promise<void> {
+): Promise<LoginResponse> {
   const sessionResponse = await request.get(`${API_BASE}/dev/session`);
   expect(sessionResponse.ok()).toBeTruthy();
 
@@ -103,6 +103,8 @@ export async function loginAs(
       data.user.is_profile_completed ? 'true' : 'false',
     );
   }, auth);
+
+  return auth;
 }
 
 export async function loginWithoutRole(page: Page, request: APIRequestContext): Promise<void> {
