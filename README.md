@@ -179,9 +179,20 @@ DB_PASSWORD=
 
 5. Run migrations and seeders:
 
+Lokal (akun demo):
+
 ```bash
-php artisan migrate
-php artisan db:seed
+cd booking-api
+php artisan migrate:fresh --seed
+```
+
+Staging/produksi (tanpa akun demo):
+
+```bash
+cd booking-api
+php artisan migrate --force
+php artisan db:seed --class=ProductionSeeder --force
+php artisan app:assign-role --email=admin@fsm.undip.ac.id --role=admin
 ```
 
 6. Start development server:
