@@ -59,11 +59,9 @@ return new class extends Migration
             $table->dropIndex(['nomor_surat']);
         });
 
-        Schema::table('documents', function (Blueprint $table) {
-            $table->enum('status', [
-                'DRAFT', 'IN_PROGRESS', 'REVISION', 'APPROVED', 'REJECTED', 'EXPIRED', 'CANCELLED',
-            ])->default('DRAFT')->change();
-        });
+        $this->changeEnum('documents', 'status', [
+            'DRAFT', 'IN_PROGRESS', 'REVISION', 'APPROVED', 'REJECTED', 'EXPIRED', 'CANCELLED',
+        ], 'DRAFT');
 
         Schema::table('documents', function (Blueprint $table) {
             $table->dropColumn(['nomor_surat', 'file_executive_summary', 'file_approval_sheet']);
@@ -81,10 +79,10 @@ return new class extends Migration
         });
         Schema::table('document_logs', function (Blueprint $table) {
             $table->foreignId('user_id')->nullable()->change();
-            $table->enum('action', [
-                'CREATED', 'SUBMITTED', 'APPROVED', 'REJECTED', 'RETURNED', 'UPDATED', 'EXPIRED', 'CANCELLED',
-            ])->change();
         });
+        $this->changeEnum('document_logs', 'action', [
+            'CREATED', 'SUBMITTED', 'APPROVED', 'REJECTED', 'RETURNED', 'UPDATED', 'EXPIRED', 'CANCELLED',
+        ]);
         Schema::table('document_logs', function (Blueprint $table) {
             $table->foreign('user_id')->references('id')->on('users')->nullOnDelete();
         });
@@ -100,6 +98,45 @@ return new class extends Migration
         });
 
         DB::table('roles')->where('slug', 'menunggu-penetapan')->delete();
+    }
+
+    /**
+     * Ubah nilai enum tanpa menghasilkan sintaks ALTER COLUMN yang tidak valid
+     * di PostgreSQL. SQLite tetap memakai change() bawaan Laravel.
+     *
+     * @param  array<int, string>  $values
+     */
+    private function changeEnum(string $tableName, string $column, array $values, ?string $default = null): void
+    {
+        if (DB::getDriverName() === 'pgsql') {
+            $constraint = "{$tableName}_{$column}_check";
+
+            DB::statement("ALTER TABLE \"{$tableName}\" DROP CONSTRAINT IF EXISTS \"{$constraint}\"");
+            DB::statement("ALTER TABLE \"{$tableName}\" ALTER COLUMN \"{$column}\" TYPE varchar(255)");
+
+            if ($default === null) {
+                DB::statement("ALTER TABLE \"{$tableName}\" ALTER COLUMN \"{$column}\" DROP DEFAULT");
+            } else {
+                DB::statement("ALTER TABLE \"{$tableName}\" ALTER COLUMN \"{$column}\" SET DEFAULT '{$default}'");
+            }
+
+            DB::statement("ALTER TABLE \"{$tableName}\" ALTER COLUMN \"{$column}\" SET NOT NULL");
+
+            $allowed = implode(', ', array_map(fn (string $value) => "'{$value}'", $values));
+            DB::statement("ALTER TABLE \"{$tableName}\" ADD CONSTRAINT \"{$constraint}\" CHECK (\"{$column}\" IN ({$allowed}))");
+
+            return;
+        }
+
+        Schema::table($tableName, function (Blueprint $table) use ($column, $values, $default) {
+            $definition = $table->enum($column, $values);
+
+            if ($default !== null) {
+                $definition->default($default);
+            }
+
+            $definition->change();
+        });
     }
 
     public function down(): void
