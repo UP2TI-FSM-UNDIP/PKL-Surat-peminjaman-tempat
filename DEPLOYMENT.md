@@ -9,8 +9,8 @@
 
 ## 2. Prasyarat
 
-- PHP 8.3.6, ekstensi `pdo_pgsql`, `pdo_sqlite`, `mbstring`, `gd`, `zip`, `intl`.
-- Composer user-local di `~/bin/composer`.
+- PHP 8.3.6, ekstensi `pdo_pgsql`, `pdo_sqlite`, `mbstring`, `gd`, `zip`, dan `intl` bila diminta `composer check-platform-reqs`.
+- Composer user-local di `~/bin/composer.phar`.
 - Node 24 untuk build frontend.
 - SSO client staging dan aturan proxy gateway.
 
@@ -31,8 +31,10 @@
 | `SESSION_PATH` | `/peminjaman-ruang-api-staging` | `/peminjaman-ruang-api` |
 | `AUTH_LOCAL_LOGIN` | `off` | `off` |
 | `AUTH_DEV_LOGIN` | `false` | `false` |
+| `LOG_LEVEL` | `warning` | `warning` |
+| `LOG_STACK` | `single` | `single` |
 
-Gunakan `booking-api/.env.staging.example` sebagai titik awal staging. Jangan menyalin `booking-api/.env.example` ke staging karena file itu memakai disk `s3` dan nilai pengembangan lokal.
+Gunakan `booking-api/.env.staging.example` sebagai titik awal staging. Jangan menyalin `booking-api/.env.example` ke staging karena file itu memakai disk `s3` dan nilai pengembangan lokal. Set `LOG_LEVEL=warning` dan `LOG_STACK=single` agar log staging tidak menyimpan payload SSO berisi data pribadi.
 
 ## 4. Release layout
 
@@ -41,6 +43,7 @@ Gunakan `booking-api/.env.staging.example` sebagai titik awal staging. Jangan me
 ├── releases/<sha>/
 ├── shared/.env
 ├── shared/storage/
+├── shared/ecosystem.staging.config.cjs
 └── current -> releases/<sha>/
 ```
 
@@ -63,17 +66,28 @@ RedirectMatch 301 ^/peminjaman-ruang-api-staging$ /peminjaman-ruang-api-staging/
 mkdir -p shared/storage/app/private shared/storage/logs \
   shared/storage/framework/cache shared/storage/framework/sessions \
   shared/storage/framework/views
-ln -sfn shared/storage releases/<sha>/booking-api/storage
+rm -rf /home/pinjam/peminjaman-ruang-staging/releases/<sha>/booking-api/storage
+ln -s /home/pinjam/peminjaman-ruang-staging/shared/storage \
+  /home/pinjam/peminjaman-ruang-staging/releases/<sha>/booking-api/storage
+ln -sfn /home/pinjam/peminjaman-ruang-staging/shared/.env \
+  /home/pinjam/peminjaman-ruang-staging/releases/<sha>/booking-api/.env
 # Hanya bila memakai public disk lokal:
 php artisan storage:link
 ```
 
+Gunakan path absolut. `booking-api/storage` sudah ada sebagai direktori nyata dari repo,
+jadi direktori itu harus dihapus sebelum symlink dibuat. Symlink relatif akan menunjuk
+ke dalam release, bukan ke `shared/storage`.
+
 ## 7. SSO
 
 - Daftarkan client staging dengan callback
-  `https://apps-fsm.undip.ac.id/peminjaman-ruang-api-staging/auth/sso/redirect`.
+  `https://apps-fsm.undip.ac.id/peminjaman-ruang-api-staging/auth/sso`.
 - Isi `SSO_CLIENT_ID`, `SSO_CLIENT_SECRET`, dan `SSO_REDIRECT_URI` di `shared/.env`.
 - Pastikan redirect mengarah ke `FRONTEND_APP_URL` staging, bukan `localhost`.
+- Untuk uji staging, client production boleh dipakai dengan `SSO_REDIRECT_URI` staging.
+- Jika portal SSO menolak redirect staging, ajukan client staging; jangan mengubah client production.
+- Frontend memakai `client_id` + `redirect_uri`; backend menerima token di `/auth/sso` dan mengembalikan `/redirect`.
 
 ## 8. Deploy pertama
 
@@ -89,25 +103,36 @@ php artisan storage:link
 10. Upload `dist/` hasil build Node 24 dan jalankan `npm ci` di release
     (dev dependency diperlukan karena frontend staging memakai `vite preview`).
 11. Arahkan `current` ke release.
-12. Jalankan dari `current/booking-api` dan `current/booking-web`:
+12. Jalankan proses dari satu definisi
+    `shared/ecosystem.staging.config.cjs` (lihat §4):
 
     ```bash
-    pm2 start "php artisan serve --host=0.0.0.0 --port=20084 --tries=1" \
-      --name backend-staging --max-memory-restart 512M
-    pm2 start "vite preview --port 20083 --host 0.0.0.0 --strictPort" \
-      --name frontend-staging --max-memory-restart 512M
-    pm2 start "php artisan schedule:work" \
-      --name scheduler-staging --max-memory-restart 256M
+    pm2 delete backend-staging frontend-staging scheduler-staging 2>/dev/null || true
+    pm2 start /home/pinjam/peminjaman-ruang-staging/shared/ecosystem.staging.config.cjs
     pm2 save
-    pm2 startup
+    systemctl is-enabled pm2-pinjam
     ```
+
+    `pm2 startup` tidak perlu diulang bila `pm2-pinjam.service` sudah enabled.
+
+    Ecosystem menetapkan `cwd`, `VITE_BASE_PATH`, dan port 20083/20084. Jangan memakai
+    `vite preview` tanpa `cwd` dan `VITE_BASE_PATH`.
 
 13. Tambahkan `ProxyPass` gateway.
 14. Jalankan smoke test.
 
 ## 9. Deploy update
 
-- Buat release baru, install dependency, migrate, cache, arahkan symlink, lalu `pm2 restart`.
+- Buat release baru, install dependency, migrate, cache, arahkan symlink `current`, lalu
+  jalankan ulang proses dari ecosystem (bukan `pm2 restart <file.cjs>`; PM2 6 menganggap
+  argumen itu nama proses):
+
+  ```bash
+  pm2 delete backend-staging frontend-staging scheduler-staging 2>/dev/null || true
+  pm2 start /home/pinjam/peminjaman-ruang-staging/shared/ecosystem.staging.config.cjs
+  pm2 save
+  ```
+
 - Simpan maksimal tiga release.
 
 ## 10. Backup dan rollback
@@ -116,8 +141,10 @@ php artisan storage:link
 pg_dump -Fc peminjaman_ruang_staging > staging-$(date +%F).dump
 tar -czf storage-staging-$(date +%F).tgz -C shared/storage .
 # rollback
-ln -sfn releases/<release-sebelumnya> current
-pm2 restart backend-staging frontend-staging scheduler-staging
+ln -sfn /home/pinjam/peminjaman-ruang-staging/releases/<release-sebelumnya> current
+pm2 delete backend-staging frontend-staging scheduler-staging 2>/dev/null || true
+pm2 start /home/pinjam/peminjaman-ruang-staging/shared/ecosystem.staging.config.cjs
+pm2 save
 pg_restore -d peminjaman_ruang_staging staging-YYYY-MM-DD.dump
 ```
 
@@ -135,4 +162,5 @@ Uji rollback sekali sebelum UAT.
 - `GET /api/user` tanpa token → 401.
 - Web root dan deep link → 200.
 - SSO redirect memakai host staging.
-- `qr_url` memakai `https://apps-fsm.undip.ac.id/...`.
+- `qr_url` dan `receipt_url` memakai prefix
+  `https://apps-fsm.undip.ac.id/peminjaman-ruang-api-staging/`.
