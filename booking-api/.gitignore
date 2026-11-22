@@ -32,5 +32,8 @@ Thumbs.db
 # Seeder-generated test template files
 /storage/app/test/
 
+# Uploaded proposal files from local/E2E runs
+/storage/app/private/documents/proposals/
+
 # Temporary processing files
 /storage/app/temp/

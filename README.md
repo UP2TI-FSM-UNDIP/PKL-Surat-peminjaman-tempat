@@ -4,7 +4,7 @@ Complete document booking and workflow management system with multi-step approva
 
 ## 🚀 Features
 
-### Backend (Laravel 11 API)
+### Backend (Laravel 12 API)
 
 - **Authentication** - Sanctum-based JWT authentication
 - **User Management** - Complete CRUD with role-based access control
@@ -28,7 +28,7 @@ Complete document booking and workflow management system with multi-step approva
 
 ```
 peminjaman-tempat/
-├── booking-api/          # Laravel 11 Backend API
+├── booking-api/          # Laravel 12 Backend API
 │   ├── app/
 │   │   ├── Http/Controllers/
 │   │   │   ├── DocumentController.php
@@ -75,15 +75,15 @@ peminjaman-tempat/
 
 ### Backend
 
-- Laravel 11
-- PHP 8.2+
+- Laravel 12
+- PHP 8.3+
 - Sanctum (Authentication)
-- PostgreSQL/MySQL
+- PostgreSQL 16 (produksi/staging); SQLite untuk lokal dan test
 - RESTful API
 
 ### Frontend
 
-- React 18
+- React 19
 - TypeScript
 - Vite
 - TanStack Router (Type-safe routing)
@@ -110,7 +110,7 @@ npm run dev
 
 Requirements and overrides:
 
-- MySQL/MariaDB configured in `booking-api/.env` must be running. The script only checks the port and prints a warning when it is unreachable.
+- PostgreSQL 16 configured in `booking-api/.env` must be running for staging/production parity. Local development and tests may use SQLite. The script only checks the configured port and prints a warning when it is unreachable.
 - `VITE_API_URL` in `booking-web/.env` must point to the API port (`http://localhost:8000/api` by default).
 - Change ports with `API_PORT=8001 WEB_PORT=20082 ./dev.sh`.
 - Local email/password login is disabled by default (`AUTH_LOCAL_LOGIN=off` in `booking-api/.env`, `VITE_LOCAL_LOGIN=false` in `booking-web/.env`). Set them to `all` and `true` to test without SSO.
@@ -140,7 +140,7 @@ Then restart the API. `npm run dev` shows a "Ganti akun" button in the top bar a
 - The switch dialog lists one seeded account per role: Admin, Wakil Dekan 2, Manajer Tata Usaha, Supervisor Sumberdaya, Mahasiswa, and Dosen.
 - Only requests from `127.0.0.1`/`::1` are accepted. `APP_ENV=production` always returns 404, even when the flag is on.
 - Logout disables auto-login for the current tab so the SSO flow can be tested. The "Masuk sebagai Admin" button on the landing page re-enables it.
-- Run `php artisan db:seed` first so the six accounts exist.
+- Run `php artisan db:seed` first so the six demo accounts exist. This only applies to `local`/`testing`.
 - Never enable `AUTH_DEV_LOGIN` on staging or production.
 
 Built previews (`npm run preview`) hide the menu unless `VITE_DEV_LOGIN=true`.
@@ -166,22 +166,41 @@ copy .env.example .env
 php artisan key:generate
 ```
 
-4. Configure database in `.env`:
+4. Configure database in `.env`.
 
-```
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=booking_db
-DB_USERNAME=root
-DB_PASSWORD=
-```
+   PostgreSQL 16 (staging/produksi):
+
+   ```
+   DB_CONNECTION=pgsql
+   DB_HOST=127.0.0.1
+   DB_PORT=5432
+   DB_DATABASE=peminjaman_ruang_staging
+   DB_USERNAME=peminjaman_staging
+   DB_PASSWORD=
+   ```
+
+   SQLite (lokal/test):
+
+   ```
+   DB_CONNECTION=sqlite
+   ```
 
 5. Run migrations and seeders:
 
+Lokal (akun demo):
+
 ```bash
-php artisan migrate
-php artisan db:seed
+cd booking-api
+php artisan migrate:fresh --seed
+```
+
+Staging/produksi (tanpa akun demo):
+
+```bash
+cd booking-api
+php artisan migrate --force
+php artisan db:seed --class=ProductionSeeder --force
+php artisan app:assign-role --email=admin@fsm.undip.ac.id --role=admin
 ```
 
 6. Start development server:
@@ -226,9 +245,9 @@ npm run dev
 
 App will be available at `http://localhost:20081/peminjaman-ruang/`
 
-## 🔑 Default Credentials
+## 🔑 Default Credentials (local/testing only)
 
-After seeding the database:
+`UserSeeder` hanya membuat akun demo saat `APP_ENV=local` atau `APP_ENV=testing`:
 
 | Role                 | Email                        | Password |
 | -------------------- | ---------------------------- | -------- |
@@ -239,7 +258,7 @@ After seeding the database:
 | Mahasiswa            | mahasiswa@student.undip.ac.id| password |
 | Dosen                | dosen@undip.ac.id            | password |
 
-⚠️ **Change these passwords in production!**
+⚠️ Akun demo tidak dibuat di staging/produksi. Staging memakai SSO dan `ProductionSeeder`, lalu admin pertama ditetapkan dengan `php artisan app:assign-role --email=<email> --role=admin`.
 
 ## 📚 API Endpoints
 
@@ -409,7 +428,7 @@ php artisan test
 
 ### Frontend E2E Testing
 
-E2E memakai Playwright (Chromium) dan menjalankan empat alur smoke: login dev admin, daftar ruang, daftar peminjaman, dan halaman peminjam.
+E2E memakai Playwright (Chromium, satu worker) dan mencakup login/role, reservasi multi-slot dan multi-ruang, proposal, persetujuan berjenjang, kalender, kebijakan, serta manajemen ruang.
 
 ```bash
 cd booking-web
@@ -418,17 +437,18 @@ npm run test:e2e
 npm run test:e2e:report
 ```
 
-Playwright menyalakan API di `127.0.0.1:18000` dan Vite di `127.0.0.1:20181`, lalu memakai database SQLite khusus `booking-api/database/e2e.sqlite`. Database MySQL lokal tidak disentuh. Dev login hanya aktif di lingkungan lokal dan loopback; jangan mengaktifkan `AUTH_DEV_LOGIN` di produksi.
+Playwright menyalakan API di `127.0.0.1:18000` dan Vite di `127.0.0.1:20181`, lalu memakai database SQLite khusus `booking-api/database/e2e.sqlite`. Database lokal tidak disentuh. Dev login hanya aktif di lingkungan lokal dan loopback; jangan mengaktifkan `AUTH_DEV_LOGIN` di produksi.
 
 ### CI
 
-GitHub Actions menjalankan tiga job pada PR ke `main`:
+GitHub Actions menjalankan empat job pada PR ke `main`:
 
-- `backend` — `php artisan test` dengan PHP 8.4 dan SQLite.
-- `web` — `npm run lint` dan `npm run build`.
+- `backend` — `php artisan test` dengan PHP 8.4/SQLite, `composer audit`, dan smoke test `route:cache`/`config:cache`.
+- `backend-pgsql` — `php artisan test` dengan PHP 8.3 dan PostgreSQL 16.
+- `web` — `npm run lint`, `npm test`, `npm audit --omit=dev`, dan `npm run build`.
 - `e2e` — Playwright Chromium setelah `backend` dan `web` hijau.
 
-Aktifkan branch protection untuk `main` dan jadikan `backend`, `web`, serta `e2e` sebagai required status checks. Ini dilakukan manual di GitHub Settings, bukan dari repository.
+Aktifkan branch protection untuk `main` dan jadikan `backend`, `backend-pgsql`, `web`, serta `e2e` sebagai required status checks. Ini dilakukan manual di GitHub Settings, bukan dari repository.
 
 `vendor/bin/pint --test` belum dijadikan gate karena repo belum format-clean; reformasi format dilakukan di PR terpisah.
 
@@ -455,9 +475,13 @@ Backend:
 - [ ] Set `APP_DEBUG=false`
 - [ ] Configure database
 - [ ] Run `composer install --optimize-autoloader --no-dev`
+- [ ] Copy `booking-api/.env.staging.example` to `.env` and fill secrets
+- [ ] Run `php artisan key:generate`
+- [ ] Run `php artisan app:verify-environment`
 - [ ] Run `php artisan migrate --force`
-- [ ] Run `php artisan db:seed`
-- [ ] Run `php artisan config:cache`
+- [ ] Run `php artisan db:seed --class=ProductionSeeder --force`
+- [ ] Run `php artisan app:assign-role --email=<admin> --role=admin`
+- [ ] Run `php artisan config:cache && php artisan route:cache && php artisan view:cache`
 - [ ] Set proper file permissions
 
 Frontend:

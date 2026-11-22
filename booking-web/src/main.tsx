@@ -5,6 +5,7 @@ import App from './App';
 import { createRouter } from '@tanstack/react-router';
 import { routeTree } from './routeTree.gen';
 import type { AuthUser } from './types/auth';
+import { routerBasePath } from './lib/basePath';
 
 export interface MyRouterContext {
   auth: {
@@ -15,7 +16,7 @@ export interface MyRouterContext {
 
 export const router = createRouter({
   routeTree,
-  basepath: '/peminjaman-ruang',
+  basepath: routerBasePath(import.meta.env.BASE_URL),
   trailingSlash: 'preserve',
   context: {
     auth: { isAuthenticated: false, user: null },

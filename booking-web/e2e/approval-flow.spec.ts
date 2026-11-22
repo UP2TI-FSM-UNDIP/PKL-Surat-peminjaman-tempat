@@ -58,4 +58,14 @@ test('rantai SPV → TU → Wadek2 menyetujui pengajuan', async ({ page, request
   await loginAs(page, request, 'peminjam');
   await page.goto('./peminjam/pinjam');
   await expect(page.getByText('Disetujui').first()).toBeVisible();
+
+  await page
+    .getByRole('row')
+    .filter({ hasText: 'Approval Test' })
+    .getByRole('button', { name: 'Lihat' })
+    .click();
+  await expect(page.getByText('Bukti peminjaman', { exact: false }).first()).toBeVisible();
+  await expect(page.getByRole('img', { name: /QR bukti peminjaman/ })).toBeVisible();
+  await expect(page.getByText('Surat Peminjaman')).toHaveCount(0);
+  await expect(page.getByText('Tanda Tangan')).toHaveCount(0);
 });

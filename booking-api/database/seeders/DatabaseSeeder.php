@@ -11,14 +11,10 @@ class DatabaseSeeder extends Seeder
 
     public function run(): void
     {
-        $this->call([
-            RoleSeeder::class,
-            UnitSeeder::class,
-            BookingPolicySeeder::class,
-            WorkflowSeeder::class,
-            RuangKelasFsmSeeder::class,
-            SpecialRoomsSeeder::class,
-            UserSeeder::class,
-        ]);
+        $this->call(ProductionSeeder::class);
+
+        if (app()->environment(['local', 'testing'])) {
+            $this->call(UserSeeder::class);
+        }
     }
 }
