@@ -34,6 +34,7 @@ class AppServiceProvider extends ServiceProvider
 
         if (app()->environment(['staging', 'production'])) {
             URL::forceScheme('https');
+            URL::useOrigin(config('app.url'));
         }
     }
 }
