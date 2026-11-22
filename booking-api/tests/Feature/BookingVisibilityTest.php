@@ -59,6 +59,18 @@ class BookingVisibilityTest extends TestCase
         $this->getJson("/api/room-bookings/{$this->booking->id}/qrcode")->assertStatus(400);
     }
 
+    public function test_approved_booking_returns_qrcode(): void
+    {
+        $this->booking->update(['status' => 'APPROVED']);
+        Sanctum::actingAs($this->creator);
+
+        $response = $this->get("/api/room-bookings/{$this->booking->id}/qrcode");
+
+        $response->assertOk();
+        $this->assertStringStartsWith('image/', $response->headers->get('Content-Type'));
+        $this->assertNotEmpty($response->getContent());
+    }
+
     public function test_verification_token_is_accepted(): void
     {
         $token = $this->booking->verificationToken();

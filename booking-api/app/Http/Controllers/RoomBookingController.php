@@ -133,15 +133,32 @@ class RoomBookingController extends Controller
 
         $verificationUrl = $booking->verificationUrl();
 
-        $qrCode = \SimpleSoftwareIO\QrCode\Facades\QrCode::format('png')
-            ->size(300)
-            ->margin(2)
-            ->errorCorrection('M')
-            ->generate($verificationUrl);
+        try {
+            $qrCode = \SimpleSoftwareIO\QrCode\Facades\QrCode::format('png')
+                ->size(300)
+                ->margin(2)
+                ->errorCorrection('M')
+                ->generate($verificationUrl);
+            $contentType = 'image/png';
+            $filename = 'bukti-peminjaman-' . $booking->id . '.png';
+        } catch (\Throwable $e) {
+            if (! str_contains($e->getMessage(), 'imagick')) {
+                throw $e;
+            }
+
+            // Lingkungan tanpa ext-imagick tetap dapat menyajikan QR sebagai SVG.
+            $qrCode = \SimpleSoftwareIO\QrCode\Facades\QrCode::format('svg')
+                ->size(300)
+                ->margin(2)
+                ->errorCorrection('M')
+                ->generate($verificationUrl);
+            $contentType = 'image/svg+xml';
+            $filename = 'bukti-peminjaman-' . $booking->id . '.svg';
+        }
 
         return response($qrCode, 200, [
-            'Content-Type' => 'image/png',
-            'Content-Disposition' => 'inline; filename="bukti-peminjaman-' . $booking->id . '.png"',
+            'Content-Type' => $contentType,
+            'Content-Disposition' => 'inline; filename="' . $filename . '"',
             'Cache-Control' => 'private, max-age=3600',
             'X-Verification-Url' => $verificationUrl,
         ]);
