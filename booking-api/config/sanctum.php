@@ -2,6 +2,16 @@
 
 use Laravel\Sanctum\Sanctum;
 
+$stateful = env('SANCTUM_STATEFUL_DOMAINS');
+
+if (! $stateful) {
+    $stateful = implode(',', array_filter([
+        'localhost,localhost:3000,127.0.0.1,127.0.0.1:3000,127.0.0.1:8000,::1',
+        ltrim(Sanctum::currentApplicationUrlWithPort(), ','),
+        implode(',', \App\Support\FrontendOrigins::hosts(env('FRONTEND_URL', ''))),
+    ]));
+}
+
 return [
 
     /*
@@ -15,12 +25,7 @@ return [
     |
     */
 
-    'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', sprintf(
-        '%s%s%s',
-        'localhost,localhost:3000,127.0.0.1,127.0.0.1:3000,127.0.0.1:8000,::1',
-        Sanctum::currentApplicationUrlWithPort(),
-        env('FRONTEND_URL') ? ','.parse_url(env('FRONTEND_URL'), PHP_URL_HOST) : ''
-    ))),
+    'stateful' => explode(',', $stateful),
 
     /*
     |--------------------------------------------------------------------------
