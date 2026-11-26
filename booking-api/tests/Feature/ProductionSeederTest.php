@@ -29,7 +29,7 @@ class ProductionSeederTest extends TestCase
 
         $this->seed(DatabaseSeeder::class);
 
-        $this->assertSame(6, User::count());
+        $this->assertSame(7, User::count());
         $this->assertDatabaseHas('users', ['email' => 'admin@fsm.undip.ac.id']);
     }
 

@@ -26,7 +26,8 @@ class UserSeeder extends Seeder
             ['name' => 'Wakil Dekan II', 'email' => 'wadek2@fsm.undip.ac.id', 'role' => 'wadek2'],
             ['name' => 'Manajer Tata Usaha', 'email' => 'tu@fsm.undip.ac.id', 'role' => 'manajer-tata-usaha'],
             ['name' => 'Supervisor Sumberdaya', 'email' => 'spv@fsm.undip.ac.id', 'role' => 'spv-sumberdaya'],
-            ['name' => 'Mahasiswa Demo', 'email' => 'mahasiswa@student.undip.ac.id', 'role' => 'peminjam'],
+            ['name' => 'Mahasiswa Demo (Putra)', 'email' => 'mahasiswa@student.undip.ac.id', 'role' => 'peminjam'],
+            ['name' => 'Mahasiswa Demo (Putri)', 'email' => 'mahasiswi@student.undip.ac.id', 'role' => 'peminjam'],
             ['name' => 'Dosen Demo', 'email' => 'dosen@undip.ac.id', 'role' => 'dosen'],
         ];
 

@@ -59,14 +59,18 @@ class DevAuthTest extends TestCase
             ->assertOk();
     }
 
-    public function test_session_menampilkan_satu_akun_per_role(): void
+    public function test_session_menampilkan_semua_akun_demo(): void
     {
         $response = $this->getJson('/api/dev/session')->assertOk();
 
         $response->assertJsonPath('enabled', true);
-        $response->assertJsonCount(6, 'accounts');
+        $response->assertJsonCount(7, 'accounts');
         $response->assertJsonPath('accounts.0.role.slug', 'admin');
         $response->assertJsonPath('accounts.1.role.slug', 'wadek2');
+        $this->assertSame(
+            ['mahasiswa@student.undip.ac.id', 'mahasiswi@student.undip.ac.id'],
+            collect($response->json('accounts'))->where('role.slug', 'peminjam')->pluck('email')->values()->all(),
+        );
 
         $this->assertSame(
             User::where('email', 'admin@fsm.undip.ac.id')->value('id'),
@@ -88,7 +92,7 @@ class DevAuthTest extends TestCase
 
         $response = $this->getJson('/api/dev/session')->assertOk();
 
-        $response->assertJsonCount(6, 'accounts');
+        $response->assertJsonCount(7, 'accounts');
         $this->assertNotContains(
             'sekretaris',
             collect($response->json('accounts'))->pluck('role.slug'),
@@ -142,5 +146,18 @@ class DevAuthTest extends TestCase
         $this->withHeader('Authorization', 'Bearer '.$firstToken)
             ->getJson('/api/user')
             ->assertUnauthorized();
+    }
+
+    public function test_user_non_demo_tidak_muncul_bila_role_sudah_punya_akun_demo(): void
+    {
+        User::factory()->create([
+            'email' => 'sso.user@students.undip.ac.id',
+            'role_id' => Role::where('slug', 'peminjam')->value('id'),
+            'is_profile_completed' => true,
+        ]);
+
+        $emails = collect($this->getJson('/api/dev/session')->assertOk()->json('accounts'))->pluck('email');
+
+        $this->assertNotContains('sso.user@students.undip.ac.id', $emails);
     }
 }
