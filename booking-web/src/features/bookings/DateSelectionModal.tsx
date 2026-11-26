@@ -69,7 +69,7 @@ export function DateSelectionModal({
                         <Info className='w-4 h-4 mt-0.5 shrink-0' />
                         <div>
                             <p className='font-medium'>Tanggal ini tidak bisa dipinjam.</p>
-                            <p>{dateIssue} Anda tetap bisa melanjutkan dan memilih tanggal lain di form.</p>
+                            <p>{dateIssue} Silakan pilih tanggal lain di kalender.</p>
                         </div>
                     </div>
                 )}
@@ -84,6 +84,7 @@ export function DateSelectionModal({
                 <div className='grid gap-4 py-4'>
                     <Button
                         onClick={handleContinue}
+                        disabled={!!dateIssue}
                         className='w-full h-auto py-6 flex flex-col items-center gap-3 bg-blue-600 hover:bg-blue-700'
                     >
                         <Calendar className='w-8 h-8' />
@@ -97,6 +98,7 @@ export function DateSelectionModal({
 
                     <Button
                         onClick={handleContinue}
+                        disabled={!!dateIssue}
                         className='w-full h-auto py-6 flex flex-col items-center gap-3 bg-green-600 hover:bg-green-700'
                     >
                         <FileText className='w-8 h-8' />

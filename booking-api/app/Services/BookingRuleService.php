@@ -17,8 +17,12 @@ class BookingRuleService
         $today = CarbonImmutable::today('Asia/Jakarta');
         $isSunday = $date->isSunday();
         $isSaturday = $date->isSaturday();
+        $isPast = $date->lt($today);
         $tooSoon = $date->lt($today->addDays($policy->min_booking_days));
 
+        if ($isPast) {
+            return $this->emptyPayload($date, $policy, 'past');
+        }
         if ($isSunday || $tooSoon) {
             return $this->emptyPayload($date, $policy, $isSunday ? 'sunday' : 'too_soon');
         }
@@ -62,6 +66,9 @@ class BookingRuleService
         $end = $this->minutes($slot['end_time']);
         $room = Room::findOrFail($slot['room_id']);
 
+        if ($date->lt($today)) {
+            throw ValidationException::withMessages(['slots' => ['Tanggal reservasi sudah lewat.']]);
+        }
         if ($date->lt($today->addDays($policy->min_booking_days))) {
             throw ValidationException::withMessages(['slots' => ['Tanggal reservasi terlalu dekat.']]);
         }
@@ -101,7 +108,11 @@ class BookingRuleService
                 'max_rooms_per_date' => $policy->max_rooms_per_date,
                 'max_total_room_hours' => $policy->max_total_room_hours,
             ],
-            'message' => $dayType === 'sunday' ? 'Minggu tidak tersedia.' : 'Tanggal terlalu dekat; minimal H-1.',
+            'message' => match ($dayType) {
+                'past' => 'Tanggal sudah lewat.',
+                'sunday' => 'Minggu tidak tersedia.',
+                default => "Tanggal terlalu dekat; minimal H-{$policy->min_booking_days}.",
+            },
         ];
     }
 }

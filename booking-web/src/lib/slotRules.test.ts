@@ -32,6 +32,11 @@ describe('validateSlotDay', () => {
       .toContain('Tanggal reservasi terlalu dekat.');
   });
 
+  it('menolak tanggal yang sudah lewat dengan pesan berbeda', () => {
+    expect(validateSlotDay(slot({ booking_date: '2026-11-18' }), { ...dayRule, date: '2026-11-18' }, undefined, '2026-11-20'))
+      .toEqual(['Tanggal reservasi sudah lewat.']);
+  });
+
   it('menolak jam lewat max_end_time', () => {
     expect(validateSlotDay(slot({ end_time: '17:00' }), dayRule)).toContain('Selesai paling lambat 16:30.');
   });

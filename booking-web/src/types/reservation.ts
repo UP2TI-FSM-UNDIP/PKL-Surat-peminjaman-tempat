@@ -72,7 +72,7 @@ export interface BookingRuleLimits {
 
 export interface BookingRuleDate {
   date: string;
-  day_type: 'weekday' | 'saturday' | 'sunday' | 'too_soon';
+  day_type: 'weekday' | 'saturday' | 'sunday' | 'too_soon' | 'past';
   is_bookable: boolean;
   open_time: string | null;
   min_booking_days: number;

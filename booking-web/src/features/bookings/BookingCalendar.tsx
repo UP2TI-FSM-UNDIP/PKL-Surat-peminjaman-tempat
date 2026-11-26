@@ -113,6 +113,8 @@ export default function BookingCalendar() {
   };
 
   const handleDateClick = (dateInfo: DateClickArg) => {
+    // Tanggal yang sudah lewat tidak bisa diajukan, jadi tidak membuka pilihan pengajuan.
+    if (dateInfo.dateStr.slice(0, 10) < format(new Date(), 'yyyy-MM-dd')) return;
     setSelectedDate(dateInfo.dateStr);
     setIsDateSelectionModalOpen(true);
   };
@@ -205,6 +207,7 @@ export default function BookingCalendar() {
             datesSet={handleDatesSet}
             eventClick={handleEventClick}
             dateClick={handleDateClick}
+            dayCellClassNames={(arg) => (arg.isPast ? ['cursor-not-allowed', 'opacity-60'] : ['cursor-pointer'])}
             height={560}
             aspectRatio={1.5}
           />

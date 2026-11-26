@@ -37,6 +37,7 @@ export function validateSlotDay(
   if (!dayRule.is_bookable) return [dayRule.message ?? 'Tanggal tidak dapat dibooking.'];
 
   const today = todayIso ?? format(new Date(), 'yyyy-MM-dd');
+  if (slot.booking_date < today) return ['Tanggal reservasi sudah lewat.'];
   const earliest = format(addDays(parseISO(today), dayRule.min_booking_days), 'yyyy-MM-dd');
   if (slot.booking_date < earliest) return ['Tanggal reservasi terlalu dekat.'];
 

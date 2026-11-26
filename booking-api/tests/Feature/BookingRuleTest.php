@@ -66,4 +66,23 @@ class BookingRuleTest extends TestCase
             ->assertJsonPath('data.is_bookable', false)
             ->assertJsonCount(0, 'data.rooms');
     }
+
+    public function test_past_date_is_not_bookable_with_past_message(): void
+    {
+        $this->getJson('/api/booking-rules?date=2026-11-18')
+            ->assertOk()
+            ->assertJsonPath('data.day_type', 'past')
+            ->assertJsonPath('data.is_bookable', false)
+            ->assertJsonPath('data.message', 'Tanggal sudah lewat.')
+            ->assertJsonCount(0, 'data.rooms');
+    }
+
+    public function test_today_is_too_soon_not_past(): void
+    {
+        $this->getJson('/api/booking-rules?date=2026-11-20')
+            ->assertOk()
+            ->assertJsonPath('data.day_type', 'too_soon')
+            ->assertJsonPath('data.is_bookable', false)
+            ->assertJsonPath('data.message', 'Tanggal terlalu dekat; minimal H-1.');
+    }
 }
