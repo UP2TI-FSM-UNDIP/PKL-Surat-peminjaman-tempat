@@ -1,3 +1,4 @@
+import { formatTimeRange } from '@/lib/date';
 import React from 'react';
 import {
     Dialog,
@@ -73,7 +74,7 @@ export function BookingDetailModal({
                     <div>
                         <p className='text-sm font-medium text-gray-500'>Waktu</p>
                         <p className='text-sm text-gray-900'>
-                            {booking.start_time} - {booking.end_time}
+                            {formatTimeRange(booking.start_time, booking.end_time)}
                         </p>
                     </div>
                     <div>

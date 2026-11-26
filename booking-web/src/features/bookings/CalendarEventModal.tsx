@@ -1,3 +1,4 @@
+import { formatTimeRange, formatDateShort } from '@/lib/date';
 import { authStorage } from '@/lib/authStorage';
 import { useNavigate } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
@@ -107,7 +108,7 @@ export function CalendarEventModal({ open, onOpenChange, event, document }: Prop
         <div className='grid gap-3 sm:grid-cols-2'>
           <InfoRow label='Tujuan / Kegiatan' value={document?.purpose ?? '-'} className='sm:col-span-2' />
           <InfoRow label='Tanggal' value={formatDate(event.booking_date)} />
-          <InfoRow label='Waktu' value={`${event.start_time}–${event.end_time}`} />
+          <InfoRow label='Waktu' value={formatTimeRange(event.start_time, event.end_time)} />
           <InfoRow label='Ruangan' value={`${event.room.code} — ${event.room.name}`} />
           <InfoRow
             label='Peminjam'
@@ -125,7 +126,7 @@ export function CalendarEventModal({ open, onOpenChange, event, document }: Prop
                 : `${document.expected_participants} orang`
             }
           />
-          <InfoRow label='Batas Proposal' value={document?.reservation_deadline ?? '-'} />
+          <InfoRow label='Batas Proposal' value={formatDateShort(document?.reservation_deadline)} />
           <InfoRow label='Buka Sekat' value={document ? (document.buka_sekat ? 'Ya' : 'Tidak') : '-'} />
         </div>
 
@@ -155,7 +156,7 @@ export function CalendarEventModal({ open, onOpenChange, event, document }: Prop
                     </TableCell>
                     <TableCell>{formatDate(slot.booking_date)}</TableCell>
                     <TableCell>
-                      {slot.start_time}–{slot.end_time}
+                      {formatTimeRange(slot.start_time, slot.end_time)}
                     </TableCell>
                   </TableRow>
                 ))}

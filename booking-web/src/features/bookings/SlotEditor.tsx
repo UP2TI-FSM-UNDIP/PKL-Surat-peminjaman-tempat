@@ -48,7 +48,7 @@ export function SlotEditor({ control, setValue, mode, rooms, rulesByDate, maxRow
 
   return (
     <div className="space-y-3">
-      <div className="hidden gap-2 text-xs font-medium text-muted-foreground md:grid md:grid-cols-[1fr_1fr_110px_110px_44px]">
+      <div className="hidden gap-2 text-xs font-medium text-muted-foreground md:grid md:grid-cols-[minmax(0,1.3fr)_minmax(0,0.8fr)_136px_136px_40px]">
         <span>{mode === 'one_room_many_dates' ? 'Tanggal' : 'Ruang'}</span>
         <span>Keterangan</span>
         <span>Mulai</span>
@@ -62,8 +62,8 @@ export function SlotEditor({ control, setValue, mode, rooms, rulesByDate, maxRow
         const rule = rulesByDate[date ?? ''];
         const maxEnd = rule?.rooms.find((room) => room.id === rowRoomId)?.max_end_time ?? '16:30';
         return (
-          <div key={field.id} className="space-y-1 rounded-md border p-3">
-            <div className="grid gap-2 md:grid-cols-[1fr_1fr_110px_110px_44px] md:items-center">
+          <div key={field.id} className="space-y-2 rounded-xl bg-muted/70 p-3">
+            <div className="grid gap-2 md:grid-cols-[minmax(0,1.3fr)_minmax(0,0.8fr)_136px_136px_40px] md:items-center">
               {mode === 'one_room_many_dates' ? (
                 <Controller
                   control={control}
@@ -93,10 +93,12 @@ export function SlotEditor({ control, setValue, mode, rooms, rulesByDate, maxRow
                   )}
                 />
               )}
-              <span className="text-sm text-muted-foreground">
-                {mode === 'one_room_many_dates'
-                  ? rooms.find((room) => room.id === roomId)?.code ?? 'Belum dipilih'
-                  : rulesByDate[bookingDate]?.day_type === 'saturday' ? 'Sabtu' : 'Hari kerja'}
+              <span className="text-[13px] text-muted-foreground">
+                {!rule ? '—'
+                  : rule.same_day ? `Hari ini · mulai ≥ ${rule.min_start_time ?? ''}`
+                  : rule.day_type === 'saturday' ? 'Sabtu · 09.00–17.00'
+                  : rule.day_type === 'weekday' ? `Hari kerja · s.d. ${maxEnd}`
+                  : rule.message ?? '—'}
               </span>
               <Controller
                 control={control}
@@ -113,10 +115,10 @@ export function SlotEditor({ control, setValue, mode, rooms, rulesByDate, maxRow
               </Button>
             </div>
             {rowErrors[index]?.map((error) => (
-              <p key={error} className="text-xs text-destructive">{error}</p>
+              <p key={error} className="text-[13px] text-destructive">{error}</p>
             ))}
             {availability?.[index] === false && (
-              <p className="text-xs text-destructive">Slot ini bentrok dengan booking lain.</p>
+              <p className="text-[13px] text-destructive">Slot ini bentrok dengan booking lain.</p>
             )}
           </div>
         );

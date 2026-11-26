@@ -20,6 +20,10 @@ import type { ReservationContent } from '@/types/reservation';
 import { SlotEditor } from './SlotEditor';
 import { BukaSekatField } from './BukaSekatField';
 import { DayRuleAlert } from './DayRuleAlert';
+import { SegmentedControl } from '@/components/ui/segmented-control';
+import { Callout } from '@/components/ui/callout';
+
+const sectionClass = 'space-y-5 rounded-2xl border border-black/[0.06] bg-white p-5 shadow-[0_1px_2px_rgb(0_0_0/0.04)] sm:p-6';
 import type { ReservationWizardValues } from './reservationForm.types';
 
 interface Props {
@@ -163,14 +167,19 @@ export function ReservationWizardForm({ intent, submitLabel = 'Simpan Reservasi'
   });
 
   return (
-    <form className="space-y-6" onSubmit={(event) => { event.preventDefault(); void submit(); }}>
-      <div className="flex gap-2">
-        <Button type="button" variant={mode === 'one_room_many_dates' ? 'default' : 'outline'} onClick={() => switchMode('one_room_many_dates')}>
-          1 ruang, banyak tanggal
-        </Button>
-        <Button type="button" variant={mode === 'one_date_many_rooms' ? 'default' : 'outline'} onClick={() => switchMode('one_date_many_rooms')}>
-          1 tanggal, banyak ruang
-        </Button>
+    <form className="space-y-5" onSubmit={(event) => { event.preventDefault(); void submit(); }}>
+      <section className={sectionClass}>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-[17px] font-semibold tracking-tight">Ruang &amp; waktu</h2>
+        <SegmentedControl
+          ariaLabel="Mode reservasi"
+          value={mode}
+          onChange={(next) => switchMode(next)}
+          options={[
+            { value: 'one_room_many_dates', label: '1 ruang, banyak tanggal' },
+            { value: 'one_date_many_rooms', label: '1 tanggal, banyak ruang' },
+          ]}
+        />
       </div>
 
       {mode === 'one_room_many_dates' ? (
@@ -214,8 +223,14 @@ export function ReservationWizardForm({ intent, submitLabel = 'Simpan Reservasi'
       />
 
       <BukaSekatField control={control} roomsById={roomsById} />
+      {slots[0]?.booking_date && (mode === 'one_room_many_dates' ? (roomId ?? 0) > 0 : (slots[0]?.room_id ?? 0) > 0) && (
+        <DayRuleAlert slot={slots[0]} dayRule={rulesByDate[slots[0].booking_date]} expectedParticipants={expectedParticipants ? Number(expectedParticipants) : null} direct={direct} />
+      )}
+      </section>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <section className={sectionClass}>
+      <h2 className="text-[17px] font-semibold tracking-tight">Data kegiatan</h2>
+      <div className="grid gap-x-4 gap-y-5 md:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="purpose">Tujuan / nama kegiatan</Label>
           <Input id="purpose" placeholder="Nama kegiatan / tujuan" {...register('purpose', { required: 'Wajib diisi' })} />
@@ -241,21 +256,24 @@ export function ReservationWizardForm({ intent, submitLabel = 'Simpan Reservasi'
           <Input id="expected_participants" type="number" min={1} {...register('expected_participants')} />
         </div>
       </div>
+      </section>
 
-      {slots[0]?.booking_date && (
-        <DayRuleAlert slot={slots[0]} dayRule={rulesByDate[slots[0].booking_date]} expectedParticipants={expectedParticipants ? Number(expectedParticipants) : null} direct={direct} />
+      {formErrors.length > 0 && (
+        <Callout tone="danger">
+          {formErrors.length === 1 ? formErrors[0] : (
+            <ul className="list-disc space-y-0.5 pl-4">{formErrors.map((error) => <li key={error}>{error}</li>)}</ul>
+          )}
+        </Callout>
       )}
-
-      {formErrors.map((error) => <p key={error} className="text-sm text-destructive">{error}</p>)}
       {conflicts.length > 0 && (
-        <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
-          Beberapa slot bentrok. Periksa baris yang ditandai.
-        </div>
+        <Callout tone="danger">Beberapa slot bentrok. Periksa baris yang ditandai.</Callout>
       )}
 
-      <Button type="submit" disabled={mutation.isPending || rulesLoading || roomsQuery.isLoading}>
-        {mutation.isPending ? 'Menyimpan…' : submitLabel}
-      </Button>
+      <div className="flex justify-end">
+        <Button type="submit" size="lg" disabled={mutation.isPending || rulesLoading || roomsQuery.isLoading}>
+          {mutation.isPending ? 'Menyimpan…' : submitLabel}
+        </Button>
+      </div>
     </form>
   );
 }

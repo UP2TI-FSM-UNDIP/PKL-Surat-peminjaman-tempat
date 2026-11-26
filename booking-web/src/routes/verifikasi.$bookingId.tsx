@@ -1,3 +1,4 @@
+import { formatTimeRange } from '@/lib/date';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { CalendarDays, Clock, DoorOpen, Users, BadgeCheck, ShieldX, Loader2 } from 'lucide-react';
@@ -136,7 +137,7 @@ function VerifiedDetail({ booking }: { booking: VerifiedBooking }) {
           {formatTanggal(booking.booking_date)}
         </Row>
         <Row icon={<Clock className='h-4 w-4' />} label='Waktu'>
-          {booking.start_time} – {booking.end_time} WIB
+          {formatTimeRange(booking.start_time, booking.end_time)} WIB
         </Row>
         <Row icon={<Users className='h-4 w-4' />} label='Peminjam'>
           {booking.unit ?? '-'}

@@ -1,3 +1,4 @@
+import { formatTimeRange, formatDateShort } from '@/lib/date';
 import { Button } from '@/components/ui/button/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -37,7 +38,7 @@ export function ApprovalSummaryCard({ document, summary }: {
           <p><span className="text-muted-foreground">Unit:</span> {document.unit?.name ?? '-'}</p>
           <p><span className="text-muted-foreground">Kegiatan:</span> {document.content?.event_name ?? document.title}</p>
           <p><span className="text-muted-foreground">Tujuan:</span> {document.content?.purpose ?? '-'}</p>
-          <p><span className="text-muted-foreground">Deadline:</span> {summary.reservation_deadline ?? '-'}</p>
+          <p><span className="text-muted-foreground">Batas proposal:</span> {formatDateShort(summary.reservation_deadline)}</p>
           <p><span className="text-muted-foreground">Buka Sekat:</span> {document.content?.buka_sekat ? 'Ya' : 'Tidak'}</p>
         </div>
         <Table>
@@ -46,8 +47,8 @@ export function ApprovalSummaryCard({ document, summary }: {
             {summary.slots.map((slot, index) => (
               <TableRow key={`${slot.room_id}-${slot.booking_date}-${index}`}>
                 <TableCell>{slot.room_code ?? slot.room_name ?? slot.room_id}</TableCell>
-                <TableCell>{slot.booking_date}</TableCell>
-                <TableCell>{slot.start_time}–{slot.end_time}</TableCell>
+                <TableCell>{formatDateShort(slot.booking_date)}</TableCell>
+                <TableCell>{formatTimeRange(slot.start_time, slot.end_time)}</TableCell>
               </TableRow>
             ))}
           </TableBody>

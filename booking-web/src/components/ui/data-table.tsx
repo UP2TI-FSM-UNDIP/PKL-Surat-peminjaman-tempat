@@ -164,7 +164,7 @@ export function DataTable<T>({
   }
 
   return (
-    <div className='bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden'>
+    <div className='bg-white rounded-2xl border border-black/[0.06] shadow-[0_1px_2px_rgb(0_0_0/0.04)] overflow-hidden'>
       <div className='overflow-x-auto'>
         <Table className='w-full'>
           <TableHeader>

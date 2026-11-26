@@ -15,6 +15,7 @@ import type {
 } from '@/types/calendar';
 import { CalendarEventModal } from './CalendarEventModal';
 import { DateSelectionModal } from './DateSelectionModal';
+import { Callout } from '@/components/ui/callout';
 import {
   CALENDAR_STATUS_META,
   CALENDAR_STATUS_ORDER,
@@ -29,9 +30,7 @@ interface VisibleRange {
 
 function EmptyBanner({ children }: { children: ReactNode }) {
   return (
-    <div className='mb-4 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800'>
-      {children}
-    </div>
+    <p className='mb-4 text-[13px] text-muted-foreground'>{children}</p>
   );
 }
 
@@ -133,12 +132,10 @@ export default function BookingCalendar() {
 
   return (
     <>
-      <div className='bg-white rounded-lg shadow-sm border border-gray-200 p-4 fc-responsive'>
-        <div className='mb-4'>
-          <p className='mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500'>
-            Legenda dan filter
-          </p>
-          <div className='flex flex-wrap gap-2'>
+      <div className='bg-white rounded-2xl border border-black/[0.06] shadow-[0_1px_2px_rgb(0_0_0/0.04)] p-4 sm:p-6 fc-responsive'>
+        <div className='mb-5 flex flex-wrap items-center gap-x-3 gap-y-2'>
+          <span className='text-[13px] font-medium text-muted-foreground'>Tampilkan</span>
+          <div className='flex flex-wrap gap-1.5'>
             {CALENDAR_STATUS_ORDER.map((status) => {
               const meta = CALENDAR_STATUS_META[status];
               const isActive = visibleStatuses.includes(status);
@@ -149,16 +146,15 @@ export default function BookingCalendar() {
                   type='button'
                   aria-pressed={isActive}
                   onClick={() => toggleStatus(status)}
-                  className='inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition'
-                  style={
+                  className={`inline-flex h-7 items-center gap-1.5 rounded-full px-3 text-xs font-medium transition-colors ${
                     isActive
-                      ? { backgroundColor: meta.color, borderColor: meta.color, color: '#fff' }
-                      : { backgroundColor: '#fff', borderColor: meta.color, color: meta.color }
-                  }
+                      ? 'bg-secondary text-foreground hover:bg-[#e3e3e8]'
+                      : 'bg-transparent text-muted-foreground/70 line-through decoration-1 hover:bg-muted'
+                  }`}
                 >
                   <span
                     className='h-2 w-2 rounded-full'
-                    style={{ backgroundColor: isActive ? '#fff' : meta.color }}
+                    style={{ backgroundColor: meta.color, opacity: isActive ? 1 : 0.35 }}
                   />
                   {meta.label}
                 </button>
@@ -168,9 +164,7 @@ export default function BookingCalendar() {
         </div>
 
         {isError && (
-          <div className='mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm'>
-            Gagal memuat data kalender. Silakan coba lagi.
-          </div>
+          <Callout tone='danger' className='mb-4'>Gagal memuat data kalender. Silakan coba lagi.</Callout>
         )}
 
         {!isFetching && hasNoEvents && (
@@ -182,7 +176,7 @@ export default function BookingCalendar() {
 
         <div ref={containerRef} className='relative'>
           {isFetching && data && (
-            <div className='absolute right-2 top-2 z-10 rounded bg-white/90 px-2 py-1 text-xs text-gray-500 shadow'>
+            <div className='absolute right-2 top-2 z-10 rounded-full bg-white/90 px-2.5 py-1 text-xs text-muted-foreground shadow-sm backdrop-blur'>
               Memuat…
             </div>
           )}

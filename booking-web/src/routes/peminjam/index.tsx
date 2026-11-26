@@ -27,17 +27,16 @@ function StatCard({
   return (
     <div
       onClick={onClick}
-      className={`bg-white rounded-xl border border-gray-200 shadow-sm p-5 flex flex-col gap-3 ${onClick ? 'cursor-pointer hover:shadow-md hover:border-blue-300 transition-all' : ''
+      className={`bg-white rounded-2xl border border-black/[0.06] shadow-[0_1px_2px_rgb(0_0_0/0.04)] p-5 flex flex-col gap-4 ${onClick ? 'cursor-pointer transition-shadow hover:shadow-[0_4px_16px_rgb(0_0_0/0.06)]' : ''
         }`}
     >
       <div className="flex items-start justify-between">
-        <span className="text-sm font-medium text-gray-600">{label}</span>
-        <div className={`p-2 rounded-lg ${color}`}>{icon}</div>
+        <span className="text-[13px] font-medium text-muted-foreground">{label}</span>
+        <div className={`flex size-8 items-center justify-center rounded-full ${color}`}>{icon}</div>
       </div>
       <div>
-        <div className="text-3xl font-bold text-gray-900">{value}</div>
-        <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
-          <Clock className="w-3 h-3" />
+        <div className="text-[28px] font-semibold leading-none tracking-tight text-foreground">{value}</div>
+        <div className="mt-2 text-xs text-muted-foreground">
           {sub}
         </div>
       </div>
@@ -69,7 +68,7 @@ function RouteComponent() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-gray-900">Dashboard</h1>
           <p className="text-sm text-gray-500 mt-0.5">
             Selamat datang! Berikut ringkasan pengajuan Anda.
           </p>

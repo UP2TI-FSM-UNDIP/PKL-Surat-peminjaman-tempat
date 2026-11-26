@@ -1,3 +1,4 @@
+import { formatDateShort } from '@/lib/date';
 import { useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
@@ -20,19 +21,20 @@ export function ApprovalQueuePage({ detailRoute }: { detailRoute: ApprovalDetail
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <h1 className="text-2xl font-semibold">Antrean Persetujuan</h1>
-        <Badge variant="secondary">{pagination?.total ?? 0}</Badge>
+        <h1 className="text-[28px] font-semibold tracking-tight">Antrean persetujuan</h1>
+        <Badge variant="secondary" className="rounded-full">{pagination?.total ?? 0}</Badge>
       </div>
+      <div className="overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-[0_1px_2px_rgb(0_0_0/0.04)]">
       <Table>
-        <TableHeader><TableRow><TableHead>Pemohon</TableHead><TableHead>Unit</TableHead><TableHead>Kegiatan</TableHead><TableHead>Slot</TableHead><TableHead>Deadline</TableHead><TableHead>Status</TableHead><TableHead /></TableRow></TableHeader>
+        <TableHeader><TableRow><TableHead>Pemohon</TableHead><TableHead>Unit</TableHead><TableHead>Kegiatan</TableHead><TableHead>Tanggal</TableHead><TableHead>Batas proposal</TableHead><TableHead>Status</TableHead><TableHead /></TableRow></TableHeader>
         <TableBody>
           {documents.map((document) => (
             <TableRow key={document.id}>
-              <TableCell>{document.creator?.name ?? document.creator_id}</TableCell>
-              <TableCell>{document.unit?.name ?? '-'}</TableCell>
+              <TableCell className="font-medium">{document.creator?.name ?? document.creator_id}</TableCell>
+              <TableCell className="text-muted-foreground">{document.unit?.name ?? '-'}</TableCell>
               <TableCell>{document.content?.event_name ?? document.title}</TableCell>
-              <TableCell>{document.content?.slots?.length ?? 0} slot · {document.content?.slots?.[0]?.booking_date ?? '-'}</TableCell>
-              <TableCell>{document.reservation_deadline ?? '-'}</TableCell>
+              <TableCell>{formatDateShort(document.content?.slots?.[0]?.booking_date)}{(document.content?.slots?.length ?? 0) > 1 && <span className="text-muted-foreground"> · {document.content?.slots?.length} slot</span>}</TableCell>
+              <TableCell>{formatDateShort(document.reservation_deadline)}</TableCell>
               <TableCell><DocumentStatusBadge doc={document} /></TableCell>
               <TableCell>
                 <Link to={detailRoute} params={{ documentId: String(document.id) }}>
@@ -43,6 +45,7 @@ export function ApprovalQueuePage({ detailRoute }: { detailRoute: ApprovalDetail
           ))}
         </TableBody>
       </Table>
+      </div>
       {documents.length === 0 && <p className="text-sm text-muted-foreground">Tidak ada pengajuan menunggu.</p>}
       {pagination && pagination.last_page > 1 && (
         <div className="flex justify-end gap-2">

@@ -13,3 +13,20 @@ export function formatDateTimeId(value: string | Date): string {
     timeStyle: 'short',
   });
 }
+
+/** "09:00:00" → "09:00". Nilai kosong menjadi "—". */
+export function formatTime(value?: string | null): string {
+  return value ? value.slice(0, 5) : '—';
+}
+
+/** Rentang jam ringkas, mis. "09:00–12:00". */
+export function formatTimeRange(start?: string | null, end?: string | null): string {
+  return `${formatTime(start)}–${formatTime(end)}`;
+}
+
+/** Tanggal ISO (YYYY-MM-DD) → "27 Nov 2026"; kosong/invalid → "—". */
+export function formatDateShort(value?: string | null): string {
+  if (!value) return '—';
+  const date = parseISO(value.slice(0, 10));
+  return Number.isNaN(date.getTime()) ? value : format(date, 'd MMM yyyy', { locale: localeId });
+}

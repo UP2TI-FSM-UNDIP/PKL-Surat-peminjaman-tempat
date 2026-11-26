@@ -1,3 +1,4 @@
+import { formatDateShort } from '@/lib/date';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createFileRoute, Link, useNavigate, useParams } from '@tanstack/react-router';
 import { useForm, useWatch } from 'react-hook-form';
@@ -97,7 +98,7 @@ function ProposalPage() {
         <Card>
           <CardContent className="space-y-2 p-4 text-sm text-muted-foreground">
             <p>Proposal tidak dapat diubah pada status {document.status}.</p>
-            {summary?.reservation_deadline && <p>Deadline: {summary.reservation_deadline}</p>}
+            {summary?.reservation_deadline && <p>Batas proposal: {formatDateShort(summary.reservation_deadline)}</p>}
             {['REJECTED', 'EXPIRED', 'CANCELLED'].includes(document.status) && (
               <Link to="/peminjam/pinjam/baru"><Button>Buat reservasi baru</Button></Link>
             )}

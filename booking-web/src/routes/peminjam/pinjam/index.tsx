@@ -1,3 +1,4 @@
+import { formatDateShort } from '@/lib/date';
 import { useState } from 'react';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
@@ -56,7 +57,7 @@ function SubmissionListPage() {
             <TableRow key={document.id}>
               <TableCell>{document.content?.event_name ?? document.title}</TableCell>
               <TableCell>{document.content?.slots?.length ?? 0} slot</TableCell>
-              <TableCell>{document.reservation_deadline ?? '-'}</TableCell>
+              <TableCell>{formatDateShort(document.reservation_deadline)}</TableCell>
               <TableCell><DocumentStatusBadge doc={document} /></TableCell>
               <TableCell>
                 <Link to="/peminjam/pinjam/$documentId" params={{ documentId: String(document.id) }}>

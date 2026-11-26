@@ -53,13 +53,9 @@ export function SideBar({ menuSections, footerLink }: SideBarProps) {
         {menuSections.map((section, index) => (
           <SidebarGroup
             key={section.label}
-            className={
-              index < menuSections.length - 1
-                ? 'border-b border-border pb-4'
-                : ''
-            }
+            className={index < menuSections.length - 1 ? 'pb-2' : ''}
           >
-            <SidebarGroupLabel className='text-muted-foreground uppercase text-xs'>
+            <SidebarGroupLabel className='px-2 text-[11px] font-semibold text-muted-foreground'>
               {section.label}
             </SidebarGroupLabel>
             <SidebarMenu>
@@ -72,26 +68,28 @@ export function SideBar({ menuSections, footerLink }: SideBarProps) {
                       isActive={isActive}
                       className={cn(
                         'group/sidebar-item',
+                        'h-9 rounded-lg',
                         isActive
-                          ? 'bg-primary! text-primary-foreground! hover:bg-primary!'
-                          : 'hover:bg-secondary! hover:text-secondary-foreground!',
+                          ? 'bg-accent! text-accent-foreground! hover:bg-accent!'
+                          : 'hover:bg-muted!',
                       )}
                     >
                       <Link to={item.url}>
                         <item.icon
                           className={
                             isActive
-                              ? 'text-primary-foreground'
-                              : 'text-muted-foreground transition-colors group-hover/sidebar-item:text-secondary-foreground'
+                              ? 'text-primary'
+                              : 'text-muted-foreground transition-colors group-hover/sidebar-item:text-foreground'
                           }
                         />
                         <span
                           className={cn(
                             'transition-[opacity,transform,color] duration-200',
                             'group-data-[collapsible=icon]:-translate-x-1 group-data-[collapsible=icon]:opacity-0',
+                            'text-[13px]',
                             isActive
-                              ? 'text-primary-foreground! font-semibold!'
-                              : 'text-foreground transition-colors group-hover/sidebar-item:text-secondary-foreground',
+                              ? 'text-accent-foreground! font-semibold!'
+                              : 'text-foreground',
                           )}
                         >
                           {item.title}

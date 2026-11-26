@@ -1,3 +1,4 @@
+import { formatTimeRange } from '@/lib/date';
 import { Eye } from 'lucide-react';
 import {
     Table,
@@ -78,7 +79,7 @@ export function BookingTable({
                                 })}
                             </TableCell>
                             <TableCell className='hidden lg:table-cell text-[10px] md:text-sm text-gray-500 px-1 py-1.5 sm:px-4 sm:py-3'>
-                                {item.start_time} - {item.end_time}
+                                {formatTimeRange(item.start_time, item.end_time)}
                             </TableCell>
                             <TableCell className='px-1 py-1.5 sm:px-4 sm:py-3 text-[10px] md:text-sm'>
                                 {statusBadge(item.status)}

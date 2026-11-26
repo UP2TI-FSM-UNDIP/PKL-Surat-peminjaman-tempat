@@ -302,7 +302,7 @@ function RouteComponent() {
     <div className='container mx-auto px-2 sm:px-4 py-2 sm:py-4'>
       {/* Header */}
       <div className='mb-4 sm:mb-6'>
-        <h1 className='text-xl sm:text-2xl font-bold text-gray-900 mb-1 sm:mb-2'>
+        <h1 className='text-xl sm:text-2xl font-semibold tracking-tight text-gray-900 mb-1 sm:mb-2'>
           Manajemen Unit
         </h1>
         <p className='text-sm sm:text-base text-gray-600'>
@@ -352,7 +352,7 @@ function RouteComponent() {
       </div>
 
       {/* Table Section */}
-      <div className='bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden relative'>
+      <div className='bg-white rounded-2xl border border-black/[0.06] shadow-[0_1px_2px_rgb(0_0_0/0.04)] overflow-hidden relative'>
         {/* Subtle Loading Overlay for Updates */}
         {isFetching && !isInitialLoading && (
           <div className='absolute inset-0 bg-white/50 backdrop-blur-[1px] z-10 flex items-center justify-center text-center'>
