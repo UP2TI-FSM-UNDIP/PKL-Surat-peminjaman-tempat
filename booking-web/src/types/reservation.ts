@@ -79,6 +79,10 @@ export interface BookingRuleDate {
   rooms: BookingRuleRoom[];
   limits: BookingRuleLimits;
   message?: string | null;
+  /** H-0: hanya bisa lewat Ajukan Pinjam. */
+  same_day?: boolean;
+  /** H-0: jam mulai paling cepat (HH:mm). */
+  min_start_time?: string | null;
 }
 
 export interface AvailabilityConflict {

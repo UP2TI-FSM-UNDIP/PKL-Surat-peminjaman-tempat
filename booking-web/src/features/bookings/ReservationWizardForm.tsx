@@ -25,6 +25,8 @@ import type { ReservationWizardValues } from './reservationForm.types';
 interface Props {
   intent: 'reservation' | 'submit';
   submitLabel?: string;
+  /** Tanggal awal (YYYY-MM-DD), misalnya dari klik kalender. */
+  initialDate?: string;
   onSuccess: (document: Document<ReservationContent>) => void;
 }
 
@@ -41,8 +43,14 @@ const defaults: ReservationWizardValues = {
   buka_sekat: false,
 };
 
-export function ReservationWizardForm({ intent, submitLabel = 'Simpan Reservasi', onSuccess }: Props) {
-  const { register, control, handleSubmit, setValue, formState: { errors } } = useForm<ReservationWizardValues>({ defaultValues: defaults });
+export function ReservationWizardForm({ intent, submitLabel = 'Simpan Reservasi', initialDate, onSuccess }: Props) {
+  const { register, control, handleSubmit, setValue, formState: { errors } } = useForm<ReservationWizardValues>({
+    defaultValues: initialDate
+      ? { ...defaults, booking_date: initialDate, slots: [{ ...defaults.slots[0], booking_date: initialDate }] }
+      : defaults,
+  });
+  // Ajukan Pinjam (intent submit) adalah alur langsung; hanya alur ini yang boleh H-0.
+  const direct = intent === 'submit';
   const mode = useWatch({ control, name: 'mode' });
   const roomId = useWatch({ control, name: 'room_id' });
   const bookingDate = useWatch({ control, name: 'booking_date' });
@@ -133,6 +141,7 @@ export function ReservationWizardForm({ intent, submitLabel = 'Simpan Reservasi'
       rulesByDate,
       limits: activeRule?.limits,
       expectedParticipants: values.expected_participants ? Number(values.expected_participants) : null,
+      direct,
     });
     setFormErrors(validation.formErrors);
     setRowErrors(validation.rowErrors);
@@ -234,7 +243,7 @@ export function ReservationWizardForm({ intent, submitLabel = 'Simpan Reservasi'
       </div>
 
       {slots[0]?.booking_date && (
-        <DayRuleAlert slot={slots[0]} dayRule={rulesByDate[slots[0].booking_date]} expectedParticipants={expectedParticipants ? Number(expectedParticipants) : null} />
+        <DayRuleAlert slot={slots[0]} dayRule={rulesByDate[slots[0].booking_date]} expectedParticipants={expectedParticipants ? Number(expectedParticipants) : null} direct={direct} />
       )}
 
       {formErrors.map((error) => <p key={error} className="text-sm text-destructive">{error}</p>)}

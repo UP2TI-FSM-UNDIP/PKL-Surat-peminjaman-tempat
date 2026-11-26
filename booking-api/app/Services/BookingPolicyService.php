@@ -29,6 +29,25 @@ class BookingPolicyService
     {
         $daysBefore = (int) $applicationDate->diffInDays($earliestSlotDate);
 
+        // Pinjam hari ini (H-0, lewat Ajukan Pinjam): proposal harus lengkap dan
+        // diajukan di hari yang sama, jadi deadline = hari itu juga.
+        if ($applicationDate->isSameDay($earliestSlotDate)) {
+            return [
+                'policy_id' => $policy->id,
+                'strategy' => 'same_day',
+                'application_date' => $applicationDate->toDateString(),
+                'earliest_slot_date' => $earliestSlotDate->toDateString(),
+                'days_before' => 0,
+                'matched_min_days' => 0,
+                'deadline_offset' => 0,
+                'computed_deadline' => $earliestSlotDate->toDateString(),
+                'min_booking_days' => $policy->min_booking_days,
+                'max_dates_per_room' => $policy->max_dates_per_room,
+                'max_rooms_per_date' => $policy->max_rooms_per_date,
+                'max_total_room_hours' => $policy->max_total_room_hours,
+            ];
+        }
+
         $tier = $policy->tiers->first(fn ($tier) => $daysBefore >= $tier->min_days_before);
         if (!$tier) {
             throw ValidationException::withMessages([

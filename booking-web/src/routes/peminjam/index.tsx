@@ -78,14 +78,14 @@ function RouteComponent() {
           <Button
             variant="outline"
             className="gap-2"
-            onClick={() => navigate({ to: '/peminjam/pinjam/baru' })}
+            onClick={() => navigate({ to: '/peminjam/pinjam/baru', search: { jenis: 'pinjam' } })}
           >
             <Send className="w-4 h-4" />
             Ajukan Peminjaman
           </Button>
           <Button
             className="gap-2"
-            onClick={() => navigate({ to: '/peminjam/pinjam/baru' })}
+            onClick={() => navigate({ to: '/peminjam/pinjam/baru', search: { jenis: 'reservasi' } })}
           >
             <CalendarCheck className="w-4 h-4" />
             Reservasi

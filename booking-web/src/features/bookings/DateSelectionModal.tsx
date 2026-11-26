@@ -25,11 +25,16 @@ export function DateSelectionModal({
     selectedDate,
 }: DateSelectionModalProps) {
     const navigate = useNavigate();
-    const { rulesByDate } = useBookingRules(selectedDate ? [selectedDate] : []);
-    const dayRule = selectedDate ? rulesByDate[selectedDate] : undefined;
+    // Tampilan minggu/hari mengirim tanggal+jam; aturan dan form memakai tanggal saja.
+    const dateOnly = selectedDate ? selectedDate.slice(0, 10) : null;
+    const { rulesByDate } = useBookingRules(dateOnly ? [dateOnly] : []);
+    const dayRule = dateOnly ? rulesByDate[dateOnly] : undefined;
 
-    const handleContinue = () => {
-        navigate({ to: '/peminjam/pinjam/baru' });
+    const handleContinue = (jenis: 'reservasi' | 'pinjam') => {
+        navigate({
+            to: '/peminjam/pinjam/baru',
+            search: { tanggal: dateOnly ?? undefined, jenis },
+        });
         onOpenChange(false);
     };
 
@@ -47,6 +52,8 @@ export function DateSelectionModal({
     const dateIssue = dayRule && !dayRule.is_bookable
         ? dayRule.message || 'Tanggal ini tidak bisa dipinjam.'
         : null;
+    // Hari ini (H-0) hanya bisa lewat Ajukan Pinjam.
+    const sameDay = !!dayRule?.same_day && !dateIssue;
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -74,6 +81,19 @@ export function DateSelectionModal({
                     </div>
                 )}
 
+                {sameDay && (
+                    <div className='flex gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800'>
+                        <Info className='w-4 h-4 mt-0.5 shrink-0' />
+                        <div>
+                            <p className='font-medium'>Peminjaman hari ini.</p>
+                            <p>
+                                Hanya bisa lewat Ajukan Pinjam, dengan proposal yang sudah lengkap dan diajukan hari ini juga.
+                                {dayRule?.min_start_time ? ` Jam mulai paling cepat ${dayRule.min_start_time}.` : ''}
+                            </p>
+                        </div>
+                    </div>
+                )}
+
                 {dayRule?.day_type === 'weekday' && dayRule.is_bookable && (
                     <div className='flex gap-2 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800'>
                         <Info className='w-4 h-4 mt-0.5 shrink-0' />
@@ -83,8 +103,8 @@ export function DateSelectionModal({
 
                 <div className='grid gap-4 py-4'>
                     <Button
-                        onClick={handleContinue}
-                        disabled={!!dateIssue}
+                        onClick={() => handleContinue('reservasi')}
+                        disabled={!!dateIssue || sameDay}
                         className='w-full h-auto py-6 flex flex-col items-center gap-3 bg-blue-600 hover:bg-blue-700'
                     >
                         <Calendar className='w-8 h-8' />
@@ -97,7 +117,7 @@ export function DateSelectionModal({
                     </Button>
 
                     <Button
-                        onClick={handleContinue}
+                        onClick={() => handleContinue('pinjam')}
                         disabled={!!dateIssue}
                         className='w-full h-auto py-6 flex flex-col items-center gap-3 bg-green-600 hover:bg-green-700'
                     >

@@ -124,4 +124,52 @@ class ReservationMultiSlotTest extends TestCase
             ['room_id' => $c->id, 'booking_date' => '2026-12-02', 'start_time' => '09:00', 'end_time' => '12:00'],
         ]])->assertStatus(422);
     }
+
+    private function sameDayPayload(int $roomId, string $intent, string $start = '11:00', string $end = '13:00'): array
+    {
+        return [
+            'mode' => 'one_room_many_dates',
+            'slots' => [['room_id' => $roomId, 'booking_date' => '2026-11-20', 'start_time' => $start, 'end_time' => $end]],
+            'purpose' => 'Rapat mendadak',
+            'ketua_pelaksana_nama' => 'Ketua',
+            'ketua_pelaksana_identitas' => '24060121120001',
+            'ketua_pelaksana_hp' => '081234567890',
+            'intent' => $intent,
+        ];
+    }
+
+    public function test_same_day_reservation_is_rejected(): void
+    {
+        Sanctum::actingAs($this->borrower());
+        $room = Room::create(['name' => 'F107', 'code' => 'F107', 'status' => 'ACTIVE', 'is_bookable_weekday' => true, 'weekday_max_end_time' => '16:30']);
+
+        $this->postJson('/api/reservations', $this->sameDayPayload($room->id, 'reservation'))
+            ->assertUnprocessable()
+            ->assertJsonFragment(['Tanggal hari ini hanya bisa lewat Ajukan Pinjam.']);
+        $this->assertDatabaseCount('room_bookings', 0);
+    }
+
+    public function test_same_day_direct_borrowing_requires_lead_time(): void
+    {
+        Sanctum::actingAs($this->borrower());
+        $room = Room::create(['name' => 'F107', 'code' => 'F107', 'status' => 'ACTIVE', 'is_bookable_weekday' => true, 'weekday_max_end_time' => '16:30']);
+
+        $this->postJson('/api/reservations', $this->sameDayPayload($room->id, 'submit', '10:30', '12:00'))
+            ->assertUnprocessable()
+            ->assertJsonFragment(['Pinjam hari ini: jam mulai paling cepat 11:00.']);
+    }
+
+    public function test_same_day_direct_borrowing_creates_draft_due_today(): void
+    {
+        Sanctum::actingAs($this->borrower());
+        $room = Room::create(['name' => 'F107', 'code' => 'F107', 'status' => 'ACTIVE', 'is_bookable_weekday' => true, 'weekday_max_end_time' => '16:30']);
+
+        $this->postJson('/api/reservations', $this->sameDayPayload($room->id, 'submit'))
+            ->assertCreated()
+            ->assertJsonPath('data.status', 'DRAFT');
+
+        $document = \App\Models\Document::first();
+        $this->assertSame('2026-11-20', $document->reservation_deadline->toDateString());
+        $this->assertSame('same_day', $document->deadline_rule_snapshot['strategy']);
+    }
 }
