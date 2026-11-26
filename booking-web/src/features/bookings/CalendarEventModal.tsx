@@ -206,12 +206,25 @@ export function CalendarEventModal({ open, onOpenChange, event, document }: Prop
           <div className='space-y-2'>
             <h3 className='text-[13px] font-semibold text-muted-foreground'>Kebutuhan alat</h3>
             {document && document.equipment_items.length > 0 ? (
-              <div className='flex flex-wrap gap-1.5'>
-                {document.equipment_items.map((item) => (
-                  <span key={item.nama} className='rounded-full bg-secondary px-3 py-1 text-[13px]'>
-                    {item.nama} <span className='text-muted-foreground'>× {item.jumlah}</span>
-                  </span>
-                ))}
+              <div className='overflow-hidden rounded-xl border border-border'>
+                <table className='w-full text-[13px]'>
+                  <thead className='bg-[#f5f5f7] text-left text-muted-foreground'>
+                    <tr>
+                      <th className='w-10 border-b border-border px-3 py-2 text-center font-medium'>#</th>
+                      <th className='border-b border-border px-3 py-2 font-medium'>Nama alat</th>
+                      <th className='w-20 border-b border-border px-3 py-2 text-right font-medium'>Jumlah</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {document.equipment_items.map((item, index) => (
+                      <tr key={`${item.nama}-${index}`} className='border-b border-border last:border-b-0'>
+                        <td className='px-3 py-2 text-center text-muted-foreground'>{index + 1}</td>
+                        <td className='break-words px-3 py-2'>{item.nama}</td>
+                        <td className='px-3 py-2 text-right tabular-nums'>{item.jumlah}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             ) : (
               <p className='text-[13px] text-muted-foreground'>Tidak ada kebutuhan alat.</p>
