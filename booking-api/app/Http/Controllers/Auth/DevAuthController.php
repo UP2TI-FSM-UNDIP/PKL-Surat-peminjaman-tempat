@@ -66,8 +66,9 @@ class DevAuthController extends Controller
             ], 409);
         }
 
-        // Satu token dev aktif per user supaya token tidak menumpuk saat berpindah akun.
-        $user->tokens()->where('name', 'dev-login')->delete();
+        // Token dev lain milik user ini tetap berlaku supaya satu akun demo bisa
+        // dipakai di beberapa tab/browser sekaligus; yang sudah kedaluwarsa dibersihkan.
+        $user->tokens()->where('name', 'dev-login')->where('expires_at', '<', now())->delete();
 
         $token = $user->createToken('dev-login', ['*'], now()->addDays(7))->plainTextToken;
 

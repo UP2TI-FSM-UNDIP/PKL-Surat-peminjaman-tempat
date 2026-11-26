@@ -1,4 +1,5 @@
 // src/api/axios.js
+import { authStorage } from '@/lib/authStorage';
 import axios from 'axios';
 
 const api = axios.create({
@@ -15,7 +16,7 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     // Ambil token dari LocalStorage
-    const token = localStorage.getItem('token');
+    const token = authStorage.getItem('token');
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -38,7 +39,7 @@ api.interceptors.response.use(
     // Jika backend menolak token (401 Unauthorized)
     if (error.response?.status === 401) {
       // Hapus token yang sudah tidak valid
-      localStorage.removeItem('token');
+      authStorage.removeItem('token');
 
       // Opsional: Redirect ke halaman login
       // Karena ini file JS biasa (bukan komponen), kita pakai cara native:

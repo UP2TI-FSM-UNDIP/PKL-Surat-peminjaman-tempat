@@ -1,3 +1,4 @@
+import { authStorage } from '@/lib/authStorage';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { documentService } from '@/services/document.service';
@@ -14,7 +15,7 @@ export function ApprovalDetailPage({ documentId, basePath }: { documentId: numbe
   if (documentQuery.isLoading || summaryQuery.isLoading) return <p>Memuat…</p>;
   if (!documentQuery.data || !summaryQuery.data) return <p>Dokumen tidak ditemukan.</p>;
 
-  const currentUserId = Number(localStorage.getItem('userId'));
+  const currentUserId = Number(authStorage.getItem('userId'));
   const canAct = documentQuery.data.status === 'IN_PROGRESS' && documentQuery.data.current_holder_id === currentUserId;
   return (
     <div className="mx-auto max-w-4xl space-y-6">

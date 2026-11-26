@@ -1,3 +1,4 @@
+import { authStorage } from '@/lib/authStorage';
 import { SidebarTrigger } from '@/components/ui/sidebar/sidebar';
 import { Button } from '@/components/ui/button/button';
 import { Link } from '@tanstack/react-router';
@@ -89,7 +90,7 @@ export function TopBar({
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = authStorage.getItem('token');
         if (token) {
           const response = await api.get<User>('/user');
           setUser(response.data);

@@ -137,7 +137,7 @@ class DevAuthTest extends TestCase
         $this->postJson('/api/dev/login')->assertStatus(409);
     }
 
-    public function test_token_dev_lama_dicabut_saat_login_ulang(): void
+    public function test_login_ulang_tidak_mencabut_token_dev_di_tab_lain(): void
     {
         $firstToken = $this->postJson('/api/dev/login')->json('token');
 
@@ -145,7 +145,17 @@ class DevAuthTest extends TestCase
 
         $this->withHeader('Authorization', 'Bearer '.$firstToken)
             ->getJson('/api/user')
-            ->assertUnauthorized();
+            ->assertOk();
+    }
+
+    public function test_token_dev_kedaluwarsa_dibersihkan_saat_login(): void
+    {
+        $admin = User::where('email', 'admin@fsm.undip.ac.id')->firstOrFail();
+        $admin->createToken('dev-login', ['*'], now()->subMinute());
+
+        $this->postJson('/api/dev/login')->assertOk();
+
+        $this->assertSame(1, $admin->tokens()->where('name', 'dev-login')->count());
     }
 
     public function test_user_non_demo_tidak_muncul_bila_role_sudah_punya_akun_demo(): void

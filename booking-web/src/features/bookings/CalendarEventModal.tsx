@@ -1,3 +1,4 @@
+import { authStorage } from '@/lib/authStorage';
 import { useNavigate } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
 import { Button } from '@/components/ui/button/button';
@@ -62,7 +63,7 @@ export function CalendarEventModal({ open, onOpenChange, event, document }: Prop
   if (!event) return null;
 
   const meta = CALENDAR_STATUS_META[event.display_status];
-  const currentUserId = Number(localStorage.getItem('userId') ?? 0);
+  const currentUserId = Number(authStorage.getItem('userId') ?? 0);
   const roleSlug = authService.getRoleSlug();
   const canBorrow = roleSlug === 'peminjam' || roleSlug === 'dosen';
   const canCompleteProposal =

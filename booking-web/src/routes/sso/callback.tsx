@@ -1,3 +1,4 @@
+import { authStorage } from '@/lib/authStorage';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { authService } from '@/services/auth.service';
@@ -35,7 +36,7 @@ function SsoCallbackPage() {
     const processCallback = async () => {
       try {
         // Save token first so the axios interceptor can use it
-        localStorage.setItem('token', token);
+        authStorage.setItem('token', token);
 
         // Fetch full user profile with the new token
         const userResponse = await authService.getUser();
@@ -60,7 +61,7 @@ function SsoCallbackPage() {
         }
       } catch (err: unknown) {
         console.error('[SSO Callback] Failed to process SSO login', err);
-        localStorage.removeItem('token');
+        authStorage.removeItem('token');
         setError('Autentikasi SSO gagal. Silakan coba lagi.');
       }
     };
