@@ -13,7 +13,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Callout } from '@/components/ui/callout';
-import { Clock, Columns2, Hourglass, User, Users } from 'lucide-react';
+import { Clock, Columns2, Hourglass, Table2, User, Users } from 'lucide-react';
 import { authService } from '@/services/auth.service';
 import type { CalendarDocument, CalendarEvent } from '@/types/calendar';
 import { CALENDAR_STATUS_META, TERMINAL_STATUSES } from './calendarStatus';
@@ -23,6 +23,9 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   event: CalendarEvent | null;
   document?: CalendarDocument;
+  /** Jumlah peminjaman aktif (hijau) pada tanggal event ini. */
+  dayActiveCount?: number;
+  onShowDay?: () => void;
 }
 
 function formatDate(value: string): string {
@@ -54,7 +57,7 @@ function DetailRow({
   );
 }
 
-export function CalendarEventModal({ open, onOpenChange, event, document }: Props) {
+export function CalendarEventModal({ open, onOpenChange, event, document, dayActiveCount = 0, onShowDay }: Props) {
   const navigate = useNavigate();
 
   if (!event) return null;
@@ -107,12 +110,23 @@ export function CalendarEventModal({ open, onOpenChange, event, document }: Prop
               </span>
               <span className='py-1 text-xl font-semibold leading-none tabular-nums'>{dayNumber}</span>
             </div>
-            <div className='min-w-0'>
+            <div className='min-w-0 flex-1'>
               <p className='text-[15px] font-semibold'>{formatDate(event.booking_date)}</p>
               <p className='flex items-center gap-1.5 text-[13px] text-muted-foreground'>
                 <Clock className='size-3.5' /> {formatTimeRange(event.start_time, event.end_time)} WIB
               </p>
             </div>
+            {event.display_status === 'active' && onShowDay && dayActiveCount > 1 && (
+              <button
+                type='button'
+                onClick={onShowDay}
+                className='inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[#ecf8ef] px-3 py-1.5 text-[13px] font-medium text-[#248a3d] transition-colors hover:bg-[#dcf2e2]'
+              >
+                <Table2 className='size-3.5' />
+                <span className='hidden sm:inline'>Semua hari ini</span>
+                <span className='rounded-full bg-white px-1.5 text-xs tabular-nums'>{dayActiveCount}</span>
+              </button>
+            )}
           </div>
         </div>
 

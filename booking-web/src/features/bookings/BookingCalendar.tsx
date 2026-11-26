@@ -15,6 +15,7 @@ import type {
 } from '@/types/calendar';
 import { CalendarEventModal } from './CalendarEventModal';
 import { DateSelectionModal } from './DateSelectionModal';
+import { DayBookingsModal } from './DayBookingsModal';
 import { Callout } from '@/components/ui/callout';
 import {
   CALENDAR_STATUS_META,
@@ -51,6 +52,8 @@ export default function BookingCalendar() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDateSelectionModalOpen, setIsDateSelectionModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [dayListDate, setDayListDate] = useState<string | null>(null);
+  const [isDayListOpen, setIsDayListOpen] = useState(false);
 
   const calendarRef = useRef<FullCalendar>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -146,16 +149,23 @@ export default function BookingCalendar() {
     );
   };
 
+  // Peminjaman aktif (hijau) per tanggal, untuk tabel "semua hari ini".
+  const activeOn = (date: string | null) =>
+    date ? (data?.events ?? []).filter((e) => e.display_status === 'active' && e.booking_date === date) : [];
+
+  const openEvent = (event: CalendarEvent) => {
+    setSelectedEvent(event);
+    setSelectedDocument(data?.documents[String(event.document_id)]);
+    setIsModalOpen(true);
+  };
+
   const handleEventClick = (clickInfo: EventClickArg) => {
     const event = clickInfo.event.extendedProps.calendarEvent as
       | CalendarEvent
       | undefined;
 
     if (!event) return;
-
-    setSelectedEvent(event);
-    setSelectedDocument(data?.documents[String(event.document_id)]);
-    setIsModalOpen(true);
+    openEvent(event);
   };
 
   const handleDateClick = (dateInfo: DateClickArg) => {
@@ -285,6 +295,24 @@ export default function BookingCalendar() {
         onOpenChange={setIsModalOpen}
         event={selectedEvent}
         document={selectedDocument}
+        dayActiveCount={activeOn(selectedEvent?.booking_date ?? null).length}
+        onShowDay={() => {
+          setDayListDate(selectedEvent?.booking_date ?? null);
+          setIsModalOpen(false);
+          setIsDayListOpen(true);
+        }}
+      />
+
+      <DayBookingsModal
+        open={isDayListOpen}
+        onOpenChange={setIsDayListOpen}
+        date={dayListDate}
+        events={activeOn(dayListDate)}
+        documents={data?.documents ?? {}}
+        onSelect={(event) => {
+          setIsDayListOpen(false);
+          openEvent(event);
+        }}
       />
 
       <DateSelectionModal
