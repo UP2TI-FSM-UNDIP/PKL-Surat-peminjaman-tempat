@@ -72,13 +72,17 @@ export interface BookingRuleLimits {
 
 export interface BookingRuleDate {
   date: string;
-  day_type: 'weekday' | 'saturday' | 'sunday' | 'too_soon';
+  day_type: 'weekday' | 'saturday' | 'sunday' | 'too_soon' | 'past';
   is_bookable: boolean;
   open_time: string | null;
   min_booking_days: number;
   rooms: BookingRuleRoom[];
   limits: BookingRuleLimits;
   message?: string | null;
+  /** H-0: hanya bisa lewat Ajukan Pinjam. */
+  same_day?: boolean;
+  /** H-0: jam mulai paling cepat (HH:mm). */
+  min_start_time?: string | null;
 }
 
 export interface AvailabilityConflict {

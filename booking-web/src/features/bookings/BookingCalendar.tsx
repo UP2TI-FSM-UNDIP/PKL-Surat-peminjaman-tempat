@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import type { DatesSetArg, EventClickArg, EventInput } from '@fullcalendar/core';
+import type { DatesSetArg, EventClickArg, EventContentArg, EventInput } from '@fullcalendar/core';
 import type { DateClickArg } from '@fullcalendar/interaction';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -15,6 +15,7 @@ import type {
 } from '@/types/calendar';
 import { CalendarEventModal } from './CalendarEventModal';
 import { DateSelectionModal } from './DateSelectionModal';
+import { Callout } from '@/components/ui/callout';
 import {
   CALENDAR_STATUS_META,
   CALENDAR_STATUS_ORDER,
@@ -29,11 +30,14 @@ interface VisibleRange {
 
 function EmptyBanner({ children }: { children: ReactNode }) {
   return (
-    <div className='mb-4 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800'>
-      {children}
-    </div>
+    <p className='mb-4 text-[13px] text-muted-foreground'>{children}</p>
   );
 }
+
+const STATUS_HINT: Partial<Record<CalendarDisplayStatus, string>> = {
+  active: 'Proposal lengkap — klik event untuk rangkuman',
+  reservation: 'Proposal belum lengkap',
+};
 
 export default function BookingCalendar() {
   const [range, setRange] = useState<VisibleRange>(() => ({
@@ -81,15 +85,57 @@ export default function BookingCalendar() {
 
   const visibleEvents = filterCalendarEvents(data?.events ?? [], visibleStatuses);
 
-  const events: EventInput[] = visibleEvents.map((event) => ({
-    id: event.id,
-    title: `${event.title} · ${event.room.code}`,
-    start: `${event.booking_date}T${event.start_time}:00`,
-    end: `${event.booking_date}T${event.end_time}:00`,
-    backgroundColor: CALENDAR_STATUS_META[event.display_status].color,
-    borderColor: CALENDAR_STATUS_META[event.display_status].color,
-    extendedProps: { calendarEvent: event },
-  }));
+  const events: EventInput[] = visibleEvents.map((event) => {
+    const color = CALENDAR_STATUS_META[event.display_status].color;
+    return {
+      id: event.id,
+      title: event.title,
+      start: `${event.booking_date}T${event.start_time}:00`,
+      end: `${event.booking_date}T${event.end_time}:00`,
+      // Warna lembut: latar tipis + garis kiri berwarna; teks tetap gelap.
+      backgroundColor: `${color}1f`,
+      borderColor: color,
+      textColor: '#1d1d1f',
+      classNames: ['fsm-event'],
+      extendedProps: { calendarEvent: event, color },
+    };
+  });
+
+  const renderEvent = (arg: EventContentArg) => {
+    const event = arg.event.extendedProps.calendarEvent as CalendarEvent | undefined;
+    const color = arg.event.extendedProps.color as string;
+    const time = event ? event.start_time.slice(0, 5) : arg.timeText;
+    const room = event?.room.code ?? '';
+    const title = arg.event.title || 'Tanpa judul';
+    if (arg.view.type === 'dayGridWeek') {
+      // Tampilan minggu: kartu bertumpuk per hari, urut jam — rapi walau banyak booking.
+      return (
+        <div className='fsm-event-card' title={`${time}–${event?.end_time.slice(0, 5) ?? ''} · ${title} · ${room}`}>
+          <span className='fsm-event-title'>{title}</span>
+          <span className='fsm-event-meta'>
+            {time}–{event?.end_time.slice(0, 5) ?? ''}
+            {room && <span className='fsm-event-chip'>{room}</span>}
+          </span>
+        </div>
+      );
+    }
+    if (arg.view.type === 'dayGridMonth') {
+      return (
+        <div className='fsm-event-month' title={`${time} · ${title} · ${room}`}>
+          <span className='fsm-event-dot' style={{ backgroundColor: color }} />
+          <span className='fsm-event-time'>{time}</span>
+          <span className='fsm-event-title'>{title}</span>
+          <span className='fsm-event-room'>{room}</span>
+        </div>
+      );
+    }
+    return (
+      <div className='fsm-event-block' title={`${time}–${event?.end_time.slice(0, 5) ?? ''} · ${title} · ${room}`}>
+        <span className='fsm-event-title'>{title}</span>
+        <span className='fsm-event-meta'>{time} · {room}</span>
+      </div>
+    );
+  };
 
   const handleDatesSet = (info: DatesSetArg) => {
     const from = format(info.start, 'yyyy-MM-dd');
@@ -113,6 +159,8 @@ export default function BookingCalendar() {
   };
 
   const handleDateClick = (dateInfo: DateClickArg) => {
+    // Tanggal yang sudah lewat tidak bisa diajukan, jadi tidak membuka pilihan pengajuan.
+    if (dateInfo.dateStr.slice(0, 10) < format(new Date(), 'yyyy-MM-dd')) return;
     setSelectedDate(dateInfo.dateStr);
     setIsDateSelectionModalOpen(true);
   };
@@ -131,12 +179,10 @@ export default function BookingCalendar() {
 
   return (
     <>
-      <div className='bg-white rounded-lg shadow-sm border border-gray-200 p-4 fc-responsive'>
-        <div className='mb-4'>
-          <p className='mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500'>
-            Legenda dan filter
-          </p>
-          <div className='flex flex-wrap gap-2'>
+      <div className='bg-white rounded-2xl border border-black/[0.06] shadow-[0_1px_2px_rgb(0_0_0/0.04)] p-4 sm:p-6 fc-responsive'>
+        <div className='mb-5 flex flex-wrap items-center gap-x-3 gap-y-2'>
+          <span className='text-[13px] font-medium text-muted-foreground'>Tampilkan</span>
+          <div className='flex flex-wrap gap-1.5'>
             {CALENDAR_STATUS_ORDER.map((status) => {
               const meta = CALENDAR_STATUS_META[status];
               const isActive = visibleStatuses.includes(status);
@@ -146,17 +192,17 @@ export default function BookingCalendar() {
                   key={status}
                   type='button'
                   aria-pressed={isActive}
+                  title={STATUS_HINT[status]}
                   onClick={() => toggleStatus(status)}
-                  className='inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition'
-                  style={
+                  className={`inline-flex h-7 items-center gap-1.5 rounded-full px-3 text-xs font-medium transition-colors ${
                     isActive
-                      ? { backgroundColor: meta.color, borderColor: meta.color, color: '#fff' }
-                      : { backgroundColor: '#fff', borderColor: meta.color, color: meta.color }
-                  }
+                      ? 'bg-secondary text-foreground hover:bg-[#e3e3e8]'
+                      : 'bg-transparent text-muted-foreground/70 line-through decoration-1 hover:bg-muted'
+                  }`}
                 >
                   <span
                     className='h-2 w-2 rounded-full'
-                    style={{ backgroundColor: isActive ? '#fff' : meta.color }}
+                    style={{ backgroundColor: meta.color, opacity: isActive ? 1 : 0.35 }}
                   />
                   {meta.label}
                 </button>
@@ -166,9 +212,7 @@ export default function BookingCalendar() {
         </div>
 
         {isError && (
-          <div className='mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm'>
-            Gagal memuat data kalender. Silakan coba lagi.
-          </div>
+          <Callout tone='danger' className='mb-4'>Gagal memuat data kalender. Silakan coba lagi.</Callout>
         )}
 
         {!isFetching && hasNoEvents && (
@@ -180,7 +224,7 @@ export default function BookingCalendar() {
 
         <div ref={containerRef} className='relative'>
           {isFetching && data && (
-            <div className='absolute right-2 top-2 z-10 rounded bg-white/90 px-2 py-1 text-xs text-gray-500 shadow'>
+            <div className='absolute right-2 top-2 z-10 rounded-full bg-white/90 px-2.5 py-1 text-xs text-muted-foreground shadow-sm backdrop-blur'>
               Memuat…
             </div>
           )}
@@ -192,7 +236,7 @@ export default function BookingCalendar() {
             headerToolbar={{
               left: 'prev,next today',
               center: 'title',
-              right: 'dayGridMonth,timeGridWeek,timeGridDay',
+              right: 'dayGridMonth,dayGridWeek,timeGridDay',
             }}
             buttonText={{
               today: 'Hari Ini',
@@ -205,8 +249,33 @@ export default function BookingCalendar() {
             datesSet={handleDatesSet}
             eventClick={handleEventClick}
             dateClick={handleDateClick}
-            height={560}
-            aspectRatio={1.5}
+            eventContent={renderEvent}
+            eventDisplay='block'
+            dayCellClassNames={(arg) => (arg.isPast && !arg.isToday ? ['fsm-day-past', 'cursor-not-allowed'] : ['cursor-pointer'])}
+            height='auto'
+            allDaySlot={false}
+            slotMinTime='07:00:00'
+            slotMaxTime='18:00:00'
+            slotDuration='00:30:00'
+            slotLabelFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
+            eventTimeFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
+            dayHeaderFormat={{ weekday: 'short' }}
+            views={{
+              dayGridWeek: {
+                dayHeaderFormat: { weekday: 'short', day: 'numeric' },
+                dayMaxEvents: false,
+                eventOrder: 'start,title',
+              },
+              timeGridDay: {
+                dayHeaderFormat: { weekday: 'long', day: 'numeric', month: 'long' },
+                eventMaxStack: 4,
+              },
+            }}
+            dayMaxEvents={3}
+            eventMaxStack={2}
+            moreLinkContent={(arg) => `+${arg.num} lainnya`}
+            nowIndicator
+            expandRows
           />
         </div>
       </div>

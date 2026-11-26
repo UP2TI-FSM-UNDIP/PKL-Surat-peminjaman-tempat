@@ -76,11 +76,11 @@ export function SegmentedControl<T extends string>({
         ref={trackRef}
         role='group'
         aria-label={ariaLabel}
-        className='relative flex w-max gap-1 rounded-full border border-gray-200 bg-gray-50 p-1'
+        className='relative flex w-max gap-0.5 rounded-full bg-secondary p-0.5'
       >
         <span
           aria-hidden='true'
-          className='pointer-events-none absolute inset-y-1 left-0 rounded-full bg-primary shadow-sm transition-[transform,width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform'
+          className='pointer-events-none absolute inset-y-0.5 left-0 rounded-full bg-white shadow-[0_1px_3px_rgb(0_0_0/0.12)] transition-[transform,width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform'
           style={{
             transform: `translateX(${indicator.left}px)`,
             width: indicator.width,
@@ -97,10 +97,10 @@ export function SegmentedControl<T extends string>({
               aria-pressed={isActive}
               onClick={() => onChange(option.value)}
               className={cn(
-                'relative z-10 rounded-full px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition-colors',
+                'relative z-10 rounded-full px-3.5 py-1.5 text-[13px] font-medium whitespace-nowrap transition-colors',
                 isActive
-                  ? 'text-primary-foreground'
-                  : 'text-gray-600 hover:text-gray-900',
+                  ? 'text-foreground'
+                  : 'text-muted-foreground hover:text-foreground',
               )}
             >
               {option.label}

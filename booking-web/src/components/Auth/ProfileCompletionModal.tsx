@@ -1,3 +1,4 @@
+import { authStorage } from '@/lib/authStorage';
 import { useEffect, useState, type FormEvent } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button/button';
@@ -9,13 +10,13 @@ import { getErrorMessage } from '@/lib/errors';
 export function ProfileCompletionModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [name, setName] = useState(localStorage.getItem('userName') ?? '');
-  const [nimNip, setNimNip] = useState(localStorage.getItem('userNim') ?? '');
+  const [name, setName] = useState(authStorage.getItem('userName') ?? '');
+  const [nimNip, setNimNip] = useState(authStorage.getItem('userNim') ?? '');
 
   useEffect(() => {
     const check = () => {
-      const token = localStorage.getItem('token');
-      setIsOpen(!!token && localStorage.getItem('isProfileCompleted') === 'false');
+      const token = authStorage.getItem('token');
+      setIsOpen(!!token && authStorage.getItem('isProfileCompleted') === 'false');
     };
     check();
     window.addEventListener('storage', check);

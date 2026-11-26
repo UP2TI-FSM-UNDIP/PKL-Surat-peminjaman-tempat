@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import {
     Dialog,
@@ -7,7 +8,8 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button/button';
-import { Calendar, FileText, Info } from 'lucide-react';
+import { Calendar, ChevronRight, FileText } from 'lucide-react';
+import { Callout } from '@/components/ui/callout';
 import { useBookingRules } from '@/hooks/useBookingRules';
 
 interface DateSelectionModalProps {
@@ -25,11 +27,16 @@ export function DateSelectionModal({
     selectedDate,
 }: DateSelectionModalProps) {
     const navigate = useNavigate();
-    const { rulesByDate } = useBookingRules(selectedDate ? [selectedDate] : []);
-    const dayRule = selectedDate ? rulesByDate[selectedDate] : undefined;
+    // Tampilan minggu/hari mengirim tanggal+jam; aturan dan form memakai tanggal saja.
+    const dateOnly = selectedDate ? selectedDate.slice(0, 10) : null;
+    const { rulesByDate } = useBookingRules(dateOnly ? [dateOnly] : []);
+    const dayRule = dateOnly ? rulesByDate[dateOnly] : undefined;
 
-    const handleContinue = () => {
-        navigate({ to: '/peminjam/pinjam/baru' });
+    const handleContinue = (jenis: 'reservasi' | 'pinjam') => {
+        navigate({
+            to: '/peminjam/pinjam/baru',
+            search: { tanggal: dateOnly ?? undefined, jenis },
+        });
         onOpenChange(false);
     };
 
@@ -47,78 +54,93 @@ export function DateSelectionModal({
     const dateIssue = dayRule && !dayRule.is_bookable
         ? dayRule.message || 'Tanggal ini tidak bisa dipinjam.'
         : null;
+    // Hari ini (H-0) hanya bisa lewat Ajukan Pinjam.
+    const sameDay = !!dayRule?.same_day && !dateIssue;
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className='sm:max-w-md'>
-                <DialogHeader>
-                    <DialogTitle className='text-xl font-semibold'>
-                        Pilih Jenis Pengajuan
+            <DialogContent className='gap-5 sm:max-w-[440px]'>
+                <DialogHeader className='space-y-1 text-left'>
+                    <DialogTitle className='text-[19px] font-semibold tracking-tight'>
+                        Pilih jenis pengajuan
                     </DialogTitle>
-                    <DialogDescription className='text-sm text-gray-600'>
-                        {selectedDate && (
-                            <span className='block mt-2 font-medium text-gray-700'>
-                                Tanggal: {formatDate(selectedDate)}
-                            </span>
-                        )}
+                    <DialogDescription className='text-[13px] text-muted-foreground'>
+                        {selectedDate ? formatDate(selectedDate) : 'Pilih tanggal di kalender.'}
                     </DialogDescription>
                 </DialogHeader>
 
                 {dateIssue && (
-                    <div className='flex gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800'>
-                        <Info className='w-4 h-4 mt-0.5 shrink-0' />
-                        <div>
-                            <p className='font-medium'>Tanggal ini tidak bisa dipinjam.</p>
-                            <p>{dateIssue} Anda tetap bisa melanjutkan dan memilih tanggal lain di form.</p>
-                        </div>
-                    </div>
+                    <Callout tone='warning' title='Tanggal ini tidak bisa dipinjam'>
+                        {dateIssue} Pilih tanggal lain di kalender.
+                    </Callout>
                 )}
 
-                {dayRule?.day_type === 'weekday' && dayRule.is_bookable && (
-                    <div className='flex gap-2 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800'>
-                        <Info className='w-4 h-4 mt-0.5 shrink-0' />
-                        <p>{WEEKDAY_WARNING}</p>
-                    </div>
+                {sameDay && (
+                    <Callout tone='info' title='Peminjaman hari ini'>
+                        Hanya lewat Ajukan Pinjam, dengan proposal lengkap yang diajukan hari ini juga.
+                        {dayRule?.min_start_time ? ` Mulai paling cepat pukul ${dayRule.min_start_time}.` : ''}
+                    </Callout>
                 )}
 
-                <div className='grid gap-4 py-4'>
-                    <Button
-                        onClick={handleContinue}
-                        className='w-full h-auto py-6 flex flex-col items-center gap-3 bg-blue-600 hover:bg-blue-700'
-                    >
-                        <Calendar className='w-8 h-8' />
-                        <div className='text-center'>
-                            <div className='font-semibold text-lg'>Reservasi</div>
-                            <div className='text-xs font-normal opacity-90 mt-1'>
-                                Untuk yang belum melengkapi dokumen/proposal
-                            </div>
-                        </div>
-                    </Button>
+                {dayRule?.day_type === 'weekday' && dayRule.is_bookable && !sameDay && (
+                    <Callout tone='info'>{WEEKDAY_WARNING}</Callout>
+                )}
 
-                    <Button
-                        onClick={handleContinue}
-                        className='w-full h-auto py-6 flex flex-col items-center gap-3 bg-green-600 hover:bg-green-700'
-                    >
-                        <FileText className='w-8 h-8' />
-                        <div className='text-center'>
-                            <div className='font-semibold text-lg'>Ajukan Pinjam</div>
-                            <div className='text-xs font-normal opacity-90 mt-1'>
-                                Untuk yang sudah melengkapi dokumen/proposal
-                            </div>
-                        </div>
-                    </Button>
+                <div className='overflow-hidden rounded-xl border border-border bg-white'>
+                    <OptionRow
+                        icon={<Calendar className='size-[18px]' />}
+                        iconClass='bg-[#eaf3fe] text-primary'
+                        title='Reservasi'
+                        description='Tahan slot dulu, proposal dilengkapi menyusul.'
+                        disabled={!!dateIssue || sameDay}
+                        disabledNote={sameDay ? 'Tidak tersedia untuk hari ini' : undefined}
+                        onClick={() => handleContinue('reservasi')}
+                    />
+                    <div className='ml-[60px] border-t border-border' />
+                    <OptionRow
+                        icon={<FileText className='size-[18px]' />}
+                        iconClass='bg-[#e8f7ec] text-[#248a3d]'
+                        title='Ajukan Pinjam'
+                        description='Proposal sudah lengkap, langsung diajukan.'
+                        disabled={!!dateIssue}
+                        onClick={() => handleContinue('pinjam')}
+                    />
                 </div>
 
                 <div className='flex justify-end'>
-                    <Button
-                        variant='outline'
-                        onClick={() => onOpenChange(false)}
-                        className='text-sm'
-                    >
+                    <Button variant='secondary' onClick={() => onOpenChange(false)}>
                         Batal
                     </Button>
                 </div>
             </DialogContent>
         </Dialog>
+    );
+}
+
+function OptionRow({ icon, iconClass, title, description, disabled, disabledNote, onClick }: {
+    icon: ReactNode;
+    iconClass: string;
+    title: string;
+    description: string;
+    disabled?: boolean;
+    disabledNote?: string;
+    onClick: () => void;
+}) {
+    return (
+        <button
+            type='button'
+            onClick={onClick}
+            disabled={disabled}
+            className='group flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-muted/70 focus-visible:bg-muted/70 focus-visible:outline-none disabled:cursor-not-allowed disabled:hover:bg-transparent'
+        >
+            <span className={`flex size-9 shrink-0 items-center justify-center rounded-full ${iconClass} group-disabled:opacity-40`}>
+                {icon}
+            </span>
+            <span className='min-w-0 flex-1 group-disabled:opacity-45'>
+                <span className='block text-[15px] font-semibold text-foreground'>{title}</span>
+                <span className='block text-[13px] text-muted-foreground'>{disabled && disabledNote ? disabledNote : description}</span>
+            </span>
+            <ChevronRight className='size-4 shrink-0 text-[#c7c7cc] transition-transform group-hover:translate-x-0.5 group-disabled:opacity-0' />
+        </button>
     );
 }

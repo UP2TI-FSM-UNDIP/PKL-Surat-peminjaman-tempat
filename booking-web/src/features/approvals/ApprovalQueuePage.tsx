@@ -1,8 +1,11 @@
+import { formatDateShort } from '@/lib/date';
 import { useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button/button';
-import { Badge } from '@/components/ui/badge';
+import { PageHeader } from '@/components/common/PageHeader';
+import { TableCard } from '@/components/common/TableCard';
+import { RoomCodes } from '@/components/common/RoomCodes';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DocumentStatusBadge } from '@/components/DocumentStatusBadge';
 import { documentService } from '@/services/document.service';
@@ -19,20 +22,18 @@ export function ApprovalQueuePage({ detailRoute }: { detailRoute: ApprovalDetail
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <h1 className="text-2xl font-semibold">Antrean Persetujuan</h1>
-        <Badge variant="secondary">{pagination?.total ?? 0}</Badge>
-      </div>
+      <PageHeader title="Antrean persetujuan" count={pagination?.total ?? 0} />
+      <TableCard>
       <Table>
-        <TableHeader><TableRow><TableHead>Pemohon</TableHead><TableHead>Unit</TableHead><TableHead>Kegiatan</TableHead><TableHead>Slot</TableHead><TableHead>Deadline</TableHead><TableHead>Status</TableHead><TableHead /></TableRow></TableHeader>
+        <TableHeader><TableRow><TableHead>Pemohon</TableHead><TableHead>Ruang</TableHead><TableHead>Kegiatan</TableHead><TableHead>Tanggal</TableHead><TableHead>Batas proposal</TableHead><TableHead>Status</TableHead><TableHead /></TableRow></TableHeader>
         <TableBody>
           {documents.map((document) => (
             <TableRow key={document.id}>
-              <TableCell>{document.creator?.name ?? document.creator_id}</TableCell>
-              <TableCell>{document.unit?.name ?? '-'}</TableCell>
+              <TableCell className="font-medium">{document.creator?.name ?? document.creator_id}</TableCell>
+              <TableCell><RoomCodes slots={document.content?.slots} /></TableCell>
               <TableCell>{document.content?.event_name ?? document.title}</TableCell>
-              <TableCell>{document.content?.slots?.length ?? 0} slot · {document.content?.slots?.[0]?.booking_date ?? '-'}</TableCell>
-              <TableCell>{document.reservation_deadline ?? '-'}</TableCell>
+              <TableCell>{formatDateShort(document.content?.slots?.[0]?.booking_date)}{(document.content?.slots?.length ?? 0) > 1 && <span className="text-muted-foreground"> · {document.content?.slots?.length} slot</span>}</TableCell>
+              <TableCell>{formatDateShort(document.reservation_deadline)}</TableCell>
               <TableCell><DocumentStatusBadge doc={document} /></TableCell>
               <TableCell>
                 <Link to={detailRoute} params={{ documentId: String(document.id) }}>
@@ -43,6 +44,7 @@ export function ApprovalQueuePage({ detailRoute }: { detailRoute: ApprovalDetail
           ))}
         </TableBody>
       </Table>
+      </TableCard>
       {documents.length === 0 && <p className="text-sm text-muted-foreground">Tidak ada pengajuan menunggu.</p>}
       {pagination && pagination.last_page > 1 && (
         <div className="flex justify-end gap-2">

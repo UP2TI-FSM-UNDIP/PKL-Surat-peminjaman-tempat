@@ -14,7 +14,11 @@ export interface ValidateSlotsInput {
   limits?: BookingRuleDate['limits'];
   expectedParticipants?: number | null;
   todayIso?: string;
+  /** true untuk Ajukan Pinjam (alur langsung); hanya alur ini yang boleh H-0. */
+  direct?: boolean;
 }
+
+export const SAME_DAY_RESERVATION_MESSAGE = 'Tanggal hari ini hanya bisa lewat Ajukan Pinjam.';
 
 const toMinutes = (time: string): number => {
   const [hours, minutes] = time.slice(0, 5).split(':').map(Number);
@@ -32,15 +36,22 @@ export function validateSlotDay(
   dayRule: BookingRuleDate | undefined,
   expectedParticipants?: number | null,
   todayIso?: string,
+  direct = false,
 ): string[] {
   if (!dayRule) return ['Aturan tanggal belum dimuat.'];
   if (!dayRule.is_bookable) return [dayRule.message ?? 'Tanggal tidak dapat dibooking.'];
 
   const today = todayIso ?? format(new Date(), 'yyyy-MM-dd');
+  if (slot.booking_date < today) return ['Tanggal reservasi sudah lewat.'];
+  const sameDay = !!dayRule.same_day && slot.booking_date === today;
+  if (sameDay && !direct) return [SAME_DAY_RESERVATION_MESSAGE];
   const earliest = format(addDays(parseISO(today), dayRule.min_booking_days), 'yyyy-MM-dd');
-  if (slot.booking_date < earliest) return ['Tanggal reservasi terlalu dekat.'];
+  if (!sameDay && slot.booking_date < earliest) return ['Tanggal reservasi terlalu dekat.'];
 
   const errors: string[] = [];
+  if (sameDay && dayRule.min_start_time && toMinutes(slot.start_time) < toMinutes(dayRule.min_start_time)) {
+    errors.push(`Pinjam hari ini: jam mulai paling cepat ${dayRule.min_start_time}.`);
+  }
   const room = dayRule.rooms.find((item) => item.id === slot.room_id);
   if (!room) {
     errors.push('Ruang tidak dibuka pada tanggal ini.');
@@ -74,7 +85,7 @@ export function validateSlots(input: ValidateSlotsInput): {
   formErrors: string[];
   rowErrors: Record<number, string[]>;
 } {
-  const { mode, slots, rulesByDate, limits, expectedParticipants, todayIso } = input;
+  const { mode, slots, rulesByDate, limits, expectedParticipants, todayIso, direct } = input;
   const formErrors: string[] = [];
   const rowErrors: Record<number, string[]> = {};
 
@@ -103,7 +114,7 @@ export function validateSlots(input: ValidateSlotsInput): {
   }
 
   slots.forEach((slot, index) => {
-    const errors = validateSlotDay(slot, rulesByDate[slot.booking_date], expectedParticipants, todayIso);
+    const errors = validateSlotDay(slot, rulesByDate[slot.booking_date], expectedParticipants, todayIso, direct);
     if (errors.length > 0) rowErrors[index] = errors;
   });
 

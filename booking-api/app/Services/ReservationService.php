@@ -44,7 +44,7 @@ class ReservationService
             }
 
             foreach ($slots as $slot) {
-                $this->rules->validateSlot($slot, $policy);
+                $this->rules->validateSlot($slot, $policy, ($data['intent'] ?? null) === 'submit');
             }
             $this->assertCapacity($slots, $data['expected_participants'] ?? null);
             $this->assertTotalHours($slots, $policy);

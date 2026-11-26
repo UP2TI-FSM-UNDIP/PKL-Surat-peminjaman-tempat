@@ -1,3 +1,4 @@
+import { formatDateShort } from '@/lib/date';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createFileRoute, Link, useNavigate, useParams } from '@tanstack/react-router';
 import { useForm, useWatch } from 'react-hook-form';
@@ -85,7 +86,7 @@ function ProposalPage() {
     <div className="mx-auto max-w-4xl space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold">Proposal Kegiatan</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-[28px]">Proposal Kegiatan</h1>
           <p className="text-sm text-muted-foreground">Jadwal reservasi sudah terkunci. Lengkapi proposal di bawah.</p>
         </div>
         <Link to="/peminjam/pinjam/$documentId" params={{ documentId }} className="text-sm underline">Lihat detail</Link>
@@ -97,7 +98,7 @@ function ProposalPage() {
         <Card>
           <CardContent className="space-y-2 p-4 text-sm text-muted-foreground">
             <p>Proposal tidak dapat diubah pada status {document.status}.</p>
-            {summary?.reservation_deadline && <p>Deadline: {summary.reservation_deadline}</p>}
+            {summary?.reservation_deadline && <p>Batas proposal: {formatDateShort(summary.reservation_deadline)}</p>}
             {['REJECTED', 'EXPIRED', 'CANCELLED'].includes(document.status) && (
               <Link to="/peminjam/pinjam/baru"><Button>Buat reservasi baru</Button></Link>
             )}

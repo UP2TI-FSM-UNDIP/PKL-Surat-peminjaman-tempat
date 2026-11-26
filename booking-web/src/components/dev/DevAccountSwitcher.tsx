@@ -50,7 +50,7 @@ export function DevAccountSwitcher({ session, currentUserId }: DevAccountSwitche
         type='button'
         onClick={() => setOpen(true)}
         title='Ganti akun (dev)'
-        className='inline-flex items-center gap-2 rounded-xl border border-white/40 bg-white/10 px-3 py-1.5 text-xs font-bold text-white transition-all hover:bg-white/20 active:scale-95 sm:px-4 sm:py-2 sm:text-sm'
+        className='inline-flex h-8 items-center gap-2 rounded-full bg-secondary px-3.5 text-[13px] font-medium text-foreground transition-colors hover:bg-[#e3e3e8] active:scale-[0.98]'
       >
         <UserCog className='h-4 w-4' />
         <span className='hidden sm:inline'>Ganti akun</span>

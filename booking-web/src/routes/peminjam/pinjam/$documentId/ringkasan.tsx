@@ -78,7 +78,7 @@ function SummaryPage() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
-      <h1 className="text-2xl font-semibold">Ringkasan dan Pengajuan</h1>
+      <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-[28px]">Ringkasan dan Pengajuan</h1>
       <ReservationSummaryCard document={document} summary={summary} />
       <Card>
         <CardHeader><CardTitle className="text-base">Kelengkapan proposal</CardTitle></CardHeader>

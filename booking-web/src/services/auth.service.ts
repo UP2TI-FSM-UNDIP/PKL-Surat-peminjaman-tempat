@@ -1,3 +1,4 @@
+import { authStorage } from '@/lib/authStorage';
 import api from '@/lib/axios';
 import { getRolePath } from '@/lib/roleRoutes';
 import { isRoleSlug, type AuthUser, type RoleSlug } from '@/types/auth';
@@ -32,33 +33,33 @@ export const authService = {
   },
 
   saveUser(user: AuthUser, token?: string): void {
-    if (token) localStorage.setItem('token', token);
-    localStorage.setItem('userEmail', user.email);
-    localStorage.setItem('userName', user.name);
-    localStorage.setItem('userId', String(user.id));
+    if (token) authStorage.setItem('token', token);
+    authStorage.setItem('userEmail', user.email);
+    authStorage.setItem('userName', user.name);
+    authStorage.setItem('userId', String(user.id));
 
-    if (user.nim_nip) localStorage.setItem('userNim', user.nim_nip);
-    else localStorage.removeItem('userNim');
+    if (user.nim_nip) authStorage.setItem('userNim', user.nim_nip);
+    else authStorage.removeItem('userNim');
 
     if (user.role) {
-      localStorage.setItem('role', user.role.slug);
-      localStorage.setItem('roleName', user.role.name);
-      localStorage.setItem('roleId', String(user.role.id));
+      authStorage.setItem('role', user.role.slug);
+      authStorage.setItem('roleName', user.role.name);
+      authStorage.setItem('roleId', String(user.role.id));
     } else {
-      localStorage.removeItem('role');
-      localStorage.removeItem('roleName');
-      localStorage.removeItem('roleId');
+      authStorage.removeItem('role');
+      authStorage.removeItem('roleName');
+      authStorage.removeItem('roleId');
     }
 
     if (user.unit) {
-      localStorage.setItem('userUnit', user.unit.name);
-      localStorage.setItem('unitId', String(user.unit.id));
+      authStorage.setItem('userUnit', user.unit.name);
+      authStorage.setItem('unitId', String(user.unit.id));
     } else {
-      localStorage.removeItem('userUnit');
-      localStorage.removeItem('unitId');
+      authStorage.removeItem('userUnit');
+      authStorage.removeItem('unitId');
     }
 
-    localStorage.setItem('isProfileCompleted', user.is_profile_completed ? 'true' : 'false');
+    authStorage.setItem('isProfileCompleted', user.is_profile_completed ? 'true' : 'false');
     window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
   },
 
@@ -68,20 +69,20 @@ export const authService = {
 
   clearAuthData(): void {
     ['token', 'userEmail', 'userName', 'userId', 'userNim', 'role', 'roleName', 'roleId', 'userUnit', 'unitId', 'isProfileCompleted']
-      .forEach((key) => localStorage.removeItem(key));
+      .forEach((key) => authStorage.removeItem(key));
     window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
   },
 
   isAuthenticated(): boolean {
-    return !!localStorage.getItem('token');
+    return !!authStorage.getItem('token');
   },
 
   getRole(): string | null {
-    return localStorage.getItem('role');
+    return authStorage.getItem('role');
   },
 
   getRoleSlug(): RoleSlug | null {
-    const value = localStorage.getItem('role');
+    const value = authStorage.getItem('role');
     return isRoleSlug(value) ? value : null;
   },
 

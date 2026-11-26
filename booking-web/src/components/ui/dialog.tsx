@@ -1,3 +1,4 @@
+import { cn } from '@/lib/utils';
 import * as React from 'react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
@@ -16,7 +17,7 @@ const DialogOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
 	<DialogPrimitive.Overlay
 		ref={ref}
-		className={`fixed inset-0 z-50 bg-black/40 backdrop-blur-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 ${className || ''}`}
+		className={`fixed inset-0 z-50 bg-black/25 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 ${className || ''}`}
 		{...props}
 	/>
 ));
@@ -30,12 +31,12 @@ const DialogContent = React.forwardRef<
 		<DialogOverlay />
 		<DialogPrimitive.Content
 			ref={ref}
-			className={`fixed left-1/2 top-1/2 z-50 grid w-full -translate-x-1/2 -translate-y-1/2 gap-4 border bg-white p-6 shadow-lg data-[state=open]:animate-[dialog-in_200ms_cubic-bezier(0.22,1,0.36,1)] data-[state=closed]:animate-[dialog-out_150ms_ease-in] sm:rounded-lg ${className || ''}`}
+			className={cn('fixed left-1/2 top-1/2 z-50 grid w-[calc(100%-1.5rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 border border-black/[0.06] bg-white p-6 shadow-[0_24px_64px_rgb(0_0_0/0.18)] data-[state=open]:animate-[dialog-in_200ms_cubic-bezier(0.22,1,0.36,1)] data-[state=closed]:animate-[dialog-out_150ms_ease-in] rounded-[20px]', className)}
 			{...props}
 		>
 			{children}
-			<DialogPrimitive.Close className='absolute right-4 top-4 rounded-sm opacity-70 ring-offset-white transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-slate-100 data-[state=open]:text-slate-500'>
-				<X className='h-4 w-4' />
+			<DialogPrimitive.Close className='absolute right-4 top-4 flex size-7 items-center justify-center rounded-full bg-secondary text-muted-foreground transition-colors hover:bg-[#e3e3e8] hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 disabled:pointer-events-none'>
+				<X className='h-3.5 w-3.5' />
 				<span className='sr-only'>Close</span>
 			</DialogPrimitive.Close>
 		</DialogPrimitive.Content>

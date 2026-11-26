@@ -313,10 +313,10 @@ function RouteComponent() {
     <div className='container mx-auto px-2 sm:px-4 py-2 sm:py-4 max-w-7xl'>
       {/* Header */}
       <div className='mb-4 sm:mb-6'>
-        <h1 className='text-xl sm:text-2xl font-bold text-gray-900 mb-1 sm:mb-2'>
+        <h1 className='text-2xl font-semibold tracking-tight text-foreground sm:text-[28px]'>
           Manajemen Alur
         </h1>
-        <p className='text-sm sm:text-base text-gray-600'>
+        <p className='mt-0.5 text-[13px] text-muted-foreground'>
           Kelola workflow approval untuk berbagai kategori unit
         </p>
       </div>

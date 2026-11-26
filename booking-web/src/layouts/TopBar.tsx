@@ -1,3 +1,4 @@
+import { authStorage } from '@/lib/authStorage';
 import { SidebarTrigger } from '@/components/ui/sidebar/sidebar';
 import { Button } from '@/components/ui/button/button';
 import { Link } from '@tanstack/react-router';
@@ -89,7 +90,7 @@ export function TopBar({
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = authStorage.getItem('token');
         if (token) {
           const response = await api.get<User>('/user');
           setUser(response.data);
@@ -127,20 +128,20 @@ export function TopBar({
   }
 
   return (
-    <header className={`w-full flex items-center justify-between bg-primary border-b border-gray-100 px-4 sm:px-6 py-4 sm:py-6 h-16 sm:h-20 transition-all`}>
+    <header className='sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-black/[0.06] bg-white/80 px-4 backdrop-blur-xl backdrop-saturate-150 sm:h-16 sm:px-6'>
       <div className='flex items-center gap-3'>
         {/* Trigger sidebar untuk layout dengan sidebar (admin, role, dll) */}
-        {hasSidebar && <SidebarTrigger className='md:hidden text-white' />}
+        {hasSidebar && <SidebarTrigger className='md:hidden text-foreground' />}
         <div className='flex items-center gap-3'>
           <Link
             to='/'
             aria-label='Beranda'
-            className='-m-1 inline-flex shrink-0 items-center rounded-lg p-1 transition-transform duration-200 hover:scale-[1.03] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80'
+            className='-m-1 inline-flex shrink-0 items-center rounded-lg p-1 transition-transform duration-200 hover:scale-[1.03] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40'
           >
             <img
               src={`${import.meta.env.BASE_URL}logo-fsm.png`}
               alt='FSM Logo'
-              className='h-8 sm:h-12 w-auto'
+              className='h-7 w-auto brightness-0 opacity-85 sm:h-9'
             />
           </Link>
         </div>
@@ -148,9 +149,9 @@ export function TopBar({
       <div className='flex items-center gap-2 sm:gap-4'>
         {user ? (
           <>
-            <div className='hidden sm:block text-white text-right'>
-              <p className='text-sm font-semibold'>{user.name}</p>
-              <p className='text-xs text-white/80'>
+            <div className='hidden text-right leading-tight sm:block'>
+              <p className='text-[13px] font-semibold text-foreground'>{user.name}</p>
+              <p className='text-xs text-muted-foreground'>
                 {user.role?.name || 'User'}{' '}
               </p>
             </div>
@@ -161,7 +162,7 @@ export function TopBar({
 
             <button
               onClick={handleLogout}
-              className='inline-flex items-center gap-2 bg-white text-primary hover:bg-gray-100 border border-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl shadow-sm transition-all duration-200 text-xs sm:text-sm font-bold active:scale-95'
+              className='inline-flex h-8 items-center gap-2 rounded-full bg-secondary px-3.5 text-[13px] font-medium text-foreground transition-colors hover:bg-[#e3e3e8] active:scale-[0.98]'
             >
               Logout
             </button>
@@ -173,7 +174,7 @@ export function TopBar({
                 type='button'
                 onClick={handleDevLogin}
                 title='Masuk sebagai Admin (dev)'
-                className='inline-flex items-center gap-2 rounded-xl border border-white/50 px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-white/10 active:scale-95 sm:text-sm'
+                className='inline-flex h-8 items-center gap-2 rounded-full bg-secondary px-3.5 text-[13px] font-medium text-foreground transition-colors hover:bg-[#e3e3e8] active:scale-[0.98]'
               >
                 <UserCog className='h-4 w-4' />
                 <span className='hidden sm:inline'>Masuk sebagai Admin</span>
@@ -182,7 +183,7 @@ export function TopBar({
 
             <Button
               onClick={onLoginClick}
-              className='flex rounded-lg items-center gap-1.5 bg-white text-primary hover:bg-gray-100 border border-white px-6 py-2 font-bold transition-all duration-200 text-sm h-auto active:scale-95 shadow-sm'
+              className='flex h-8 items-center gap-1.5 rounded-full bg-primary px-4 text-[13px] font-medium text-primary-foreground transition-colors hover:bg-[#0077ed] active:scale-[0.98]'
             >
               <span>{actionLabel}</span>
               <svg xmlns='http://www.w3.org/2000/svg' className='h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 duration-200' fill='none' viewBox='0 0 24 24' stroke='currentColor' strokeWidth={2.5}>
@@ -193,7 +194,7 @@ export function TopBar({
         ) : (
           <Link
             to={actionHref}
-            className='flex rounded-lg items-center gap-1.5 bg-white text-primary hover:bg-gray-100 border border-white px-6 py-2 font-bold transition-all duration-200 text-sm active:scale-95 shadow-sm'
+            className='flex h-8 items-center gap-1.5 rounded-full bg-primary px-4 text-[13px] font-medium text-primary-foreground transition-colors hover:bg-[#0077ed] active:scale-[0.98]'
           >
             {actionLabel}
           </Link>

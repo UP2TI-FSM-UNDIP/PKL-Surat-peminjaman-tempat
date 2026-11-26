@@ -290,10 +290,10 @@ function RouteComponent() {
     <div className='container mx-auto px-2 sm:px-4 py-2 sm:py-4 max-w-7xl'>
       {/* Header */}
       <div className='mb-4 sm:mb-6'>
-        <h1 className='text-xl sm:text-2xl font-bold text-gray-900 mb-1 sm:mb-2'>
+        <h1 className='text-2xl font-semibold tracking-tight text-foreground sm:text-[28px]'>
           Manajemen Pengguna
         </h1>
-        <p className='text-sm sm:text-base text-gray-600'>
+        <p className='mt-0.5 text-[13px] text-muted-foreground'>
           Kelola pengguna sistem peminjaman ruang
         </p>
       </div>
@@ -350,7 +350,7 @@ function RouteComponent() {
       </div>
 
       {/* Table Section */}
-      <div className='bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden relative'>
+      <div className='bg-white rounded-2xl border border-black/[0.06] shadow-[0_1px_2px_rgb(0_0_0/0.04)] overflow-hidden relative'>
         {/* Subtle Loading Overlay for Updates */}
         {isFetching && !isInitialLoading && (
           <div className='absolute inset-0 bg-white/50 backdrop-blur-[1px] z-10 flex items-center justify-center'>
@@ -465,7 +465,7 @@ function RouteComponent() {
       </div>
 
       {/* Pagination Controls */}
-      <div className='mt-4 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-3 sm:p-4 rounded-lg border border-gray-200 shadow-sm'>
+      <div className='mt-4 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white px-4 py-3 rounded-2xl border border-black/[0.06] shadow-[0_1px_2px_rgb(0_0_0/0.04)]'>
         <div className='flex flex-col sm:flex-row items-center gap-3 sm:gap-6'>
           <div className='text-xs sm:text-sm text-gray-600 font-medium'>
             Menampilkan{' '}

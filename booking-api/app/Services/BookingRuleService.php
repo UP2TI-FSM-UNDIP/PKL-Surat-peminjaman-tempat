@@ -9,7 +9,22 @@ use Illuminate\Validation\ValidationException;
 
 class BookingRuleService
 {
+    /**
+     * Pinjam di hari yang sama (H-0) hanya lewat Ajukan Pinjam, dan jam mulai
+     * paling cepat sekian menit dari sekarang.
+     */
+    public const SAME_DAY_LEAD_MINUTES = 60;
+
     public function __construct(private BookingPolicyService $policies) {}
+
+    /** Jam mulai paling cepat untuk pinjam hari ini, dibulatkan ke 5 menit ke atas. */
+    public function sameDayEarliestStart(): string
+    {
+        $earliest = CarbonImmutable::now('Asia/Jakarta')->addMinutes(self::SAME_DAY_LEAD_MINUTES);
+        $minutes = (int) (ceil((($earliest->hour * 60) + $earliest->minute + ($earliest->second > 0 ? 1 : 0)) / 5) * 5);
+
+        return sprintf('%02d:%02d', intdiv(min($minutes, 1439), 60), min($minutes, 1439) % 60);
+    }
 
     public function rulesForDate(CarbonImmutable $date): array
     {
@@ -17,9 +32,15 @@ class BookingRuleService
         $today = CarbonImmutable::today('Asia/Jakarta');
         $isSunday = $date->isSunday();
         $isSaturday = $date->isSaturday();
+        $isPast = $date->lt($today);
         $tooSoon = $date->lt($today->addDays($policy->min_booking_days));
+        // H-0 tetap terbuka, tetapi hanya untuk Ajukan Pinjam (proposal lengkap).
+        $sameDay = $tooSoon && $date->isSameDay($today);
 
-        if ($isSunday || $tooSoon) {
+        if ($isPast) {
+            return $this->emptyPayload($date, $policy, 'past');
+        }
+        if ($isSunday || ($tooSoon && !$sameDay)) {
             return $this->emptyPayload($date, $policy, $isSunday ? 'sunday' : 'too_soon');
         }
 
@@ -50,11 +71,19 @@ class BookingRuleService
                 'max_rooms_per_date' => $policy->max_rooms_per_date,
                 'max_total_room_hours' => $policy->max_total_room_hours,
             ],
-            'message' => count($rooms) === 0 ? 'Belum ada ruang yang diizinkan untuk hari kerja.' : null,
+            'message' => count($rooms) === 0
+                ? 'Belum ada ruang yang diizinkan untuk hari kerja.'
+                : ($sameDay ? 'Hari ini hanya bisa lewat Ajukan Pinjam (proposal sudah lengkap).' : null),
+            'same_day' => $sameDay,
+            'min_start_time' => $sameDay ? $this->sameDayEarliestStart() : null,
         ];
     }
 
-    public function validateSlot(array $slot, BookingPolicy $policy): void
+    /**
+     * @param  bool  $direct  true untuk Ajukan Pinjam (alur langsung sampai diajukan);
+     *                        hanya alur ini yang boleh memakai tanggal hari ini.
+     */
+    public function validateSlot(array $slot, BookingPolicy $policy, bool $direct = false): void
     {
         $date = CarbonImmutable::parse($slot['booking_date'], 'Asia/Jakarta');
         $today = CarbonImmutable::today('Asia/Jakarta');
@@ -62,8 +91,18 @@ class BookingRuleService
         $end = $this->minutes($slot['end_time']);
         $room = Room::findOrFail($slot['room_id']);
 
-        if ($date->lt($today->addDays($policy->min_booking_days))) {
+        if ($date->lt($today)) {
+            throw ValidationException::withMessages(['slots' => ['Tanggal reservasi sudah lewat.']]);
+        }
+        $sameDay = $date->isSameDay($today) && $policy->min_booking_days > 0;
+        if ($sameDay && !$direct) {
+            throw ValidationException::withMessages(['slots' => ['Tanggal hari ini hanya bisa lewat Ajukan Pinjam.']]);
+        }
+        if (!$sameDay && $date->lt($today->addDays($policy->min_booking_days))) {
             throw ValidationException::withMessages(['slots' => ['Tanggal reservasi terlalu dekat.']]);
+        }
+        if ($sameDay && $this->minutes($slot['start_time']) < $this->minutes($this->sameDayEarliestStart())) {
+            throw ValidationException::withMessages(['slots' => ['Pinjam hari ini: jam mulai paling cepat '.$this->sameDayEarliestStart().'.']]);
         }
         if ($date->isSunday()) {
             throw ValidationException::withMessages(['slots' => ['Minggu tidak tersedia.']]);
@@ -101,7 +140,13 @@ class BookingRuleService
                 'max_rooms_per_date' => $policy->max_rooms_per_date,
                 'max_total_room_hours' => $policy->max_total_room_hours,
             ],
-            'message' => $dayType === 'sunday' ? 'Minggu tidak tersedia.' : 'Tanggal terlalu dekat; minimal H-1.',
+            'message' => match ($dayType) {
+                'past' => 'Tanggal sudah lewat.',
+                'sunday' => 'Minggu tidak tersedia.',
+                default => "Tanggal terlalu dekat; minimal H-{$policy->min_booking_days}.",
+            },
+            'same_day' => false,
+            'min_start_time' => null,
         ];
     }
 }

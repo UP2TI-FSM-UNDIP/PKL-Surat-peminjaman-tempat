@@ -35,6 +35,7 @@ class DevAuthController extends Controller
         'tu@fsm.undip.ac.id',
         'spv@fsm.undip.ac.id',
         'mahasiswa@student.undip.ac.id',
+        'mahasiswi@student.undip.ac.id',
         'dosen@undip.ac.id',
     ];
 
@@ -65,8 +66,9 @@ class DevAuthController extends Controller
             ], 409);
         }
 
-        // Satu token dev aktif per user supaya token tidak menumpuk saat berpindah akun.
-        $user->tokens()->where('name', 'dev-login')->delete();
+        // Token dev lain milik user ini tetap berlaku supaya satu akun demo bisa
+        // dipakai di beberapa tab/browser sekaligus; yang sudah kedaluwarsa dibersihkan.
+        $user->tokens()->where('name', 'dev-login')->where('expires_at', '<', now())->delete();
 
         $token = $user->createToken('dev-login', ['*'], now()->addDays(7))->plainTextToken;
 
@@ -87,7 +89,8 @@ class DevAuthController extends Controller
     }
 
     /**
-     * Satu akun per role, dengan akun seed sebagai prioritas.
+     * Semua akun seed demo ditampilkan (satu role bisa punya beberapa, misalnya
+     * mahasiswa putra dan putri). Role tanpa akun seed diwakili satu user.
      *
      * @return Collection<int, array<string, mixed>>
      */
@@ -95,7 +98,7 @@ class DevAuthController extends Controller
     {
         $preferred = array_flip(self::PREFERRED_EMAILS);
 
-        return User::query()
+        $users = User::query()
             ->with(['role:id,name,slug', 'unit:id,name,code,category'])
             ->whereNotNull('role_id')
             ->whereHas('role', fn ($query) => $query->whereIn('slug', self::ROLE_ORDER))
@@ -110,8 +113,19 @@ class DevAuthController extends Controller
                     array_key_exists($user->email, $preferred) ? 0 : 1,
                     $user->id,
                 );
-            })
-            ->unique('role_id')
+            });
+
+        $rolesWithSeed = $users
+            ->filter(fn (User $user): bool => array_key_exists($user->email, $preferred))
+            ->pluck('role_id')
+            ->all();
+
+        return $users
+            ->filter(fn (User $user): bool => array_key_exists($user->email, $preferred)
+                || !in_array($user->role_id, $rolesWithSeed, true))
+            ->unique(fn (User $user): string => array_key_exists($user->email, $preferred)
+                ? $user->email
+                : 'role-'.$user->role_id)
             ->values()
             ->map(fn (User $user): array => [
                 'user_id' => $user->id,

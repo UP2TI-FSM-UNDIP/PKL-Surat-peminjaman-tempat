@@ -66,4 +66,32 @@ class BookingRuleTest extends TestCase
             ->assertJsonPath('data.is_bookable', false)
             ->assertJsonCount(0, 'data.rooms');
     }
+
+    public function test_past_date_is_not_bookable_with_past_message(): void
+    {
+        $this->getJson('/api/booking-rules?date=2026-11-18')
+            ->assertOk()
+            ->assertJsonPath('data.day_type', 'past')
+            ->assertJsonPath('data.is_bookable', false)
+            ->assertJsonPath('data.message', 'Tanggal sudah lewat.')
+            ->assertJsonCount(0, 'data.rooms');
+    }
+
+    public function test_today_is_open_only_for_direct_borrowing(): void
+    {
+        Room::create(['name' => 'F107', 'code' => 'F107', 'status' => 'ACTIVE', 'is_bookable_weekday' => true, 'weekday_max_end_time' => '16:30']);
+
+        $this->getJson('/api/booking-rules?date=2026-11-20')
+            ->assertOk()
+            ->assertJsonPath('data.day_type', 'weekday')
+            ->assertJsonPath('data.is_bookable', true)
+            ->assertJsonPath('data.same_day', true)
+            ->assertJsonPath('data.min_start_time', '11:00')
+            ->assertJsonPath('data.message', 'Hari ini hanya bisa lewat Ajukan Pinjam (proposal sudah lengkap).');
+
+        $this->getJson('/api/booking-rules?date=2026-11-23')
+            ->assertOk()
+            ->assertJsonPath('data.same_day', false)
+            ->assertJsonPath('data.min_start_time', null);
+    }
 }

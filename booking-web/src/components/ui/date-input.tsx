@@ -60,7 +60,7 @@ export function DateInput({
       <span
         aria-hidden='true'
         className={cn(
-          'pointer-events-none flex h-9 w-full items-center gap-2 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] md:text-sm',
+          'pointer-events-none flex h-10 w-full items-center gap-2 rounded-[10px] border border-input bg-white px-3 py-1 text-base transition-[color,box-shadow] md:text-sm',
           'peer-focus-visible:border-ring peer-focus-visible:ring-ring/50 peer-focus-visible:ring-[3px]',
           'peer-disabled:opacity-50',
           'peer-aria-invalid:border-destructive',

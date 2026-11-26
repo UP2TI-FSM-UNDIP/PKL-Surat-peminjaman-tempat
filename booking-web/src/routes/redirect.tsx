@@ -1,3 +1,4 @@
+import { authStorage } from '@/lib/authStorage';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { authService } from '@/services/auth.service';
@@ -35,7 +36,7 @@ function SsoRedirectPage() {
     const processRedirect = async () => {
       try {
         // Save token first so the axios interceptor can use it
-        localStorage.setItem('token', token);
+        authStorage.setItem('token', token);
 
         // Fetch full user profile with the new token
         const userResponse = await authService.getUser();
@@ -60,7 +61,7 @@ function SsoRedirectPage() {
         }
       } catch (err: unknown) {
         console.error('[SSO Redirect] Failed to process SSO session', err);
-        localStorage.removeItem('token');
+        authStorage.removeItem('token');
         setError('Gagal memproses sesi SSO. Silakan coba lagi.');
       }
     };

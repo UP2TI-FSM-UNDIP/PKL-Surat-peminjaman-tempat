@@ -110,10 +110,10 @@ function RouteComponent() {
     <div className='container mx-auto px-2 sm:px-4 py-2 sm:py-4'>
       {/* Header */}
       <div className='mb-4 sm:mb-6'>
-        <h1 className='text-xl sm:text-2xl font-bold text-gray-900 mb-1 sm:mb-2'>
+        <h1 className='text-2xl font-semibold tracking-tight text-foreground sm:text-[28px]'>
           Manajemen Ruang
         </h1>
-        <p className='text-sm sm:text-base text-gray-600'>
+        <p className='mt-0.5 text-[13px] text-muted-foreground'>
           Kelola data ruang yang tersedia untuk peminjaman
         </p>
       </div>
@@ -196,7 +196,7 @@ function RouteComponent() {
       </div>
 
       {/* Table Section */}
-      <div className='bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden relative'>
+      <div className='bg-white rounded-2xl border border-black/[0.06] shadow-[0_1px_2px_rgb(0_0_0/0.04)] overflow-hidden relative'>
         {/* Subtle Loading Overlay for Updates */}
         {isFetching && !isInitialLoading && (
           <div className='absolute inset-0 bg-white/50 backdrop-blur-[1px] z-10 flex items-center justify-center text-center'>
@@ -262,7 +262,7 @@ function RouteComponent() {
                     <TableCell className='text-xs sm:text-sm py-2 sm:py-3'>
                       {room.code}
                     </TableCell>
-                    <TableCell className='text-xs sm:text-sm font-medium text-gray-900 py-2 sm:py-3'>
+                    <TableCell className='min-w-[200px] whitespace-normal text-xs sm:text-sm font-medium text-gray-900 py-2 sm:py-3'>
                       {room.name}
                     </TableCell>
                     <TableCell className='text-xs sm:text-sm py-2 sm:py-3'>
