@@ -26,12 +26,12 @@ export function ApprovalQueuePage({ detailRoute }: { detailRoute: ApprovalDetail
       </div>
       <div className="overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-[0_1px_2px_rgb(0_0_0/0.04)]">
       <Table>
-        <TableHeader><TableRow><TableHead>Pemohon</TableHead><TableHead>Unit</TableHead><TableHead>Kegiatan</TableHead><TableHead>Tanggal</TableHead><TableHead>Batas proposal</TableHead><TableHead>Status</TableHead><TableHead /></TableRow></TableHeader>
+        <TableHeader><TableRow><TableHead>Pemohon</TableHead><TableHead>Ruang</TableHead><TableHead>Kegiatan</TableHead><TableHead>Tanggal</TableHead><TableHead>Batas proposal</TableHead><TableHead>Status</TableHead><TableHead /></TableRow></TableHeader>
         <TableBody>
           {documents.map((document) => (
             <TableRow key={document.id}>
               <TableCell className="font-medium">{document.creator?.name ?? document.creator_id}</TableCell>
-              <TableCell className="text-muted-foreground">{document.unit?.name ?? '-'}</TableCell>
+              <TableCell><RoomCodes slots={document.content?.slots} /></TableCell>
               <TableCell>{document.content?.event_name ?? document.title}</TableCell>
               <TableCell>{formatDateShort(document.content?.slots?.[0]?.booking_date)}{(document.content?.slots?.length ?? 0) > 1 && <span className="text-muted-foreground"> · {document.content?.slots?.length} slot</span>}</TableCell>
               <TableCell>{formatDateShort(document.reservation_deadline)}</TableCell>
@@ -53,6 +53,19 @@ export function ApprovalQueuePage({ detailRoute }: { detailRoute: ApprovalDetail
           <Button variant="outline" disabled={page >= pagination.last_page} onClick={() => setPage((value) => value + 1)}>Berikutnya</Button>
         </div>
       )}
+    </div>
+  );
+}
+
+function RoomCodes({ slots }: { slots?: Array<{ room_id: number; room_code?: string | null }> }) {
+  const codes = [...new Set((slots ?? []).map((slot) => slot.room_code ?? `#${slot.room_id}`))];
+  if (codes.length === 0) return <span className="text-muted-foreground">—</span>;
+  return (
+    <div className="flex flex-wrap gap-1">
+      {codes.slice(0, 2).map((code) => (
+        <span key={code} className="rounded-md bg-secondary px-2 py-0.5 text-xs font-medium">{code}</span>
+      ))}
+      {codes.length > 2 && <span className="px-1 text-xs text-muted-foreground">+{codes.length - 2}</span>}
     </div>
   );
 }

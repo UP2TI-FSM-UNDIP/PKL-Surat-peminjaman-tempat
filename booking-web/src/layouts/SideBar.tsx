@@ -9,8 +9,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarTrigger,
 } from '@/components/ui/sidebar/sidebar';
+import { useSidebar } from '@/components/ui/sidebar/sidebarContext';
+import { ChevronsLeft } from 'lucide-react';
 import { Link, useRouterState } from '@tanstack/react-router';
 import { cn } from '@/lib/utils';
 
@@ -42,11 +43,19 @@ const normalizePath = (path: string) => path.replace(/\/+$/, '') || '/';
 export function SideBar({ menuSections, footerLink }: SideBarProps) {
   const router = useRouterState();
   const currentPath = normalizePath(router.location.pathname);
+  const { state, toggleSidebar } = useSidebar();
 
   return (
-    <Sidebar collapsible='icon'>
-      <SidebarHeader className='pt-6'>
-        <SidebarTrigger className='text-foreground group-data-[collapsible=icon]:ml-0' />
+    <Sidebar collapsible='icon' variant='floating'>
+      <SidebarHeader className='px-2 pt-2 pb-0'>
+        <button
+          type='button'
+          onClick={toggleSidebar}
+          aria-label={state === 'expanded' ? 'Ciutkan menu' : 'Buka menu'}
+          className='flex size-10 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40'
+        >
+          <ChevronsLeft className={cn('size-[18px] transition-transform duration-500 ease-[cubic-bezier(0.32,1.25,0.55,1)]', state === 'collapsed' && 'rotate-180')} />
+        </button>
       </SidebarHeader>
 
       <SidebarContent>
@@ -55,7 +64,7 @@ export function SideBar({ menuSections, footerLink }: SideBarProps) {
             key={section.label}
             className={index < menuSections.length - 1 ? 'pb-2' : ''}
           >
-            <SidebarGroupLabel className='px-2 text-[11px] font-semibold text-muted-foreground'>
+            <SidebarGroupLabel className='px-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/80'>
               {section.label}
             </SidebarGroupLabel>
             <SidebarMenu>
@@ -68,7 +77,7 @@ export function SideBar({ menuSections, footerLink }: SideBarProps) {
                       isActive={isActive}
                       className={cn(
                         'group/sidebar-item',
-                        'h-9 rounded-lg',
+                        'h-10 rounded-full px-3 transition-all duration-300 group-data-[collapsible=icon]:rounded-full',
                         isActive
                           ? 'bg-accent! text-accent-foreground! hover:bg-accent!'
                           : 'hover:bg-muted!',
@@ -84,8 +93,8 @@ export function SideBar({ menuSections, footerLink }: SideBarProps) {
                         />
                         <span
                           className={cn(
-                            'transition-[opacity,transform,color] duration-200',
-                            'group-data-[collapsible=icon]:-translate-x-1 group-data-[collapsible=icon]:opacity-0',
+                            'transition-[opacity,transform,color] duration-300 delay-100',
+                            'group-data-[collapsible=icon]:-translate-x-2 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:delay-0',
                             'text-[13px]',
                             isActive
                               ? 'text-accent-foreground! font-semibold!'

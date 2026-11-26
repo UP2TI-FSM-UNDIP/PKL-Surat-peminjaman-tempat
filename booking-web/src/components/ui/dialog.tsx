@@ -1,3 +1,4 @@
+import { cn } from '@/lib/utils';
 import * as React from 'react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
@@ -30,7 +31,7 @@ const DialogContent = React.forwardRef<
 		<DialogOverlay />
 		<DialogPrimitive.Content
 			ref={ref}
-			className={`fixed left-1/2 top-1/2 z-50 grid w-full -translate-x-1/2 -translate-y-1/2 gap-4 border border-black/[0.06] bg-white p-6 shadow-[0_24px_64px_rgb(0_0_0/0.18)] data-[state=open]:animate-[dialog-in_200ms_cubic-bezier(0.22,1,0.36,1)] data-[state=closed]:animate-[dialog-out_150ms_ease-in] rounded-2xl sm:rounded-[20px] ${className || ''}`}
+			className={cn('fixed left-1/2 top-1/2 z-50 grid w-[calc(100%-1.5rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 border border-black/[0.06] bg-white p-6 shadow-[0_24px_64px_rgb(0_0_0/0.18)] data-[state=open]:animate-[dialog-in_200ms_cubic-bezier(0.22,1,0.36,1)] data-[state=closed]:animate-[dialog-out_150ms_ease-in] rounded-[20px]', className)}
 			{...props}
 		>
 			{children}

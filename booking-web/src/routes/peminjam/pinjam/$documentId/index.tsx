@@ -1,3 +1,4 @@
+import { DocumentTimeline } from '@/components/common/DocumentTimeline';
 import { useState } from 'react';
 import { createFileRoute, Link, useParams } from '@tanstack/react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -69,7 +70,7 @@ function DetailPage() {
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-semibold">{document.title}</h1>
+        <h1 className="text-[28px] font-semibold tracking-tight">{document.title}</h1>
         <DocumentStatusBadge doc={document} />
       </div>
       <ReservationSummaryCard document={document} summary={summary} />
@@ -81,15 +82,9 @@ function DetailPage() {
         </Card>
       )}
       <Card>
-        <CardHeader><CardTitle className="text-base">Timeline</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-[17px]">Riwayat & alur</CardTitle></CardHeader>
         <CardContent>
-          <ol className="space-y-2 text-sm">
-            {(document.logs ?? []).map((log) => (
-              <li key={log.id} className="rounded-md border p-2">
-                <span className="font-medium">{log.action}</span> — {log.note ?? 'Tanpa catatan'} ({log.created_at})
-              </li>
-            ))}
-          </ol>
+          <DocumentTimeline document={document} />
         </CardContent>
       </Card>
       <div className="flex flex-wrap gap-2">

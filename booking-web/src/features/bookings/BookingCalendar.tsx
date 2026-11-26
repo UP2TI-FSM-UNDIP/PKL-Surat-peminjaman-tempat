@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import type { DatesSetArg, EventClickArg, EventInput } from '@fullcalendar/core';
+import type { DatesSetArg, EventClickArg, EventContentArg, EventInput } from '@fullcalendar/core';
 import type { DateClickArg } from '@fullcalendar/interaction';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -33,6 +33,11 @@ function EmptyBanner({ children }: { children: ReactNode }) {
     <p className='mb-4 text-[13px] text-muted-foreground'>{children}</p>
   );
 }
+
+const STATUS_HINT: Partial<Record<CalendarDisplayStatus, string>> = {
+  active: 'Proposal lengkap — klik event untuk rangkuman',
+  reservation: 'Proposal belum lengkap',
+};
 
 export default function BookingCalendar() {
   const [range, setRange] = useState<VisibleRange>(() => ({
@@ -80,15 +85,44 @@ export default function BookingCalendar() {
 
   const visibleEvents = filterCalendarEvents(data?.events ?? [], visibleStatuses);
 
-  const events: EventInput[] = visibleEvents.map((event) => ({
-    id: event.id,
-    title: `${event.title} · ${event.room.code}`,
-    start: `${event.booking_date}T${event.start_time}:00`,
-    end: `${event.booking_date}T${event.end_time}:00`,
-    backgroundColor: CALENDAR_STATUS_META[event.display_status].color,
-    borderColor: CALENDAR_STATUS_META[event.display_status].color,
-    extendedProps: { calendarEvent: event },
-  }));
+  const events: EventInput[] = visibleEvents.map((event) => {
+    const color = CALENDAR_STATUS_META[event.display_status].color;
+    return {
+      id: event.id,
+      title: event.title,
+      start: `${event.booking_date}T${event.start_time}:00`,
+      end: `${event.booking_date}T${event.end_time}:00`,
+      // Warna lembut: latar tipis + garis kiri berwarna; teks tetap gelap.
+      backgroundColor: `${color}1f`,
+      borderColor: color,
+      textColor: '#1d1d1f',
+      classNames: ['fsm-event'],
+      extendedProps: { calendarEvent: event, color },
+    };
+  });
+
+  const renderEvent = (arg: EventContentArg) => {
+    const event = arg.event.extendedProps.calendarEvent as CalendarEvent | undefined;
+    const color = arg.event.extendedProps.color as string;
+    const time = event ? event.start_time.slice(0, 5) : arg.timeText;
+    const room = event?.room.code ?? '';
+    if (arg.view.type === 'dayGridMonth') {
+      return (
+        <div className='fsm-event-month' title={`${time} · ${arg.event.title} · ${room}`}>
+          <span className='fsm-event-dot' style={{ backgroundColor: color }} />
+          <span className='fsm-event-time'>{time}</span>
+          <span className='fsm-event-title'>{arg.event.title}</span>
+          <span className='fsm-event-room'>{room}</span>
+        </div>
+      );
+    }
+    return (
+      <div className='fsm-event-block' title={`${time}–${event?.end_time.slice(0, 5) ?? ''} · ${arg.event.title} · ${room}`}>
+        <span className='fsm-event-title'>{arg.event.title}</span>
+        <span className='fsm-event-meta'>{time} · {room}</span>
+      </div>
+    );
+  };
 
   const handleDatesSet = (info: DatesSetArg) => {
     const from = format(info.start, 'yyyy-MM-dd');
@@ -145,6 +179,7 @@ export default function BookingCalendar() {
                   key={status}
                   type='button'
                   aria-pressed={isActive}
+                  title={STATUS_HINT[status]}
                   onClick={() => toggleStatus(status)}
                   className={`inline-flex h-7 items-center gap-1.5 rounded-full px-3 text-xs font-medium transition-colors ${
                     isActive
@@ -201,9 +236,26 @@ export default function BookingCalendar() {
             datesSet={handleDatesSet}
             eventClick={handleEventClick}
             dateClick={handleDateClick}
-            dayCellClassNames={(arg) => (arg.isPast ? ['cursor-not-allowed', 'opacity-60'] : ['cursor-pointer'])}
-            height={560}
-            aspectRatio={1.5}
+            eventContent={renderEvent}
+            eventDisplay='block'
+            dayCellClassNames={(arg) => (arg.isPast && !arg.isToday ? ['fsm-day-past', 'cursor-not-allowed'] : ['cursor-pointer'])}
+            height='auto'
+            allDaySlot={false}
+            slotMinTime='07:00:00'
+            slotMaxTime='18:00:00'
+            slotDuration='00:30:00'
+            slotLabelFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
+            eventTimeFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
+            dayHeaderFormat={{ weekday: 'short' }}
+            views={{
+              timeGridWeek: { dayHeaderFormat: { weekday: 'short', day: 'numeric' } },
+              timeGridDay: { dayHeaderFormat: { weekday: 'long', day: 'numeric', month: 'long' } },
+            }}
+            dayMaxEvents={3}
+            eventMaxStack={2}
+            moreLinkContent={(arg) => `+${arg.num} lainnya`}
+            nowIndicator
+            expandRows
           />
         </div>
       </div>

@@ -66,14 +66,14 @@ function RouteComponent() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-gray-900">Dashboard</h1>
           <p className="text-sm text-gray-500 mt-0.5">
             Selamat datang! Berikut ringkasan pengajuan Anda.
           </p>
         </div>
-        <div className="flex gap-2 shrink-0">
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:shrink-0">
           <Button
             variant="outline"
             className="gap-2"

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button/button';
+import { Check, RotateCcw, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
@@ -37,10 +38,18 @@ export function ApprovalActions({ documentId, onDone }: { documentId: number; on
 
   return (
     <>
-      <div className="flex flex-wrap gap-2">
-        <Button onClick={() => setAction('approve')}>Setujui</Button>
-        <Button variant="outline" onClick={() => setAction('revise')}>Revisi</Button>
-        <Button variant="destructive" onClick={() => setAction('reject')}>Tolak</Button>
+      <div className="grid gap-2">
+        <Button size="lg" className="w-full" onClick={() => setAction('approve')}>
+          <Check className="size-4" /> Setujui
+        </Button>
+        <div className="grid grid-cols-2 gap-2">
+          <Button variant="secondary" onClick={() => setAction('revise')}>
+            <RotateCcw className="size-4" /> Revisi
+          </Button>
+          <Button variant="secondary" className="text-destructive hover:bg-[#fdeeee]" onClick={() => setAction('reject')}>
+            <X className="size-4" /> Tolak
+          </Button>
+        </div>
       </div>
       <Dialog open={action !== null} onOpenChange={(open) => { if (!open) setAction(null); }}>
         <DialogContent>
@@ -50,10 +59,11 @@ export function ApprovalActions({ documentId, onDone }: { documentId: number; on
               {action === 'approve' ? 'Catatan opsional.' : action === 'revise' ? 'Catatan wajib.' : 'Catatan minimal 10 karakter.'}
             </DialogDescription>
           </DialogHeader>
-          <Textarea aria-label="Catatan" value={note} onChange={(event) => setNote(event.target.value)} rows={4} />
+          <Textarea aria-label="Catatan" placeholder="Tulis catatan…" className="rounded-xl" value={note} onChange={(event) => setNote(event.target.value)} rows={4} />
           <DialogFooter>
-            <Button variant="outline" onClick={() => setAction(null)}>Batal</Button>
+            <Button variant="secondary" onClick={() => setAction(null)}>Batal</Button>
             <Button
+              variant={action === 'reject' ? 'destructive' : 'default'}
               disabled={invalid || mutation.isPending}
               onClick={() => action && mutation.mutate({ action, note })}
             >
