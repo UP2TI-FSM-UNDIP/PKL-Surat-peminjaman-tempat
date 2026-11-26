@@ -58,11 +58,11 @@ function RouteComponent() {
         </section>
 
         <div className='hidden min-h-0 items-center justify-center md:flex'>
-          {/* Latar putih gambar dilebur ke latar halaman: tanpa kotak pembungkus. */}
+          {/* Ilustrasi PNG transparan, tanpa kotak pembungkus. */}
           <img
             src={`${import.meta.env.BASE_URL}illustration.png`}
             alt='Ilustrasi kalender peminjaman ruang'
-            className='aspect-square h-auto max-h-[min(64svh,520px)] w-auto object-contain mix-blend-multiply animate-in fade-in zoom-in-95 duration-700 delay-150'
+            className='aspect-square h-auto max-h-[min(64svh,520px)] w-auto object-contain animate-in fade-in zoom-in-95 duration-700 delay-150'
           />
         </div>
       </main>
