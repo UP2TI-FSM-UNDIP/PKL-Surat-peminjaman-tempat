@@ -25,22 +25,18 @@ function StatCard({
   onClick?: () => void;
 }) {
   return (
-    <div
+    <button
+      type="button"
       onClick={onClick}
-      className={`bg-white rounded-2xl border border-black/[0.06] shadow-[0_1px_2px_rgb(0_0_0/0.04)] p-5 flex flex-col gap-4 ${onClick ? 'cursor-pointer transition-shadow hover:shadow-[0_4px_16px_rgb(0_0_0/0.06)]' : ''
-        }`}
+      title={sub}
+      className="flex items-center gap-3 rounded-2xl border border-black/[0.06] bg-white px-4 py-3 text-left shadow-[0_1px_2px_rgb(0_0_0/0.04)] transition-shadow hover:shadow-[0_4px_16px_rgb(0_0_0/0.06)]"
     >
-      <div className="flex items-start justify-between">
-        <span className="text-[13px] font-medium text-muted-foreground">{label}</span>
-        <div className={`flex size-8 items-center justify-center rounded-full ${color}`}>{icon}</div>
+      <div className={`flex size-9 shrink-0 items-center justify-center rounded-full ${color}`}>{icon}</div>
+      <div className="min-w-0">
+        <div className="truncate text-xs font-medium text-muted-foreground">{label}</div>
+        <div className="text-xl font-semibold leading-tight tracking-tight text-foreground">{value}</div>
       </div>
-      <div>
-        <div className="text-[28px] font-semibold leading-none tracking-tight text-foreground">{value}</div>
-        <div className="mt-2 text-xs text-muted-foreground">
-          {sub}
-        </div>
-      </div>
-    </div>
+    </button>
   );
 }
 
@@ -64,12 +60,12 @@ function RouteComponent() {
     navigate({ to: '/peminjam/pinjam', search: { status } });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-gray-900">Dashboard</h1>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <h1 className="text-xl font-semibold tracking-tight text-gray-900">Dashboard</h1>
+          <p className="text-[13px] text-gray-500">
             Selamat datang! Berikut ringkasan pengajuan Anda.
           </p>
         </div>
@@ -93,12 +89,12 @@ function RouteComponent() {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard
           label="Total Pengajuan"
           value={isLoading ? '—' : total}
           sub="Semua pengajuan Anda"
-          icon={<FileText className="w-5 h-5 text-blue-600" />}
+          icon={<FileText className="w-[18px] h-[18px] text-blue-600" />}
           color="bg-blue-50"
           onClick={() => goToPinjam('ALL')}
         />
@@ -106,7 +102,7 @@ function RouteComponent() {
           label="Disetujui"
           value={isLoading ? '—' : approved}
           sub="Selesai diproses"
-          icon={<CheckCircle className="w-5 h-5 text-green-600" />}
+          icon={<CheckCircle className="w-[18px] h-[18px] text-green-600" />}
           color="bg-green-50"
           onClick={() => goToPinjam('APPROVED')}
         />
@@ -114,7 +110,7 @@ function RouteComponent() {
           label="Sedang Diproses"
           value={isLoading ? '—' : inProgress}
           sub="Menunggu persetujuan"
-          icon={<Clock className="w-5 h-5 text-amber-600" />}
+          icon={<Clock className="w-[18px] h-[18px] text-amber-600" />}
           color="bg-amber-50"
           onClick={() => goToPinjam('IN_PROGRESS')}
         />
@@ -122,7 +118,7 @@ function RouteComponent() {
           label="Perlu Tindakan"
           value={isLoading ? '—' : needsAction}
           sub="Draft atau perlu revisi"
-          icon={<AlertCircle className="w-5 h-5 text-red-500" />}
+          icon={<AlertCircle className="w-[18px] h-[18px] text-red-500" />}
           color="bg-red-50"
           onClick={() => goToPinjam('DRAFT')}
         />

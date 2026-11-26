@@ -61,14 +61,14 @@ function RouteComponent() {
 
   return (
     <>
-      <div className='mb-6'>
-        <h1 className='text-2xl font-semibold tracking-tight text-gray-900'>Dashboard</h1>
-        <p className='text-gray-600 mt-1'>
+      <div className='mb-4'>
+        <h1 className='text-xl font-semibold tracking-tight text-gray-900'>Dashboard</h1>
+        <p className='text-[13px] text-gray-500'>
           Ringkasan sistem peminjaman ruang FSM
         </p>
       </div>
 
-      <div className='grid grid-cols-3 gap-2 sm:gap-4 mb-8'>
+      <div className='grid grid-cols-3 gap-2 sm:gap-3 mb-4'>
         {statCards.map((stat, index) => (
           <StatCard
             key={index}
