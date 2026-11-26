@@ -3,7 +3,9 @@ import { useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button/button';
-import { Badge } from '@/components/ui/badge';
+import { PageHeader } from '@/components/common/PageHeader';
+import { TableCard } from '@/components/common/TableCard';
+import { RoomCodes } from '@/components/common/RoomCodes';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DocumentStatusBadge } from '@/components/DocumentStatusBadge';
 import { documentService } from '@/services/document.service';
@@ -20,11 +22,8 @@ export function ApprovalQueuePage({ detailRoute }: { detailRoute: ApprovalDetail
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <h1 className="text-[28px] font-semibold tracking-tight">Antrean persetujuan</h1>
-        <Badge variant="secondary" className="rounded-full">{pagination?.total ?? 0}</Badge>
-      </div>
-      <div className="overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-[0_1px_2px_rgb(0_0_0/0.04)]">
+      <PageHeader title="Antrean persetujuan" count={pagination?.total ?? 0} />
+      <TableCard>
       <Table>
         <TableHeader><TableRow><TableHead>Pemohon</TableHead><TableHead>Ruang</TableHead><TableHead>Kegiatan</TableHead><TableHead>Tanggal</TableHead><TableHead>Batas proposal</TableHead><TableHead>Status</TableHead><TableHead /></TableRow></TableHeader>
         <TableBody>
@@ -45,7 +44,7 @@ export function ApprovalQueuePage({ detailRoute }: { detailRoute: ApprovalDetail
           ))}
         </TableBody>
       </Table>
-      </div>
+      </TableCard>
       {documents.length === 0 && <p className="text-sm text-muted-foreground">Tidak ada pengajuan menunggu.</p>}
       {pagination && pagination.last_page > 1 && (
         <div className="flex justify-end gap-2">
@@ -53,19 +52,6 @@ export function ApprovalQueuePage({ detailRoute }: { detailRoute: ApprovalDetail
           <Button variant="outline" disabled={page >= pagination.last_page} onClick={() => setPage((value) => value + 1)}>Berikutnya</Button>
         </div>
       )}
-    </div>
-  );
-}
-
-export function RoomCodes({ slots }: { slots?: Array<{ room_id: number; room_code?: string | null }> }) {
-  const codes = [...new Set((slots ?? []).map((slot) => slot.room_code ?? `#${slot.room_id}`))];
-  if (codes.length === 0) return <span className="text-muted-foreground">—</span>;
-  return (
-    <div className="flex flex-wrap gap-1">
-      {codes.slice(0, 2).map((code) => (
-        <span key={code} className="rounded-md bg-secondary px-2 py-0.5 text-xs font-medium">{code}</span>
-      ))}
-      {codes.length > 2 && <span className="px-1 text-xs text-muted-foreground">+{codes.length - 2}</span>}
     </div>
   );
 }

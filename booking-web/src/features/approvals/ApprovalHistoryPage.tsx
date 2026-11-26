@@ -3,11 +3,12 @@ import { useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button/button';
-import { Badge } from '@/components/ui/badge';
+import { PageHeader } from '@/components/common/PageHeader';
+import { TableCard } from '@/components/common/TableCard';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { documentService } from '@/services/document.service';
 import type { Document } from '@/types/document';
-import { RoomCodes } from './ApprovalQueuePage';
+import { RoomCodes } from '@/components/common/RoomCodes';
 import type { ApprovalDetailRoute } from './routes';
 
 const DECISION_META: Record<string, { label: string; className: string }> = {
@@ -34,11 +35,8 @@ export function ApprovalHistoryPage({ detailRoute }: { detailRoute: ApprovalDeta
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <h1 className="text-[28px] font-semibold tracking-tight">Riwayat persetujuan</h1>
-        <Badge variant="secondary" className="rounded-full">{pagination?.total ?? documents.length}</Badge>
-      </div>
-      <div className="overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-[0_1px_2px_rgb(0_0_0/0.04)]">
+      <PageHeader title="Riwayat persetujuan" count={pagination?.total ?? documents.length} />
+      <TableCard>
       <Table>
         <TableHeader><TableRow><TableHead>Pemohon</TableHead><TableHead>Ruang</TableHead><TableHead>Kegiatan</TableHead><TableHead>Tanggal</TableHead><TableHead>Diputuskan</TableHead><TableHead>Keputusan</TableHead><TableHead /></TableRow></TableHeader>
         <TableBody>
@@ -67,7 +65,7 @@ export function ApprovalHistoryPage({ detailRoute }: { detailRoute: ApprovalDeta
           })}
         </TableBody>
       </Table>
-      </div>
+      </TableCard>
       {documents.length === 0 && !query.isLoading && <p className="text-sm text-muted-foreground">Belum ada riwayat persetujuan.</p>}
       {pagination && pagination.last_page > 1 && (
         <div className="flex justify-end gap-2">
