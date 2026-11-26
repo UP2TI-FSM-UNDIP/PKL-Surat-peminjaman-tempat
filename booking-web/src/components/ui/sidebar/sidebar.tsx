@@ -96,9 +96,13 @@ function Sidebar({
           'relative w-(--sidebar-width) transition-[width] duration-500 ease-[cubic-bezier(0.32,1.25,0.55,1)]',
           'group-data-[collapsible=offcanvas]:w-0',
           'group-data-[side=right]:rotate-180',
-          variant === 'floating' || variant === 'inset'
-            ? 'group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(6)))]'
-            : 'group-data-[collapsible=icon]:w-(--sidebar-width-icon)'
+          // Floating: melayang di atas konten, jadi tidak menyisakan ruang
+          // (konten tidak bergeser saat sidebar dibuka/ditutup).
+          variant === 'floating'
+            ? 'w-0! group-data-[collapsible=icon]:w-0!'
+            : variant === 'inset'
+              ? 'group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(6)))]'
+              : 'group-data-[collapsible=icon]:w-(--sidebar-width-icon)'
         )}
       />
       <div

@@ -14,6 +14,7 @@ import { useSidebar } from '@/components/ui/sidebar/sidebarContext';
 import { ChevronsLeft } from 'lucide-react';
 import { Link, useRouterState } from '@tanstack/react-router';
 import { cn } from '@/lib/utils';
+import { useEffect, useRef } from 'react';
 
 export type MenuItem = {
   title: string;
@@ -43,10 +44,39 @@ const normalizePath = (path: string) => path.replace(/\/+$/, '') || '/';
 export function SideBar({ menuSections, footerLink }: SideBarProps) {
   const router = useRouterState();
   const currentPath = normalizePath(router.location.pathname);
-  const { state, toggleSidebar } = useSidebar();
+  const { state, toggleSidebar, setOpen, isMobile } = useSidebar();
+  const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // setOpen berganti identitas setiap state berubah; simpan di ref agar efek
+  // di bawah hanya berjalan saat path berubah.
+  const setOpenRef = useRef(setOpen);
+  useEffect(() => {
+    setOpenRef.current = setOpen;
+  }, [setOpen]);
+
+  // Desktop: sidebar terbuka saat kursor diarahkan dan menutup saat kursor
+  // keluar. Jeda singkat mencegah kedip ketika kursor hanya melintas.
+  const hoverTo = (open: boolean) => {
+    if (isMobile) return;
+    if (hoverTimer.current) clearTimeout(hoverTimer.current);
+    hoverTimer.current = setTimeout(() => setOpenRef.current(open), open ? 80 : 180);
+  };
+
+  useEffect(() => () => {
+    if (hoverTimer.current) clearTimeout(hoverTimer.current);
+  }, []);
+
+  // Tutup lagi setelah pindah halaman.
+  useEffect(() => {
+    setOpenRef.current(false);
+  }, [currentPath]);
 
   return (
-    <Sidebar collapsible='icon' variant='floating'>
+    <Sidebar
+      collapsible='icon'
+      variant='floating'
+      onMouseEnter={() => hoverTo(true)}
+      onMouseLeave={() => hoverTo(false)}
+    >
       <SidebarHeader className='px-2 pt-2 pb-0'>
         <button
           type='button'

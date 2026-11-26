@@ -28,7 +28,7 @@ function RouteComponent() {
       <SideBar menuSections={menuConfig.menuSections} footerLink={menuConfig.footerLink} />
       <main className='flex-1 flex flex-col w-full min-w-0'>
         <TopBar />
-        <div className='mx-auto w-full max-w-6xl flex-1 space-y-6 px-4 py-6 sm:px-8 sm:py-8'>
+        <div className='mx-auto w-full max-w-7xl flex-1 space-y-6 px-4 py-6 sm:px-8 sm:py-6 md:pl-24 xl:pl-28'>
           <Outlet />
         </div>
       </main>
