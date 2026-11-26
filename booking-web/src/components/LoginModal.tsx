@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { authService } from '@/services/auth.service';
+import { LOCAL_LOGIN_ENABLED, startSsoLogin } from '@/lib/sso';
 
 interface LoginModalProps {
     isOpen: boolean;
@@ -18,7 +19,6 @@ interface LoginModalProps {
 
 // Login email/password lokal hanya ditampilkan jika diaktifkan (VITE_LOCAL_LOGIN=true).
 // Login utama lewat SSO FSM; backend juga menolak login lokal sesuai AUTH_LOCAL_LOGIN.
-const LOCAL_LOGIN_ENABLED = import.meta.env.VITE_LOCAL_LOGIN === 'true';
 
 export function LoginModal({ isOpen, onClose }: LoginModalProps) {
     const navigate = useNavigate();
@@ -64,22 +64,8 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
     };
 
     const handleSSOLogin = () => {
-        const clientId = import.meta.env.VITE_SSO_CLIENT_ID as string;
-        const redirectUri = import.meta.env.VITE_SSO_REDIRECT_URI as string;
-        const ssoLoginUrl = import.meta.env.VITE_SSO_LOGIN_URL as string || 'https://apps-fsm.undip.ac.id/sso/';
-
-        if (!clientId || !redirectUri) {
-            setError('Konfigurasi SSO belum lengkap. Hubungi administrator.');
-            return;
-        }
-
-        // Redirect browser to SSO login portal
-        // SSO will then call our backend /auth/sso and redirect back to this app
-        const params = new URLSearchParams({
-            client_id: clientId,
-            redirect_uri: redirectUri,
-        });
-        window.location.href = `${ssoLoginUrl}?${params.toString()}`;
+        const message = startSsoLogin();
+        if (message) setError(message);
     };
 
     return (
