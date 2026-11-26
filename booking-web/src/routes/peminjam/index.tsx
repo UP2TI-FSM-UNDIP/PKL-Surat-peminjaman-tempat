@@ -2,41 +2,34 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { BookingCalendar } from '@/features/bookings';
 import { useQuery } from '@tanstack/react-query';
 import { documentService } from '@/services/document.service';
-import { FileText, CheckCircle, Clock, AlertCircle, CalendarCheck, Send } from 'lucide-react';
-import { Button } from '@/components/ui/button/button';
 
 export const Route = createFileRoute('/peminjam/')({
   component: RouteComponent,
 });
 
-function StatCard({
-  label,
-  value,
-  sub,
-  icon,
-  color,
-  onClick,
-}: {
-  label: string;
-  value: number | string;
-  sub: string;
-  icon: React.ReactNode;
-  color: string;
-  onClick?: () => void;
-}) {
+type Stat = { label: string; value: number | string; dot: string; status: string };
+
+/** Ringkasan pengajuan dalam satu kartu tipis, dipisah garis — tidak menutupi kalender. */
+function StatStrip({ stats, onSelect }: { stats: Stat[]; onSelect: (status: string) => void }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      title={sub}
-      className="flex items-center gap-3 rounded-2xl border border-black/[0.06] bg-white px-4 py-3 text-left shadow-[0_1px_2px_rgb(0_0_0/0.04)] transition-shadow hover:shadow-[0_4px_16px_rgb(0_0_0/0.06)]"
-    >
-      <div className={`flex size-9 shrink-0 items-center justify-center rounded-full ${color}`}>{icon}</div>
-      <div className="min-w-0">
-        <div className="truncate text-xs font-medium text-muted-foreground">{label}</div>
-        <div className="text-xl font-semibold leading-tight tracking-tight text-foreground">{value}</div>
-      </div>
-    </button>
+    <div className="grid grid-cols-2 overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-[0_1px_2px_rgb(0_0_0/0.04)] lg:grid-cols-4">
+      {stats.map((stat, index) => (
+        <button
+          key={stat.label}
+          type="button"
+          onClick={() => onSelect(stat.status)}
+          className={`flex items-center justify-between gap-2 border-black/[0.06] px-3.5 py-3 sm:gap-3 sm:px-5 sm:py-3.5 text-left transition-colors hover:bg-[#fafafb] ${
+            index % 2 === 1 ? 'border-l' : ''
+          } ${index >= 2 ? 'border-t lg:border-t-0' : ''} ${index === 2 ? 'lg:border-l' : ''}`}
+        >
+          <span className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground sm:gap-2 sm:text-[13px]">
+            <span className={`size-2 shrink-0 rounded-full ${stat.dot}`} />
+            <span className="truncate">{stat.label}</span>
+          </span>
+          <span className="text-xl font-semibold tabular-nums tracking-tight text-foreground">{stat.value}</span>
+        </button>
+      ))}
+    </div>
   );
 }
 
@@ -49,82 +42,25 @@ function RouteComponent() {
   });
 
   const docs = queryResult?.my_documents ?? [];
-  const total = docs.length;
-  const approved = docs.filter((d) => d.status === 'APPROVED').length;
-  const inProgress = docs.filter((d) => d.status === 'IN_PROGRESS').length;
-  const needsAction = docs.filter(
-    (d) => d.status === 'DRAFT' || d.status === 'REVISION',
-  ).length;
+  const count = (predicate: (status: string) => boolean) =>
+    isLoading ? '—' : docs.filter((d) => predicate(d.status)).length;
 
-  const goToPinjam = (status: string) =>
-    navigate({ to: '/peminjam/pinjam', search: { status } });
+  const stats: Stat[] = [
+    { label: 'Total pengajuan', value: isLoading ? '—' : docs.length, dot: 'bg-[#0071e3]', status: 'ALL' },
+    { label: 'Disetujui', value: count((s) => s === 'APPROVED'), dot: 'bg-[#34c759]', status: 'APPROVED' },
+    { label: 'Sedang diproses', value: count((s) => s === 'IN_PROGRESS'), dot: 'bg-[#ff9f0a]', status: 'IN_PROGRESS' },
+    { label: 'Perlu tindakan', value: count((s) => s === 'DRAFT' || s === 'REVISION'), dot: 'bg-[#ff3b30]', status: 'DRAFT' },
+  ];
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight text-gray-900">Dashboard</h1>
-          <p className="text-[13px] text-gray-500">
-            Selamat datang! Berikut ringkasan pengajuan Anda.
-          </p>
-        </div>
-        <div className="grid grid-cols-2 gap-2 sm:flex sm:shrink-0">
-          <Button
-            variant="outline"
-            className="gap-2"
-            onClick={() => navigate({ to: '/peminjam/pinjam/baru', search: { jenis: 'pinjam' } })}
-          >
-            <Send className="w-4 h-4" />
-            Ajukan Peminjaman
-          </Button>
-          <Button
-            className="gap-2"
-            onClick={() => navigate({ to: '/peminjam/pinjam/baru', search: { jenis: 'reservasi' } })}
-          >
-            <CalendarCheck className="w-4 h-4" />
-            Reservasi
-          </Button>
-        </div>
+      <div>
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">Dashboard</h1>
+        <p className="text-[13px] text-muted-foreground">Ringkasan pengajuan dan jadwal ruang. Klik tanggal di kalender untuk mengajukan.</p>
       </div>
 
-      {/* Stat Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard
-          label="Total Pengajuan"
-          value={isLoading ? '—' : total}
-          sub="Semua pengajuan Anda"
-          icon={<FileText className="w-[18px] h-[18px] text-blue-600" />}
-          color="bg-blue-50"
-          onClick={() => goToPinjam('ALL')}
-        />
-        <StatCard
-          label="Disetujui"
-          value={isLoading ? '—' : approved}
-          sub="Selesai diproses"
-          icon={<CheckCircle className="w-[18px] h-[18px] text-green-600" />}
-          color="bg-green-50"
-          onClick={() => goToPinjam('APPROVED')}
-        />
-        <StatCard
-          label="Sedang Diproses"
-          value={isLoading ? '—' : inProgress}
-          sub="Menunggu persetujuan"
-          icon={<Clock className="w-[18px] h-[18px] text-amber-600" />}
-          color="bg-amber-50"
-          onClick={() => goToPinjam('IN_PROGRESS')}
-        />
-        <StatCard
-          label="Perlu Tindakan"
-          value={isLoading ? '—' : needsAction}
-          sub="Draft atau perlu revisi"
-          icon={<AlertCircle className="w-[18px] h-[18px] text-red-500" />}
-          color="bg-red-50"
-          onClick={() => goToPinjam('DRAFT')}
-        />
-      </div>
+      <StatStrip stats={stats} onSelect={(status) => navigate({ to: '/peminjam/pinjam', search: { status } })} />
 
-      {/* Kalender */}
       <BookingCalendar />
     </div>
   );
