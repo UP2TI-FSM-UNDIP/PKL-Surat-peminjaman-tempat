@@ -86,7 +86,7 @@ function ProposalPage() {
     <div className="mx-auto max-w-4xl space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold">Proposal Kegiatan</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-[28px]">Proposal Kegiatan</h1>
           <p className="text-sm text-muted-foreground">Jadwal reservasi sudah terkunci. Lengkapi proposal di bawah.</p>
         </div>
         <Link to="/peminjam/pinjam/$documentId" params={{ documentId }} className="text-sm underline">Lihat detail</Link>
