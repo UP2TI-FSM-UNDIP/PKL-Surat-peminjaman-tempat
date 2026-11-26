@@ -106,19 +106,32 @@ export default function BookingCalendar() {
     const color = arg.event.extendedProps.color as string;
     const time = event ? event.start_time.slice(0, 5) : arg.timeText;
     const room = event?.room.code ?? '';
+    const title = arg.event.title || 'Tanpa judul';
+    if (arg.view.type === 'dayGridWeek') {
+      // Tampilan minggu: kartu bertumpuk per hari, urut jam — rapi walau banyak booking.
+      return (
+        <div className='fsm-event-card' title={`${time}–${event?.end_time.slice(0, 5) ?? ''} · ${title} · ${room}`}>
+          <span className='fsm-event-title'>{title}</span>
+          <span className='fsm-event-meta'>
+            {time}–{event?.end_time.slice(0, 5) ?? ''}
+            {room && <span className='fsm-event-chip'>{room}</span>}
+          </span>
+        </div>
+      );
+    }
     if (arg.view.type === 'dayGridMonth') {
       return (
-        <div className='fsm-event-month' title={`${time} · ${arg.event.title} · ${room}`}>
+        <div className='fsm-event-month' title={`${time} · ${title} · ${room}`}>
           <span className='fsm-event-dot' style={{ backgroundColor: color }} />
           <span className='fsm-event-time'>{time}</span>
-          <span className='fsm-event-title'>{arg.event.title}</span>
+          <span className='fsm-event-title'>{title}</span>
           <span className='fsm-event-room'>{room}</span>
         </div>
       );
     }
     return (
-      <div className='fsm-event-block' title={`${time}–${event?.end_time.slice(0, 5) ?? ''} · ${arg.event.title} · ${room}`}>
-        <span className='fsm-event-title'>{arg.event.title}</span>
+      <div className='fsm-event-block' title={`${time}–${event?.end_time.slice(0, 5) ?? ''} · ${title} · ${room}`}>
+        <span className='fsm-event-title'>{title}</span>
         <span className='fsm-event-meta'>{time} · {room}</span>
       </div>
     );
@@ -223,7 +236,7 @@ export default function BookingCalendar() {
             headerToolbar={{
               left: 'prev,next today',
               center: 'title',
-              right: 'dayGridMonth,timeGridWeek,timeGridDay',
+              right: 'dayGridMonth,dayGridWeek,timeGridDay',
             }}
             buttonText={{
               today: 'Hari Ini',
@@ -248,8 +261,15 @@ export default function BookingCalendar() {
             eventTimeFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
             dayHeaderFormat={{ weekday: 'short' }}
             views={{
-              timeGridWeek: { dayHeaderFormat: { weekday: 'short', day: 'numeric' } },
-              timeGridDay: { dayHeaderFormat: { weekday: 'long', day: 'numeric', month: 'long' } },
+              dayGridWeek: {
+                dayHeaderFormat: { weekday: 'short', day: 'numeric' },
+                dayMaxEvents: false,
+                eventOrder: 'start,title',
+              },
+              timeGridDay: {
+                dayHeaderFormat: { weekday: 'long', day: 'numeric', month: 'long' },
+                eventMaxStack: 4,
+              },
             }}
             dayMaxEvents={3}
             eventMaxStack={2}

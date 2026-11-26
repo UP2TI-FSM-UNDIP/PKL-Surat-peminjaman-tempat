@@ -743,3 +743,69 @@
   width: 0;
   height: 0;
 }
+
+/* --- Tampilan minggu: kolom hari berisi kartu bertumpuk (urut jam) --- */
+.fc .fc-dayGridWeek-view .fc-daygrid-day-frame {
+  min-height: 22rem;
+}
+.fc .fc-dayGridWeek-view .fc-daygrid-day-top {
+  display: none;
+}
+.fc .fc-dayGridWeek-view .fc-daygrid-day-events {
+  padding-top: 6px;
+}
+.fc .fc-dayGridWeek-view .fc-daygrid-event.fsm-event {
+  margin: 0 6px 6px;
+  padding: 0;
+  white-space: normal;
+  border-radius: 8px;
+}
+.fsm-event-card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+  padding: 6px 8px;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  color: #1d1d1f;
+}
+.fsm-event-card .fsm-event-title {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  white-space: normal;
+  word-break: break-word;
+}
+.fsm-event-card .fsm-event-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  white-space: nowrap;
+  font-size: 0.6875rem;
+}
+.fsm-event-chip {
+  border-radius: 4px;
+  background: rgb(255 255 255 / 0.7);
+  padding: 0 4px;
+  font-weight: 500;
+  color: #3a3a3c;
+}
+.fc .fc-dayGridWeek-view .fc-day-today {
+  background: rgb(0 113 227 / 0.04) !important;
+}
+@media (max-width: 640px) {
+  .fc .fc-dayGridWeek-view .fc-daygrid-day-frame {
+    min-height: 14rem;
+  }
+  .fc .fc-dayGridWeek-view .fc-daygrid-event.fsm-event {
+    margin: 0 2px 4px;
+  }
+  .fsm-event-card {
+    padding: 4px;
+  }
+  .fsm-event-card .fsm-event-meta {
+    font-size: 0.625rem;
+  }
+}
