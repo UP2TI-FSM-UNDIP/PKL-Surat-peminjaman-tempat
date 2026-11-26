@@ -12,6 +12,7 @@ import { reservationService } from '@/services/reservation.service';
 import { bookingService } from '@/services/booking.service';
 import { getErrorMessage } from '@/lib/errors';
 import { DocumentStatusBadge } from '@/components/DocumentStatusBadge';
+import { PageHeader } from '@/components/common/PageHeader';
 import { ReservationSummaryCard } from '@/features/bookings/ReservationSummaryCard';
 import { BookingQr } from '@/features/bookings/BookingQr';
 
@@ -69,24 +70,18 @@ function DetailPage() {
   const editable = document.status === 'DRAFT' || document.status === 'REVISION';
   return (
     <div className="mx-auto max-w-4xl space-y-6">
-      <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-[28px] font-semibold tracking-tight">{document.title}</h1>
-        <DocumentStatusBadge doc={document} />
-      </div>
-      <ReservationSummaryCard document={document} summary={summary} />
-      <Button variant="outline" onClick={openProposal}>Lihat proposal PDF</Button>
+      <PageHeader title={document.title} badge={<DocumentStatusBadge doc={document} />} />
+      <ReservationSummaryCard document={document} summary={summary} onOpenProposal={openProposal} />
       {terminalReason && (
-        <Card>
-          <CardHeader><CardTitle className="text-base">Alasan</CardTitle></CardHeader>
-          <CardContent className="text-sm">{terminalReason}</CardContent>
-        </Card>
+        <section className="rounded-2xl border border-black/[0.06] bg-white p-5 shadow-[0_1px_2px_rgb(0_0_0/0.04)] sm:p-6">
+          <h2 className="text-[17px] font-semibold tracking-tight">Alasan</h2>
+          <p className="mt-2 text-[14px]">{terminalReason}</p>
+        </section>
       )}
-      <Card>
-        <CardHeader><CardTitle className="text-[17px]">Riwayat & alur</CardTitle></CardHeader>
-        <CardContent>
-          <DocumentTimeline document={document} />
-        </CardContent>
-      </Card>
+      <section className="space-y-4 rounded-2xl border border-black/[0.06] bg-white p-5 shadow-[0_1px_2px_rgb(0_0_0/0.04)] sm:p-6">
+        <h2 className="text-[17px] font-semibold tracking-tight">Riwayat & alur</h2>
+        <DocumentTimeline document={document} />
+      </section>
       <div className="flex flex-wrap gap-2">
         {editable && <Link to="/peminjam/pinjam/$documentId/proposal" params={{ documentId }}><Button>Lengkapi proposal</Button></Link>}
         {['DRAFT', 'REVISION', 'IN_PROGRESS'].includes(document.status) && (

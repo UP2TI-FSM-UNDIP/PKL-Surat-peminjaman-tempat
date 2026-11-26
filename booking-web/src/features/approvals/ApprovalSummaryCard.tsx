@@ -2,6 +2,7 @@ import { formatTimeRange, formatDateShort } from '@/lib/date';
 import type React from 'react';
 import { ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
+import { EquipmentTable } from '@/components/common/EquipmentTable';
 import { fileService } from '@/services/file.service';
 import { getErrorMessage } from '@/lib/errors';
 import type { Document } from '@/types/document';
@@ -77,19 +78,9 @@ export function ApprovalSummaryCard({ document, summary }: {
         </dl>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-3">
         <h2 className="text-[17px] font-semibold tracking-tight">Kebutuhan alat</h2>
-        {summary.equipment_items.length === 0 ? (
-          <p className="text-[13px] text-muted-foreground">Tidak ada kebutuhan alat.</p>
-        ) : (
-          <div className="flex flex-wrap gap-1.5">
-            {summary.equipment_items.map((item) => (
-              <span key={item.nama} className="rounded-full bg-secondary px-3 py-1 text-[13px]">
-                {item.nama} <span className="text-muted-foreground">× {item.jumlah}</span>
-              </span>
-            ))}
-          </div>
-        )}
+        <EquipmentTable items={summary.equipment_items} />
       </div>
 
       <button
