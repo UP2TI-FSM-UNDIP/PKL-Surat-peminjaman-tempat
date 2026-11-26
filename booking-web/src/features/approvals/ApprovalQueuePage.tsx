@@ -57,7 +57,7 @@ export function ApprovalQueuePage({ detailRoute }: { detailRoute: ApprovalDetail
   );
 }
 
-function RoomCodes({ slots }: { slots?: Array<{ room_id: number; room_code?: string | null }> }) {
+export function RoomCodes({ slots }: { slots?: Array<{ room_id: number; room_code?: string | null }> }) {
   const codes = [...new Set((slots ?? []).map((slot) => slot.room_code ?? `#${slot.room_id}`))];
   if (codes.length === 0) return <span className="text-muted-foreground">—</span>;
   return (
