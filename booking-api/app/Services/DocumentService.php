@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Document;
 use App\Models\DocumentLog;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
@@ -206,17 +207,20 @@ class DocumentService
             throw ValidationException::withMessages(['slots' => ['Slot bentrok.']]);
         }
 
-        $firstStep = $document->workflow->steps()->where('step_order', 1)->firstOrFail();
-        $approver = $this->workflowEngine->findApprover($document, $firstStep);
+        $document->workflow->steps()->where('step_order', 1)->firstOrFail();
 
-        $document->update([
-            'status' => 'IN_PROGRESS',
-            'current_step_order' => 1,
-            'current_holder_id' => $approver->id,
-            'proposal_completed_at' => $document->proposal_completed_at ?? now(),
-        ]);
+        DB::transaction(function () use ($document, $user) {
+            $document->update([
+                'status' => 'IN_PROGRESS',
+                'current_step_order' => 1,
+                'proposal_completed_at' => $document->proposal_completed_at ?? now(),
+            ]);
 
-        DocumentLog::create(['document_id' => $document->id, 'user_id' => $user->id, 'action' => 'SUBMITTED', 'note' => 'Dokumen diajukan']);
+            DocumentLog::create(['document_id' => $document->id, 'user_id' => $user->id, 'action' => 'SUBMITTED', 'note' => 'Dokumen diajukan']);
+
+            // Tahap pertama; tahap milik pengaju sendiri dilewati otomatis.
+            $this->workflowEngine->routeToStep($document, 1, $user);
+        });
 
         return $document->fresh(['currentHolder', 'roomBookings']);
     }

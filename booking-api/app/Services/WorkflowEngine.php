@@ -26,30 +26,7 @@ class WorkflowEngine
                 'step_snapshot' => $document->current_step_order,
             ]);
 
-            $nextStepOrder = $document->current_step_order + 1;
-            $nextStep = WorkflowStep::where('workflow_id', $document->workflow_id)
-                ->where('step_order', $nextStepOrder)
-                ->first();
-
-            if (!$nextStep) {
-                $this->finalizeRoomBookings($document, $actor);
-                $document->update([
-                    'status' => 'APPROVED',
-                    'completed_at' => now(),
-                    'current_holder_id' => null,
-                ]);
-
-                return 'Dokumen telah disetujui sepenuhnya dan proses selesai.';
-            }
-
-            $nextUser = $this->findApprover($document, $nextStep);
-            $document->update([
-                'current_holder_id' => $nextUser->id,
-                'current_step_order' => $nextStepOrder,
-                'status' => 'IN_PROGRESS',
-            ]);
-
-            return 'Dokumen diteruskan ke: ' . $nextUser->name;
+            return $this->routeToStep($document, $document->current_step_order + 1, $actor);
         });
     }
 
@@ -127,6 +104,54 @@ class WorkflowEngine
 
             return 'Dokumen dikembalikan untuk revisi.';
         });
+    }
+
+    /**
+     * Teruskan dokumen ke tahap $stepOrder. Tahap yang approver-nya adalah pengaju
+     * sendiri dilewati otomatis (dicatat SKIPPED) agar tidak ada yang menyetujui
+     * pengajuannya sendiri. Bila tidak ada tahap tersisa, dokumen disetujui penuh.
+     */
+    public function routeToStep(Document $document, int $stepOrder, User $actor): string
+    {
+        while (true) {
+            $step = WorkflowStep::where('workflow_id', $document->workflow_id)
+                ->where('step_order', $stepOrder)
+                ->first();
+
+            if (!$step) {
+                $this->finalizeRoomBookings($document, $actor);
+                $document->update([
+                    'status' => 'APPROVED',
+                    'completed_at' => now(),
+                    'current_holder_id' => null,
+                ]);
+
+                return 'Dokumen telah disetujui sepenuhnya dan proses selesai.';
+            }
+
+            $approver = $this->findApprover($document, $step);
+
+            if ($approver->id === $document->creator_id) {
+                DocumentLog::create([
+                    'document_id' => $document->id,
+                    'user_id' => $approver->id,
+                    'action' => 'SKIPPED',
+                    'note' => 'Dilewati otomatis: pengaju adalah approver tahap ini.',
+                    'step_snapshot' => $stepOrder,
+                ]);
+                $stepOrder++;
+
+                continue;
+            }
+
+            $document->update([
+                'current_holder_id' => $approver->id,
+                'current_step_order' => $stepOrder,
+                'status' => 'IN_PROGRESS',
+            ]);
+
+            return 'Dokumen diteruskan ke: ' . $approver->name;
+        }
     }
 
     /**
