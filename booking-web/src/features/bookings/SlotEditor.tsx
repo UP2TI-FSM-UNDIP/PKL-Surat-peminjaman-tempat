@@ -49,8 +49,8 @@ export function SlotEditor({ control, setValue, mode, rooms, rulesByDate, maxRow
 
   const ruleText = (rule: BookingRuleDate | undefined, maxEnd: string) =>
     !rule ? null
-      : rule.same_day ? `Hari ini · mulai ≥ ${rule.min_start_time ?? ''}`
       : rule.day_type === 'saturday' ? 'Sabtu · 09.00–17.00'
+      : rule.day_type === 'sunday' ? 'Minggu · 09.00–17.00'
       : rule.day_type === 'weekday' ? `Hari kerja · s.d. ${maxEnd.replace(':', '.')}`
       : rule.message ?? null;
 
@@ -99,7 +99,7 @@ export function SlotEditor({ control, setValue, mode, rooms, rulesByDate, maxRow
                 control={control}
                 name={`slots.${index}.start_time`}
                 render={({ field: timeField }) => (
-                  <TimeSelect label="Jam mulai" value={timeField.value} onChange={timeField.onChange} min={rule?.same_day ? rule.min_start_time ?? undefined : undefined} />
+                  <TimeSelect label="Jam mulai" value={timeField.value} onChange={timeField.onChange} />
                 )}
               />
               <Controller

@@ -78,7 +78,6 @@ export function DateSelectionModal({
                 {sameDay && (
                     <Callout tone='info' title='Peminjaman hari ini'>
                         Hanya lewat Ajukan Pinjam, dengan proposal lengkap yang diajukan hari ini juga.
-                        {dayRule?.min_start_time ? ` Mulai paling cepat pukul ${dayRule.min_start_time}.` : ''}
                     </Callout>
                 )}
 

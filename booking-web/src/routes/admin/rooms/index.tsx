@@ -290,7 +290,7 @@ function RouteComponent() {
                       ) : room.is_bookable_weekday ? (
                         <Badge variant='success'>Weekday</Badge>
                       ) : (
-                        <Badge variant='outline'>Sabtu saja</Badge>
+                        <Badge variant='outline'>Akhir pekan</Badge>
                       )}
                     </TableCell>
                     <TableCell className='py-2 sm:py-3'>

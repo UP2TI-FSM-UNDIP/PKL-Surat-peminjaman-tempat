@@ -52,7 +52,7 @@ export function DetailRoomModal({ room, isOpen, onClose }: DetailRoomModalProps)
             ['Kapasitas', room.capacity ? `${room.capacity} orang` : 'Tanpa batas'],
             ['Status', <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${statusClass}`}>{statusLabel}</span>],
             ['Tipe', room.type],
-            ['Senin–Jumat', room.is_bookable_weekday ? `Bisa, s.d. ${room.weekday_max_end_time?.slice(0, 5) ?? '16:30'}` : 'Tidak (Sabtu saja)'],
+            ['Senin–Jumat', room.is_bookable_weekday ? `Bisa, s.d. ${room.weekday_max_end_time?.slice(0, 5) ?? '16:30'}` : 'Tidak (akhir pekan saja)'],
             ['Deskripsi', room.description, true],
           ]}
         />

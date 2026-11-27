@@ -70,7 +70,7 @@ export function RoomForm({ formData, setFormData, onFileChange, imageFile, showS
           <Checkbox id='is-bookable-weekday' className='mt-0.5' checked={formData.isBookableWeekday} onCheckedChange={(checked) => set({ isBookableWeekday: checked === true })} />
           <span>
             <span className='block text-[13px] font-medium'>Boleh dipinjam Senin–Jumat</span>
-            <span className='block text-xs text-muted-foreground'>Sabtu selalu menampilkan semua ruang aktif.</span>
+            <span className='block text-xs text-muted-foreground'>Sabtu–Minggu selalu menampilkan semua ruang aktif.</span>
           </span>
         </label>
         <Field label='Batas jam hari kerja' htmlFor='weekday-max-end' hint={formData.type === 'STUDIO' ? 'Kosong = 16:30. Studio umumnya 18:00.' : 'Kosong = 16:30.'}>

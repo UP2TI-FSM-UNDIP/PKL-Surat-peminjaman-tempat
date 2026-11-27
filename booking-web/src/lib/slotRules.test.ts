@@ -23,8 +23,8 @@ const slot = (patch: Partial<ReservationSlot> = {}): ReservationSlot => ({
 
 describe('validateSlotDay', () => {
   it('menolak tanggal yang tidak bookable dengan pesan server', () => {
-    expect(validateSlotDay(slot(), { ...dayRule, is_bookable: false, message: 'Minggu tidak tersedia.' }))
-      .toEqual(['Minggu tidak tersedia.']);
+    expect(validateSlotDay(slot(), { ...dayRule, is_bookable: false, message: 'Tanggal sudah lewat.' }))
+      .toEqual(['Tanggal sudah lewat.']);
   });
 
   it('menolak H-0 berdasarkan min_booking_days', () => {
@@ -33,17 +33,15 @@ describe('validateSlotDay', () => {
   });
 
   it('H-0 ditolak untuk reservasi', () => {
-    const today = { ...dayRule, date: '2026-11-20', same_day: true, min_start_time: '11:00' };
+    const today = { ...dayRule, date: '2026-11-20', same_day: true, min_start_time: null };
     expect(validateSlotDay(slot({ booking_date: '2026-11-20', start_time: '13:00', end_time: '15:00' }), today, undefined, '2026-11-20'))
       .toEqual(['Tanggal hari ini hanya bisa lewat Ajukan Pinjam.']);
   });
 
-  it('H-0 boleh untuk Ajukan Pinjam dengan jeda jam mulai', () => {
-    const today = { ...dayRule, date: '2026-11-20', same_day: true, min_start_time: '11:00' };
-    expect(validateSlotDay(slot({ booking_date: '2026-11-20', start_time: '13:00', end_time: '15:00' }), today, undefined, '2026-11-20', true))
+  it('H-0 boleh untuk Ajukan Pinjam dengan jam aturan hari itu', () => {
+    const today = { ...dayRule, date: '2026-11-20', same_day: true, min_start_time: null };
+    expect(validateSlotDay(slot({ booking_date: '2026-11-20', start_time: '09:00', end_time: '12:00' }), today, undefined, '2026-11-20', true))
       .toEqual([]);
-    expect(validateSlotDay(slot({ booking_date: '2026-11-20', start_time: '10:00', end_time: '12:00' }), today, undefined, '2026-11-20', true))
-      .toContain('Pinjam hari ini: jam mulai paling cepat 11:00.');
   });
 
   it('menolak tanggal yang sudah lewat dengan pesan berbeda', () => {
