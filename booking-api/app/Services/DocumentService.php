@@ -47,7 +47,7 @@ class DocumentService
             $myQuery->where('creator_id', $user->id);
         }
         if (!empty($filters['status'])) {
-            $myQuery->where('status', $filters['status']);
+            $myQuery->whereIn('status', $this->statusFilter($filters['status']));
         }
         $this->applySearch($myQuery, $search);
         $myDocuments = $myQuery->latest()->paginate($perPage, ['*'], 'page_my');
@@ -75,7 +75,7 @@ class DocumentService
             ->where('creator_id', $user->id);
 
         if (!empty($filters['status'])) {
-            $myDocumentsQuery->where('status', $filters['status']);
+            $myDocumentsQuery->whereIn('status', $this->statusFilter($filters['status']));
         }
         if (!empty($filters['workflow_id'])) {
             $myDocumentsQuery->where('workflow_id', $filters['workflow_id']);
@@ -117,7 +117,7 @@ class DocumentService
             });
 
         if (!empty($filters['status'])) {
-            $processedDocumentsQuery->where('status', $filters['status']);
+            $processedDocumentsQuery->whereIn('status', $this->statusFilter($filters['status']));
         }
         if (!empty($filters['workflow_id'])) {
             $processedDocumentsQuery->where('workflow_id', $filters['workflow_id']);
@@ -269,5 +269,13 @@ class DocumentService
             'fileName' => basename($document->file_proposal),
             'etag' => md5($content),
         ];
+    }
+
+    /** Filter status boleh berisi beberapa nilai dipisah koma, mis. "DRAFT,REVISION". */
+    private function statusFilter(string|array $status): array
+    {
+        $values = is_array($status) ? $status : explode(',', $status);
+
+        return array_values(array_filter(array_map(fn ($v) => strtoupper(trim((string) $v)), $values)));
     }
 }
