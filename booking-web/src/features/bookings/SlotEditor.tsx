@@ -55,11 +55,11 @@ export function SlotEditor({ control, setValue, mode, rooms, rulesByDate, maxRow
 
   return (
     <div className="space-y-2">
-      <div className="hidden gap-3 px-3 text-xs font-medium text-muted-foreground md:grid md:grid-cols-[28px_minmax(0,1fr)_140px_140px_36px]">
-        <span>#</span>
+      <div className="hidden gap-3 px-3 text-[13px] font-medium text-foreground md:grid md:grid-cols-[28px_minmax(0,1fr)_140px_140px_36px]">
+        <span className="text-center text-muted-foreground">No</span>
         <span>{mode === 'one_room_many_dates' ? 'Tanggal' : 'Ruang'}</span>
-        <span>Mulai</span>
-        <span>Selesai</span>
+        <span>Jam mulai</span>
+        <span>Jam selesai</span>
         <span />
       </div>
       {fields.map((field, index) => {

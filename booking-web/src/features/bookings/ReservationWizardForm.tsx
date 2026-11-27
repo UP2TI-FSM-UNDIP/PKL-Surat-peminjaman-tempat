@@ -183,6 +183,7 @@ export function ReservationWizardForm({ intent, submitLabel = 'Simpan Reservasi'
           <Label>Pola peminjaman</Label>
           <SegmentedControl
             ariaLabel="Mode reservasi"
+            fullWidth
             value={mode}
             onChange={(next) => switchMode(next)}
             options={[
@@ -224,7 +225,7 @@ export function ReservationWizardForm({ intent, submitLabel = 'Simpan Reservasi'
         )}
 
         <div className="space-y-2">
-          <Label>{mode === 'one_room_many_dates' ? 'Tanggal & jam' : 'Ruang & jam'}</Label>
+          <Label className="md:hidden">{mode === 'one_room_many_dates' ? 'Tanggal & jam' : 'Ruang & jam'}</Label>
           <SlotEditor
             control={control}
             setValue={setValue}

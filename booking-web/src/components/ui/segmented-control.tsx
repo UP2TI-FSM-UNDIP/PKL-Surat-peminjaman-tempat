@@ -19,6 +19,8 @@ type SegmentedControlProps<T extends string> = {
   onChange: (value: T) => void;
   ariaLabel: string;
   className?: string;
+  /** Isi seluruh lebar wadah; tiap segmen sama lebar. */
+  fullWidth?: boolean;
 };
 
 /**
@@ -31,6 +33,7 @@ export function SegmentedControl<T extends string>({
   onChange,
   ariaLabel,
   className,
+  fullWidth = false,
 }: SegmentedControlProps<T>) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [indicator, setIndicator] = useState({ left: 0, width: 0 });
@@ -76,7 +79,7 @@ export function SegmentedControl<T extends string>({
         ref={trackRef}
         role='group'
         aria-label={ariaLabel}
-        className='relative flex w-max gap-0.5 rounded-full bg-secondary p-0.5'
+        className={cn('relative flex gap-0.5 rounded-full bg-secondary p-0.5', fullWidth ? 'w-full' : 'w-max')}
       >
         <span
           aria-hidden='true'
@@ -97,6 +100,7 @@ export function SegmentedControl<T extends string>({
               aria-pressed={isActive}
               onClick={() => onChange(option.value)}
               className={cn(
+                fullWidth && 'flex-1 text-center',
                 'relative z-10 rounded-full px-2.5 py-1.5 text-xs font-medium whitespace-nowrap transition-colors sm:px-3.5 sm:text-[13px]',
                 isActive
                   ? 'text-foreground'
