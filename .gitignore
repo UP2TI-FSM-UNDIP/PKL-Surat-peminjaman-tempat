@@ -4,6 +4,7 @@ minio/minio.exe
 docs/
 .codegraph/
 SPEC.md
+PLAN.md
 .superpowers/
 
 # Dokumen masukan
