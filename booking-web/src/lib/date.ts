@@ -30,3 +30,8 @@ export function formatDateShort(value?: string | null): string {
   const date = parseISO(value.slice(0, 10));
   return Number.isNaN(date.getTime()) ? value : format(date, 'd MMM yyyy', { locale: localeId });
 }
+
+/** Tanggal hari ini (zona lokal) dalam format yyyy-MM-dd. */
+export function todayIso(): string {
+  return format(new Date(), 'yyyy-MM-dd');
+}

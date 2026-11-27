@@ -1,3 +1,4 @@
+import { todayIso } from '@/lib/date';
 import { useEffect } from 'react';
 import { Controller, useFieldArray, useWatch, type Control, type UseFormSetValue } from 'react-hook-form';
 import { DateInput } from '@/components/ui/date-input';
@@ -81,7 +82,7 @@ export function SlotEditor({ control, setValue, mode, rooms, rulesByDate, maxRow
                     control={control}
                     name={`slots.${index}.booking_date`}
                     render={({ field: dateField }) => (
-                      <DateInput id={`slot-${index}-booking-date`} value={dateField.value} onChange={dateField.onChange} aria-label="Tanggal" />
+                      <DateInput id={`slot-${index}-booking-date`} min={todayIso()} value={dateField.value} onChange={dateField.onChange} aria-label="Tanggal" />
                     )}
                   />
                 ) : (

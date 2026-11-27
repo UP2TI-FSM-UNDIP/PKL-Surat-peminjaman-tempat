@@ -1,3 +1,4 @@
+import { todayIso } from '@/lib/date';
 import { useMemo, useState, type ReactNode } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -177,7 +178,7 @@ export function ReservationWizardForm({ intent, submitLabel = 'Simpan Reservasi'
   return (
     <form className="space-y-5" onSubmit={(event) => { event.preventDefault(); void submit(); }}>
       <section className={sectionClass}>
-        <StepHeader step={1} title="Ruang & waktu" description="Pilih ruang, tanggal, dan jam pemakaian." />
+        <StepHeader step={1} title="Ruang & waktu" description="Pilih ruang, tanggal, dan jam." />
 
         <div className="space-y-2">
           <Label>Pola peminjaman</Label>
@@ -212,13 +213,13 @@ export function ReservationWizardForm({ intent, submitLabel = 'Simpan Reservasi'
             )}
           </div>
         ) : (
-          <div className="space-y-2 sm:max-w-xs">
+          <div className="space-y-2">
             <Label htmlFor="booking_date">Tanggal</Label>
             <Controller
               control={control}
               name="booking_date"
               render={({ field }) => (
-                <DateInput id="booking_date" value={field.value} onChange={field.onChange} onBlur={field.onBlur} aria-label="Tanggal" />
+                <DateInput id="booking_date" min={todayIso()} value={field.value} onChange={field.onChange} onBlur={field.onBlur} aria-label="Tanggal" />
               )}
             />
           </div>
@@ -245,7 +246,7 @@ export function ReservationWizardForm({ intent, submitLabel = 'Simpan Reservasi'
       </section>
 
       <section className={sectionClass}>
-        <StepHeader step={2} title="Data kegiatan" description="Informasi kegiatan dan penanggung jawab yang bisa dihubungi." />
+        <StepHeader step={2} title="Data kegiatan" description="Kegiatan dan penanggung jawab." />
         <div className="grid gap-x-4 gap-y-5 md:grid-cols-2">
           <Field id="purpose" label="Tujuan / nama kegiatan" error={errors.purpose?.message} className="md:col-span-2">
             <Input id="purpose" placeholder="Nama kegiatan / tujuan" {...register('purpose', { required: 'Wajib diisi' })} />
@@ -301,7 +302,7 @@ function StepHeader({ step, title, description }: { step: number; title: string;
       <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-[13px] font-semibold text-white">{step}</span>
       <div>
         <h2 className="text-[15px] font-semibold tracking-tight sm:text-[17px]">{title}</h2>
-        <p className="text-[13px] text-muted-foreground">{description}</p>
+        <p className="text-xs text-muted-foreground sm:text-[13px]">{description}</p>
       </div>
     </div>
   );
