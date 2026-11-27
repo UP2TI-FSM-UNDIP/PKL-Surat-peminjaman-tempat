@@ -4,12 +4,42 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 class Document extends Model
 {
     use SoftDeletes;
 
     protected $guarded = ['id'];
+
+    protected static function booted(): void
+    {
+        static::creating(function (Document $document) {
+            $document->public_id ??= strtolower((string) Str::ulid());
+        });
+    }
+
+    /**
+     * Binding rute memakai ID publik acak; ID numerik lama tetap diterima
+     * agar tautan lama tidak putus (akses tetap diperiksa di controller).
+     */
+    public function resolveRouteBinding($value, $field = null)
+    {
+        return static::whereKeyOrPublicId($value)->firstOrFail();
+    }
+
+    public function scopeWhereKeyOrPublicId($query, $value)
+    {
+        return ctype_digit((string) $value)
+            ? $query->whereKey((int) $value)
+            : $query->where('public_id', strtolower((string) $value));
+    }
+
+    /** Cari dokumen dari ID publik atau ID numerik. */
+    public static function findByKeyOrFail($value): self
+    {
+        return static::whereKeyOrPublicId($value)->firstOrFail();
+    }
 
     protected $casts = [
         'content' => 'array',

@@ -37,6 +37,8 @@ class DocumentController extends Controller
                 'success' => true,
                 'data' => $document,
             ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            return response()->json(['success' => false, 'message' => 'Dokumen tidak ditemukan'], 404);
         } catch (\Exception $e) {
             $code = $e->getCode() ?: 500;
             if ($code < 100 || $code > 599) $code = 403;
@@ -50,7 +52,7 @@ class DocumentController extends Controller
 
     public function submit(Request $request, $id)
     {
-        $document = Document::findOrFail($id);
+        $document = Document::findByKeyOrFail($id);
         $user = $request->user();
 
         // Authorization: Hanya pembuat yang bisa submit
@@ -93,7 +95,7 @@ class DocumentController extends Controller
     public function approve(ApproveDocumentRequest $request, $id)
     {
         $validated = $request->validated();
-        $document = Document::with(['unit', 'workflow'])->findOrFail($id);
+        $document = Document::with(['unit', 'workflow'])->whereKeyOrPublicId($id)->firstOrFail();
         $user = $request->user();
 
         // Authorization: Hanya current holder
@@ -136,7 +138,7 @@ class DocumentController extends Controller
     public function reject(RejectDocumentRequest $request, $id)
     {
         $validated = $request->validated();
-        $document = Document::findOrFail($id);
+        $document = Document::findByKeyOrFail($id);
         $user = $request->user();
 
         // Authorization: Hanya current holder
@@ -179,7 +181,7 @@ class DocumentController extends Controller
     public function revise(ReviseDocumentRequest $request, $id)
     {
         $validated = $request->validated();
-        $document = Document::findOrFail($id);
+        $document = Document::findByKeyOrFail($id);
         $user = $request->user();
 
         // Authorization: Hanya current holder
@@ -219,7 +221,7 @@ class DocumentController extends Controller
 
     public function file(Request $request, $id, $type)
     {
-        $document = Document::findOrFail($id);
+        $document = Document::findByKeyOrFail($id);
         $user = $request->user();
 
         if (!$this->documentService->checkDocumentAccess($document, $user)) {

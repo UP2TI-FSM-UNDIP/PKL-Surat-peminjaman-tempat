@@ -151,7 +151,7 @@ class DocumentService
         });
     }
 
-    public function showDocument(int $id, User $user): Document
+    public function showDocument(int|string $id, User $user): Document
     {
         $document = Document::with([
             'workflow.steps',
@@ -161,7 +161,7 @@ class DocumentService
             'unit',
             'logs.user.role',
             'roomBookings',
-        ])->findOrFail($id);
+        ])->whereKeyOrPublicId($id)->firstOrFail();
 
         $isAdmin = $user->role?->slug === 'admin';
         $isCreator = $document->creator_id === $user->id;

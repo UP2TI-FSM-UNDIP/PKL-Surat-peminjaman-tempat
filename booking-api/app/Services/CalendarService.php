@@ -108,6 +108,7 @@ class CalendarService
     {
         return [
             'id' => $document->id,
+            'public_id' => $document->public_id,
             'purpose' => filled($content['purpose'] ?? null)
                 ? $content['purpose']
                 : $document->title,
