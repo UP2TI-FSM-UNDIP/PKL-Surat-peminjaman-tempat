@@ -49,7 +49,8 @@ function ProposalPage() {
     if (!content) return;
     hydratedDocumentId.current = document.id;
     reset({
-      event_name: content.event_name ?? '',
+      // Nama kegiatan sudah diisi saat reservasi; tinggal diperjelas bila perlu.
+      event_name: content.event_name || content.purpose || '',
       event_nature: content.event_nature ?? '',
       event_form: content.event_form ?? '',
       objectives: content.objectives ?? '',
@@ -124,8 +125,8 @@ function ProposalPage() {
               <ProposalField id="target_audience" label="Sasaran peserta" className="md:col-span-2">
                 <Input id="target_audience" placeholder="Contoh: Mahasiswa FSM angkatan 2024" {...register('target_audience')} />
               </ProposalField>
-              <ProposalField id="objectives" label="Tujuan" error={errors.objectives?.message}>
-                <Textarea id="objectives" rows={3} placeholder="Tujuan kegiatan" {...register('objectives', { required: 'Wajib diisi' })} />
+              <ProposalField id="objectives" label="Tujuan kegiatan" error={errors.objectives?.message}>
+                <Textarea id="objectives" rows={3} placeholder="Apa yang ingin dicapai dari kegiatan ini" {...register('objectives', { required: 'Wajib diisi' })} />
               </ProposalField>
               <ProposalField id="benefits" label="Manfaat">
                 <Textarea id="benefits" rows={3} placeholder="Manfaat bagi peserta" {...register('benefits')} />

@@ -249,8 +249,8 @@ export function ReservationWizardForm({ intent, submitLabel = 'Simpan Reservasi'
       <section className={sectionClass}>
         <StepHeader step={2} title="Data kegiatan" description="Kegiatan dan penanggung jawab." />
         <div className="grid gap-x-4 gap-y-5 md:grid-cols-2">
-          <Field id="purpose" label="Tujuan / nama kegiatan" error={errors.purpose?.message} className="md:col-span-2">
-            <Input id="purpose" placeholder="Nama kegiatan / tujuan" {...register('purpose', { required: 'Wajib diisi' })} />
+          <Field id="purpose" label="Nama kegiatan" error={errors.purpose?.message} className="md:col-span-2">
+            <Input id="purpose" placeholder="Contoh: Seminar Nasional Matematika 2026" {...register('purpose', { required: 'Wajib diisi' })} />
           </Field>
           <Field id="ketua_pelaksana_nama" label="Nama ketua pelaksana" error={errors.ketua_pelaksana_nama?.message}>
             <Input id="ketua_pelaksana_nama" placeholder="Nama lengkap" autoComplete="name" {...register('ketua_pelaksana_nama', { required: 'Wajib diisi' })} />

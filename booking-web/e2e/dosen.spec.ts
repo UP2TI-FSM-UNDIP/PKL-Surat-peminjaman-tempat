@@ -10,7 +10,7 @@ test('dosen menyelesaikan reservasi dan proposal dengan NIP 18 digit', async ({ 
   await page.getByRole('button', { name: '1 ruang, banyak tanggal' }).click();
   await page.getByLabel('Ruang').click();
   await page.getByRole('option', { name: /F104/ }).click();
-  await page.getByPlaceholder('Nama kegiatan / tujuan').fill('Dosen Test');
+  await page.locator('#purpose').fill('Dosen Test');
   await page.getByLabel('Nama ketua pelaksana').fill('Dr. Dosen');
   await page.getByLabel('NIM/NIP/NIDN').fill('198001012005011001');
   await page.getByLabel('Nomor HP').fill('081234567890');
@@ -21,7 +21,7 @@ test('dosen menyelesaikan reservasi dan proposal dengan NIP 18 digit', async ({ 
   await page.getByLabel('Nama kegiatan', { exact: true }).fill('Dosen Test');
   await page.getByLabel('Sifat kegiatan', { exact: true }).fill('Seminar');
   await page.getByLabel('Bentuk kegiatan', { exact: true }).fill('Offline');
-  await page.getByLabel('Tujuan', { exact: true }).fill('Belajar');
+  await page.getByLabel('Tujuan kegiatan', { exact: true }).fill('Belajar');
   await page.getByLabel('Manfaat', { exact: true }).fill('Ilmu');
   await page.getByLabel('Sasaran peserta', { exact: true }).fill('Mahasiswa');
   await page.locator('#proposal').setInputFiles({

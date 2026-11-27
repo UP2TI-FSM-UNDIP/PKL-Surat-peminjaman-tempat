@@ -14,7 +14,7 @@ test.describe('reservasi multi-slot', () => {
     await page.getByRole('button', { name: '1 ruang, banyak tanggal' }).click();
     await page.getByLabel('Ruang').click();
     await page.getByRole('option', { name: /F104/ }).click();
-    await page.getByPlaceholder('Nama kegiatan / tujuan').fill('Rapat Panitia');
+    await page.locator('#purpose').fill('Rapat Panitia');
     await page.getByLabel('Nama ketua pelaksana').fill('Budi');
     await page.getByLabel('NIM/NIP/NIDN').fill('21040120140001');
     await page.getByLabel('Nomor HP').fill('081234567890');
@@ -53,7 +53,7 @@ test.describe('reservasi multi-slot', () => {
     await page.getByLabel('Ruang').nth(1).click();
     await page.getByRole('option', { name: /F107/ }).click();
     await page.getByLabel('Buka Sekat').click();
-    await page.getByPlaceholder('Nama kegiatan / tujuan').fill(purpose);
+    await page.locator('#purpose').fill(purpose);
     await page.getByLabel('Nama ketua pelaksana').fill('Budi');
     await page.getByLabel('NIM/NIP/NIDN').fill('21040120140001');
     await page.getByLabel('Nomor HP').fill('081234567890');
@@ -63,7 +63,7 @@ test.describe('reservasi multi-slot', () => {
     await page.getByLabel('Nama kegiatan', { exact: true }).fill(purpose);
     await page.getByLabel('Sifat kegiatan', { exact: true }).fill('Seminar');
     await page.getByLabel('Bentuk kegiatan', { exact: true }).fill('Offline');
-    await page.getByLabel('Tujuan', { exact: true }).fill('Belajar');
+    await page.getByLabel('Tujuan kegiatan', { exact: true }).fill('Belajar');
     await page.getByLabel('Manfaat', { exact: true }).fill('Ilmu');
     await page.getByLabel('Sasaran peserta', { exact: true }).fill('Mahasiswa');
     await page.locator('#proposal').setInputFiles({
@@ -88,7 +88,7 @@ test.describe('reservasi multi-slot', () => {
     await page.getByRole('button', { name: '1 ruang, banyak tanggal' }).click();
     await page.getByLabel('Ruang').click();
     await page.getByRole('option', { name: /F104/ }).click();
-    await page.getByPlaceholder('Nama kegiatan / tujuan').fill('Read Only Test');
+    await page.locator('#purpose').fill('Read Only Test');
     await page.getByLabel('Nama ketua pelaksana').fill('Budi');
     await page.getByLabel('NIM/NIP/NIDN').fill('21040120140001');
     await page.getByLabel('Nomor HP').fill('081234567890');
@@ -97,7 +97,7 @@ test.describe('reservasi multi-slot', () => {
     await expect(page).toHaveURL(/\/peminjam\/pinjam\/\d+\/proposal$/);
 
     await page.getByRole('link', { name: 'Lihat detail' }).click();
-    await expect(page.getByLabel('Nama kegiatan / tujuan')).toHaveCount(0);
+    await expect(page.locator('#purpose')).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Simpan Reservasi' })).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Lengkapi proposal' })).toBeVisible();
     await expect(page.getByText('Undangan')).toHaveCount(0);
@@ -126,7 +126,7 @@ test.describe('reservasi multi-slot', () => {
     await page.getByRole('button', { name: '1 ruang, banyak tanggal' }).click();
     await page.getByLabel('Ruang').click();
     await page.getByRole('option', { name: /F104/ }).click();
-    await page.getByPlaceholder('Nama kegiatan / tujuan').fill(`Konflik Kedua${suffix}`);
+    await page.locator('#purpose').fill(`Konflik Kedua${suffix}`);
     await page.getByLabel('Nama ketua pelaksana').fill('Budi');
     await page.getByLabel('NIM/NIP/NIDN').fill('21040120140001');
     await page.getByLabel('Nomor HP').fill('081234567890');

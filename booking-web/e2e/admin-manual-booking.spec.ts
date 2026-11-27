@@ -9,7 +9,7 @@ test('admin membuat manual booking yang langsung disetujui', async ({ page, requ
   await page.getByRole('button', { name: '1 ruang, banyak tanggal' }).click();
   await page.getByLabel('Ruang').click();
   await page.getByRole('option', { name: /F104/ }).click();
-  await page.getByPlaceholder('Nama kegiatan / tujuan').fill('Manual Admin');
+  await page.locator('#purpose').fill('Manual Admin');
   await page.getByLabel('Nama ketua pelaksana').fill('Admin');
   await page.getByLabel('NIM/NIP/NIDN').fill('21040120140001');
   await page.getByLabel('Nomor HP').fill('081234567890');

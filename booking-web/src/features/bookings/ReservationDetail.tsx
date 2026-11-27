@@ -121,7 +121,7 @@ export function ReservationDetail({ document, summary }: {
             ['Pemohon', document.creator?.name],
             ['Unit', document.unit?.name],
             ['Diajukan', formatDateShort(document.created_at)],
-            ['Tujuan / nama kegiatan', c.purpose, true],
+            ['Nama kegiatan', c.event_name || c.purpose, true],
             ['Ketua pelaksana', c.ketua_pelaksana_nama],
             ['NIM/NIP/NIDN', c.ketua_pelaksana_identitas],
             ['Nomor HP', c.ketua_pelaksana_hp],
@@ -136,11 +136,10 @@ export function ReservationDetail({ document, summary }: {
         <Title>Proposal kegiatan</Title>
         <Fields
           rows={[
-            ['Nama kegiatan', c.event_name, true],
             ['Sifat', c.event_nature],
             ['Bentuk', c.event_form],
             ['Sasaran peserta', c.target_audience],
-            ['Tujuan', c.objectives, true],
+            ['Tujuan kegiatan', c.objectives, true],
             ['Manfaat', c.benefits, true],
           ]}
         />

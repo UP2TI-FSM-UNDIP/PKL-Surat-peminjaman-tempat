@@ -9,7 +9,7 @@ test('pembatalan reservasi mengubah status dan membatalkan booking', async ({ pa
   await page.getByRole('button', { name: '1 ruang, banyak tanggal' }).click();
   await page.getByLabel('Ruang').click();
   await page.getByRole('option', { name: /F104/ }).click();
-  await page.getByPlaceholder('Nama kegiatan / tujuan').fill('Batal Test');
+  await page.locator('#purpose').fill('Batal Test');
   await page.getByLabel('Nama ketua pelaksana').fill('Budi');
   await page.getByLabel('NIM/NIP/NIDN').fill('21040120140001');
   await page.getByLabel('Nomor HP').fill('081234567890');

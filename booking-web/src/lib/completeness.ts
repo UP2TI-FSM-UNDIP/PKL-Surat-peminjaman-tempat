@@ -2,7 +2,7 @@ export const COMPLETENESS_LABELS: Record<string, string> = {
   event_name: 'Nama kegiatan',
   event_nature: 'Sifat kegiatan',
   event_form: 'Bentuk kegiatan',
-  objectives: 'Tujuan',
+  objectives: 'Tujuan kegiatan',
   benefits: 'Manfaat',
   target_audience: 'Sasaran peserta',
   ketua_pelaksana_nama: 'Nama ketua pelaksana',

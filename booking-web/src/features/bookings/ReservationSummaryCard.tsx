@@ -14,7 +14,7 @@ export function ReservationSummaryCard({ document, summary, onOpenProposal }: {
   const slots = summary?.slots ?? document.content?.slots ?? [];
   const equipment = summary?.equipment_items ?? document.content?.equipment_items ?? [];
   const rows: Array<[string, React.ReactNode]> = [
-    ['Tujuan', document.content?.purpose || document.title],
+    ['Nama kegiatan', document.content?.event_name || document.content?.purpose || document.title],
     ['Ketua pelaksana', document.content?.ketua_pelaksana_nama || '—'],
     ['Peserta', document.content?.expected_participants ? `${document.content.expected_participants} orang` : '—'],
     ['Batas proposal', formatDateShort(summary?.reservation_deadline ?? document.reservation_deadline)],

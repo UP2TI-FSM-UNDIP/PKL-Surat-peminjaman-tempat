@@ -9,7 +9,7 @@ test('rantai SPV → TU → Wadek2 menyetujui pengajuan', async ({ page, request
   await page.getByRole('button', { name: '1 ruang, banyak tanggal' }).click();
   await page.getByLabel('Ruang').click();
   await page.getByRole('option', { name: /F104/ }).click();
-  await page.getByPlaceholder('Nama kegiatan / tujuan').fill('Approval Test');
+  await page.locator('#purpose').fill('Approval Test');
   await page.getByLabel('Nama ketua pelaksana').fill('Budi');
   await page.getByLabel('NIM/NIP/NIDN').fill('21040120140001');
   await page.getByLabel('Nomor HP').fill('081234567890');
@@ -23,7 +23,7 @@ test('rantai SPV → TU → Wadek2 menyetujui pengajuan', async ({ page, request
   await page.getByLabel('Nama kegiatan', { exact: true }).fill('Approval Test');
   await page.getByLabel('Sifat kegiatan', { exact: true }).fill('Seminar');
   await page.getByLabel('Bentuk kegiatan', { exact: true }).fill('Offline');
-  await page.getByLabel('Tujuan', { exact: true }).fill('Belajar');
+  await page.getByLabel('Tujuan kegiatan', { exact: true }).fill('Belajar');
   await page.getByLabel('Manfaat', { exact: true }).fill('Ilmu');
   await page.getByLabel('Sasaran peserta', { exact: true }).fill('Mahasiswa');
   await page.locator('#proposal').setInputFiles({
