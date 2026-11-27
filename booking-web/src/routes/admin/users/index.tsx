@@ -15,14 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { DetailGrid, Field, FormDialog, FormSection } from '@/components/common/FormDialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -262,6 +255,51 @@ function RouteComponent() {
         'Gagal menghapus user. Silakan coba lagi.',
       );
     }
+  };
+
+  const renderUserFields = (isEdit: boolean) => {
+    const prefix = isEdit ? 'edit-' : '';
+    return (
+      <>
+        <FormSection title='Akun'>
+          <Field label='Nama' htmlFor={`${prefix}name`} required wide>
+            <Input id={`${prefix}name`} value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder='Nama lengkap' required />
+          </Field>
+          <Field label='Email' htmlFor={`${prefix}email`} required>
+            <Input id={`${prefix}email`} type='email' value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder='email@example.com' required />
+          </Field>
+          <Field label='Password' htmlFor={`${prefix}password`} required={!isEdit} hint={isEdit ? 'Kosongkan bila tidak diubah.' : 'Minimal 8 karakter.'}>
+            <Input id={`${prefix}password`} type='password' autoComplete='new-password' value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} placeholder='••••••••' required={!isEdit} />
+          </Field>
+        </FormSection>
+        <FormSection title='Peran & unit'>
+          <Field label='Role' htmlFor={`${prefix}role_id`} required>
+            <Select value={formData.role_id.toString()} onValueChange={(value) => setFormData({ ...formData, role_id: Number(value) })}>
+              <SelectTrigger id={`${prefix}role_id`} className='w-full'>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {roles.map((role) => (
+                  <SelectItem key={role.id} value={role.id.toString()}>{role.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+          <Field label='Unit' htmlFor={`${prefix}unit_id`} required>
+            <Select value={formData.unit_id.toString()} onValueChange={(value) => setFormData({ ...formData, unit_id: Number(value) })}>
+              <SelectTrigger id={`${prefix}unit_id`} className='w-full'>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {units.map((unit) => (
+                  <SelectItem key={unit.id} value={unit.id.toString()}>{unit.name} ({unit.code})</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+        </FormSection>
+      </>
+    );
   };
 
   if (isInitialLoading) {
@@ -537,326 +575,62 @@ function RouteComponent() {
       </div>
 
       {/* Create User Modal */}
-      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-        <DialogContent className='sm:max-w-125'>
-          <form onSubmit={handleSubmitCreate}>
-            <DialogHeader>
-              <DialogTitle>Tambah Pengguna Baru</DialogTitle>
-              <DialogDescription>
-                Masukkan informasi user yang akan ditambahkan
-              </DialogDescription>
-            </DialogHeader>
-            <div className='grid gap-4 py-4'>
-              <div className='grid gap-2'>
-                <label htmlFor='name' className='text-sm font-medium'>
-                  Nama <span className='text-red-500'>*</span>
-                </label>
-                <Input
-                  id='name'
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                  placeholder='Nama lengkap user'
-                  required
-                />
-              </div>
-              <div className='grid gap-2'>
-                <label htmlFor='email' className='text-sm font-medium'>
-                  Email <span className='text-red-500'>*</span>
-                </label>
-                <Input
-                  id='email'
-                  type='email'
-                  value={formData.email}
-                  onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
-                  placeholder='email@example.com'
-                  required
-                />
-              </div>
-              <div className='grid gap-2'>
-                <label htmlFor='password' className='text-sm font-medium'>
-                  Password <span className='text-red-500'>*</span>
-                </label>
-                <Input
-                  id='password'
-                  type='password'
-                  value={formData.password}
-                  onChange={(e) =>
-                    setFormData({ ...formData, password: e.target.value })
-                  }
-                  placeholder='Minimal 8 karakter'
-                  required
-                />
-              </div>
-              <div className='grid gap-2'>
-                <label htmlFor='role_id' className='text-sm font-medium'>
-                  Role <span className='text-red-500'>*</span>
-                </label>
-                <Select
-                  value={formData.role_id.toString()}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, role_id: Number(value) })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {roles.map((role) => (
-                      <SelectItem key={role.id} value={role.id.toString()}>
-                        {role.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className='grid gap-2'>
-                <label htmlFor='unit_id' className='text-sm font-medium'>
-                  Unit <span className='text-red-500'>*</span>
-                </label>
-                <Select
-                  value={formData.unit_id.toString()}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, unit_id: Number(value) })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {units.map((unit) => (
-                      <SelectItem key={unit.id} value={unit.id.toString()}>
-                        {unit.name} ({unit.code})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              {formError && <p className='text-sm text-red-600'>{formError}</p>}
-            </div>
-            <DialogFooter>
-              <Button
-                type='button'
-                variant='outline'
-                onClick={() => setIsCreateModalOpen(false)}
-                disabled={isSubmitting}
-              >
-                Batal
-              </Button>
-              <Button type='submit' disabled={isSubmitting}>
-                {isSubmitting ? 'Menyimpan...' : 'Tambah'}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <FormDialog
+        open={isCreateModalOpen}
+        onOpenChange={setIsCreateModalOpen}
+        title='Tambah pengguna'
+        description='Lengkapi data akun pengguna baru.'
+        size='md'
+        onSubmit={handleSubmitCreate}
+        submitLabel='Tambah'
+        isSubmitting={isSubmitting}
+        error={formError}
+      >
+        {renderUserFields(false)}
+      </FormDialog>
 
       {/* Edit User Modal */}
-      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className='sm:max-w-125'>
-          <form onSubmit={handleSubmitEdit}>
-            <DialogHeader>
-              <DialogTitle>Edit Pengguna</DialogTitle>
-              <DialogDescription>
-                Ubah informasi user yang dipilih
-              </DialogDescription>
-            </DialogHeader>
-            <div className='grid gap-4 py-4'>
-              <div className='grid gap-2'>
-                <label htmlFor='edit-name' className='text-sm font-medium'>
-                  Nama <span className='text-red-500'>*</span>
-                </label>
-                <Input
-                  id='edit-name'
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                  placeholder='Nama lengkap user'
-                  required
-                />
-              </div>
-              <div className='grid gap-2'>
-                <label htmlFor='edit-email' className='text-sm font-medium'>
-                  Email <span className='text-red-500'>*</span>
-                </label>
-                <Input
-                  id='edit-email'
-                  type='email'
-                  value={formData.email}
-                  onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
-                  placeholder='email@example.com'
-                  required
-                />
-              </div>
-              <div className='grid gap-2'>
-                <label htmlFor='edit-password' className='text-sm font-medium'>
-                  Password (Kosongkan jika tidak ingin mengubah)
-                </label>
-                <Input
-                  id='edit-password'
-                  type='password'
-                  value={formData.password}
-                  onChange={(e) =>
-                    setFormData({ ...formData, password: e.target.value })
-                  }
-                  placeholder='Minimal 8 karakter'
-                />
-              </div>
-              <div className='grid gap-2'>
-                <label htmlFor='edit-role_id' className='text-sm font-medium'>
-                  Role <span className='text-red-500'>*</span>
-                </label>
-                <Select
-                  value={formData.role_id.toString()}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, role_id: Number(value) })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {roles.map((role) => (
-                      <SelectItem key={role.id} value={role.id.toString()}>
-                        {role.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className='grid gap-2'>
-                <label htmlFor='edit-unit_id' className='text-sm font-medium'>
-                  Unit <span className='text-red-500'>*</span>
-                </label>
-                <Select
-                  value={formData.unit_id.toString()}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, unit_id: Number(value) })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {units.map((unit) => (
-                      <SelectItem key={unit.id} value={unit.id.toString()}>
-                        {unit.name} ({unit.code})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              {formError && <p className='text-sm text-red-600'>{formError}</p>}
-            </div>
-            <DialogFooter>
-              <Button
-                type='button'
-                variant='outline'
-                onClick={() => setIsEditModalOpen(false)}
-                disabled={isSubmitting}
-              >
-                Batal
-              </Button>
-              <Button type='submit' disabled={isSubmitting}>
-                {isSubmitting ? 'Menyimpan...' : 'Simpan'}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <FormDialog
+        open={isEditModalOpen}
+        onOpenChange={setIsEditModalOpen}
+        title='Edit pengguna'
+        description={selectedUser?.email}
+        size='md'
+        onSubmit={handleSubmitEdit}
+        isSubmitting={isSubmitting}
+        error={formError}
+      >
+        {renderUserFields(true)}
+      </FormDialog>
 
       {/* Detail User Modal */}
-      <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
-        <DialogContent className='sm:max-w-125'>
-          <DialogHeader>
-            <DialogTitle>Detail Pengguna</DialogTitle>
-            <DialogDescription>
-              Informasi lengkap tentang user
-            </DialogDescription>
-          </DialogHeader>
-          {selectedUser && (
-            <div className='space-y-4 py-4'>
-              <div className='grid grid-cols-2 gap-4'>
-                <div>
-                  <p className='text-sm font-medium text-gray-500'>ID</p>
-                  <p className='text-sm text-gray-900'>{selectedUser.id}</p>
-                </div>
-                <div>
-                  <p className='text-sm font-medium text-gray-500'>Status</p>
-                  <span className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700'>
-                    {selectedUser.status || 'Active'}
-                  </span>
-                </div>
-              </div>
-              <div>
-                <p className='text-sm font-medium text-gray-500'>Nama</p>
-                <p className='text-sm text-gray-900'>{selectedUser.name}</p>
-              </div>
-              <div>
-                <p className='text-sm font-medium text-gray-500'>Email</p>
-                <p className='text-sm text-gray-900'>{selectedUser.email}</p>
-              </div>
-              <div>
-                <p className='text-sm font-medium text-gray-500'>Role</p>
-                <p className='text-sm text-gray-900'>
-                  {selectedUser.role?.name || '-'}
-                </p>
-              </div>
-              <div>
-                <p className='text-sm font-medium text-gray-500'>Unit</p>
-                <p className='text-sm text-gray-900'>
-                  {selectedUser.unit?.name || '-'} (
-                  {selectedUser.unit?.code || '-'})
-                </p>
-                {selectedUser.unit?.category && (
-                  <p className='text-xs text-gray-500 mt-1'>
-                    Kategori: {selectedUser.unit.category}
-                  </p>
-                )}
-              </div>
-              <div className='grid grid-cols-2 gap-4'>
-                <div>
-                  <p className='text-sm font-medium text-gray-500'>Terdaftar</p>
-                  <p className='text-sm text-gray-900'>
-                    {new Date(selectedUser.created_at).toLocaleDateString(
-                      'id-ID',
-                      {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric',
-                      },
-                    )}
-                  </p>
-                </div>
-                <div>
-                  <p className='text-sm font-medium text-gray-500'>
-                    Diperbarui
-                  </p>
-                  <p className='text-sm text-gray-900'>
-                    {new Date(selectedUser.updated_at).toLocaleDateString(
-                      'id-ID',
-                      {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric',
-                      },
-                    )}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button onClick={() => setIsDetailModalOpen(false)}>Tutup</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <FormDialog
+        open={isDetailModalOpen}
+        onOpenChange={setIsDetailModalOpen}
+        title='Detail pengguna'
+        description={selectedUser?.name}
+        size='md'
+        footer={<Button onClick={() => setIsDetailModalOpen(false)}>Tutup</Button>}
+      >
+        {selectedUser && (
+          <DetailGrid
+            items={[
+              ['Nama', selectedUser.name, true],
+              ['Email', selectedUser.email, true],
+              ['Role', selectedUser.role?.name],
+              [
+                'Status',
+                <span className='inline-flex rounded-full bg-[#e8f8ee] px-2 py-0.5 text-xs font-medium text-[#1f8a4c]'>
+                  {selectedUser.status || 'Aktif'}
+                </span>,
+              ],
+              ['Unit', selectedUser.unit ? `${selectedUser.unit.name} (${selectedUser.unit.code})` : null, true],
+              ['Terdaftar', new Date(selectedUser.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })],
+              ['Diperbarui', new Date(selectedUser.updated_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })],
+            ]}
+          />
+        )}
+      </FormDialog>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog

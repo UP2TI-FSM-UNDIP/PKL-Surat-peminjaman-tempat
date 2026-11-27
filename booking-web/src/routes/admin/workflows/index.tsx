@@ -8,20 +8,10 @@ import {
 } from '@/services/workflow.service';
 import { roleService, type Role } from '@/services/role.service';
 import { categories, scopeTypes } from '@/services/workflow.constants';
-import { Button } from '@/components/ui/button/button';
 import { Input } from '@/components/ui/input';
 import { SegmentedControl } from '@/components/ui/segmented-control';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Search } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Field, FormDialog, FormSection, textareaClass } from '@/components/common/FormDialog';
 import {
   Select,
   SelectContent,
@@ -374,63 +364,39 @@ function RouteComponent() {
       />
 
       {/* Edit Workflow Modal */}
-      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Alur</DialogTitle>
-            <DialogDescription>Update informasi workflow</DialogDescription>
-          </DialogHeader>
-          <div className='space-y-4 py-4'>
-            <div>
-              <Label htmlFor='edit_name'>Nama Workflow</Label>
-              <Input
-                id='edit_name'
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-              />
-            </div>
-            <div>
-              <Label htmlFor='edit_description'>Deskripsi</Label>
-              <Textarea
-                id='edit_description'
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-                rows={3}
-              />
-            </div>
-            <div>
-              <Label htmlFor='edit_category'>Berlaku untuk Kategori</Label>
-              <Select
-                value={formData.applies_to_category}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, applies_to_category: value })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat.value} value={cat.value}>
-                      {cat.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant='outline' onClick={() => setIsEditModalOpen(false)}>
-              Batal
-            </Button>
-            <Button onClick={submitEditWorkflow}>Simpan Perubahan</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <FormDialog
+        open={isEditModalOpen}
+        onOpenChange={setIsEditModalOpen}
+        title='Edit alur'
+        description={selectedWorkflow?.name}
+        size='md'
+        onSubmit={(event) => {
+          event.preventDefault();
+          void submitEditWorkflow();
+        }}
+        submitLabel='Simpan'
+      >
+        <FormSection>
+          <Field label='Nama alur' htmlFor='edit_name' required>
+            <Input id='edit_name' value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
+          </Field>
+          <Field label='Berlaku untuk kategori' htmlFor='edit_category'>
+            <Select value={formData.applies_to_category} onValueChange={(value) => setFormData({ ...formData, applies_to_category: value })}>
+              <SelectTrigger id='edit_category' className='w-full'>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((cat) => (
+                  <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+          <Field label='Deskripsi' htmlFor='edit_description' wide>
+            <textarea id='edit_description' rows={2} value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className={textareaClass} />
+          </Field>
+        </FormSection>
+      </FormDialog>
 
       {/* Workflow Detail Modal */}
       <WorkflowDetailDialog

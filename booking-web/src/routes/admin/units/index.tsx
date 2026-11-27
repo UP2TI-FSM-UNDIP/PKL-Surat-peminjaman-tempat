@@ -15,14 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { DetailGrid, Field, FormDialog, FormSection } from '@/components/common/FormDialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -276,6 +269,53 @@ function RouteComponent() {
     );
   };
 
+  const renderUnitFields = (isEdit: boolean) => {
+    const prefix = isEdit ? 'edit-' : '';
+    return (
+      <FormSection>
+        <Field label='Nama unit' htmlFor={`${prefix}name`} required wide>
+          <Input id={`${prefix}name`} value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder='Contoh: Program Studi Informatika' required />
+        </Field>
+        <Field label='Kode unit' htmlFor={`${prefix}code`} required>
+          <Input id={`${prefix}code`} value={formData.code} onChange={(e) => setFormData({ ...formData, code: e.target.value })} placeholder='Contoh: PRODI-IF' required />
+        </Field>
+        <Field label='Kategori' htmlFor={`${prefix}category`} required>
+          <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value as UnitCategory })}>
+            <SelectTrigger id={`${prefix}category`} className='w-full'>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {UNIT_CATEGORIES.map((c) => (
+                <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+        <Field label='Unit induk' htmlFor={`${prefix}parent_id`} wide>
+          <Select
+            value={formData.parent_id?.toString() || 'none'}
+            onValueChange={(value) => setFormData({ ...formData, parent_id: value === 'none' ? undefined : Number(value) })}
+          >
+            <SelectTrigger id={`${prefix}parent_id`} className='w-full'>
+              <SelectValue placeholder='Pilih unit induk' />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='none'>Tidak ada</SelectItem>
+              {units
+                .filter((unit) => !isEdit || unit.id !== selectedUnit?.id)
+                .map((unit) => (
+                  <SelectItem key={unit.id} value={unit.id.toString()}>{unit.name} ({unit.code})</SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
+        </Field>
+        <Field label='Deskripsi' htmlFor={`${prefix}description`} wide>
+          <Input id={`${prefix}description`} value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder='Deskripsi singkat (opsional)' />
+        </Field>
+      </FormSection>
+    );
+  };
+
   if (isInitialLoading) {
     return (
       <div className='flex items-center justify-center min-h-[400px]'>
@@ -459,384 +499,91 @@ function RouteComponent() {
       </div>
 
       {/* Create Unit Modal */}
-      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-        <DialogContent className='sm:max-w-[500px]'>
-          <form onSubmit={handleSubmitCreate}>
-            <DialogHeader>
-              <DialogTitle>Tambah Unit Baru</DialogTitle>
-              <DialogDescription>
-                Masukkan informasi unit yang akan ditambahkan
-              </DialogDescription>
-            </DialogHeader>
-            <div className='grid gap-4 py-4'>
-              <div className='grid gap-2'>
-                <label htmlFor='name' className='text-sm font-medium'>
-                  Nama Unit <span className='text-red-500'>*</span>
-                </label>
-                <Input
-                  id='name'
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                  placeholder='Contoh: Program Studi Teknik Informatika'
-                  required
-                />
-              </div>
-              <div className='grid gap-2'>
-                <label htmlFor='code' className='text-sm font-medium'>
-                  Kode Unit <span className='text-red-500'>*</span>
-                </label>
-                <Input
-                  id='code'
-                  value={formData.code}
-                  onChange={(e) =>
-                    setFormData({ ...formData, code: e.target.value })
-                  }
-                  placeholder='Contoh: PRODI-TI'
-                  required
-                />
-              </div>
-              <div className='grid gap-2'>
-                <label htmlFor='category' className='text-sm font-medium'>
-                  Kategori <span className='text-red-500'>*</span>
-                </label>
-                <Select
-                  value={formData.category}
-                  onValueChange={(value) =>
-                    setFormData({
-                      ...formData,
-                      category: value as UnitCategory,
-                    })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {UNIT_CATEGORIES.map((c) => (
-                      <SelectItem key={c.value} value={c.value}>
-                        {c.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className='grid gap-2'>
-                <label htmlFor='parent_id' className='text-sm font-medium'>
-                  Parent Unit (Opsional)
-                </label>
-                <Select
-                  value={formData.parent_id?.toString() || 'none'}
-                  onValueChange={(value) =>
-                    setFormData({
-                      ...formData,
-                      parent_id: value === 'none' ? undefined : Number(value),
-                    })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder='Pilih parent unit' />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value='none'>Tidak ada parent</SelectItem>
-                    {units.map((unit) => (
-                      <SelectItem key={unit.id} value={unit.id.toString()}>
-                        {unit.name} ({unit.code})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className='grid gap-2'>
-                <label htmlFor='description' className='text-sm font-medium'>
-                  Deskripsi (Opsional)
-                </label>
-                <Input
-                  id='description'
-                  value={formData.description}
-                  onChange={(e) =>
-                    setFormData({ ...formData, description: e.target.value })
-                  }
-                  placeholder='Deskripsi singkat unit'
-                />
-              </div>
-              {formError && <p className='text-sm text-red-600'>{formError}</p>}
-            </div>
-            <DialogFooter>
-              <Button
-                type='button'
-                variant='outline'
-                onClick={() => setIsCreateModalOpen(false)}
-                disabled={isSubmitting}
-              >
-                Batal
-              </Button>
-              <Button type='submit' disabled={isSubmitting}>
-                {isSubmitting ? 'Menyimpan...' : 'Tambah'}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <FormDialog
+        open={isCreateModalOpen}
+        onOpenChange={setIsCreateModalOpen}
+        title='Tambah unit'
+        description='Lengkapi data unit baru.'
+        size='md'
+        onSubmit={handleSubmitCreate}
+        submitLabel='Tambah'
+        isSubmitting={isSubmitting}
+        error={formError}
+      >
+        {renderUnitFields(false)}
+      </FormDialog>
 
       {/* Edit Unit Modal */}
-      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className='sm:max-w-[500px]'>
-          <form onSubmit={handleSubmitEdit}>
-            <DialogHeader>
-              <DialogTitle>Edit Unit</DialogTitle>
-              <DialogDescription>
-                Ubah informasi unit yang dipilih
-              </DialogDescription>
-            </DialogHeader>
-            <div className='grid gap-4 py-4'>
-              <div className='grid gap-2'>
-                <label htmlFor='edit-name' className='text-sm font-medium'>
-                  Nama Unit <span className='text-red-500'>*</span>
-                </label>
-                <Input
-                  id='edit-name'
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                  placeholder='Contoh: Program Studi Teknik Informatika'
-                  required
-                />
-              </div>
-              <div className='grid gap-2'>
-                <label htmlFor='edit-code' className='text-sm font-medium'>
-                  Kode Unit <span className='text-red-500'>*</span>
-                </label>
-                <Input
-                  id='edit-code'
-                  value={formData.code}
-                  onChange={(e) =>
-                    setFormData({ ...formData, code: e.target.value })
-                  }
-                  placeholder='Contoh: PRODI-TI'
-                  required
-                />
-              </div>
-              <div className='grid gap-2'>
-                <label htmlFor='edit-category' className='text-sm font-medium'>
-                  Kategori <span className='text-red-500'>*</span>
-                </label>
-                <Select
-                  value={formData.category}
-                  onValueChange={(value) =>
-                    setFormData({
-                      ...formData,
-                      category: value as UnitCategory,
-                    })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {UNIT_CATEGORIES.map((c) => (
-                      <SelectItem key={c.value} value={c.value}>
-                        {c.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className='grid gap-2'>
-                <label htmlFor='edit-parent_id' className='text-sm font-medium'>
-                  Parent Unit (Opsional)
-                </label>
-                <Select
-                  value={formData.parent_id?.toString() || 'none'}
-                  onValueChange={(value) =>
-                    setFormData({
-                      ...formData,
-                      parent_id: value === 'none' ? undefined : Number(value),
-                    })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder='Pilih parent unit' />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value='none'>Tidak ada parent</SelectItem>
-                    {units
-                      .filter((u) => u.id !== selectedUnit?.id)
-                      .map((unit) => (
-                        <SelectItem key={unit.id} value={unit.id.toString()}>
-                          {unit.name} ({unit.code})
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className='grid gap-2'>
-                <label
-                  htmlFor='edit-description'
-                  className='text-sm font-medium'
-                >
-                  Deskripsi (Opsional)
-                </label>
-                <Input
-                  id='edit-description'
-                  value={formData.description}
-                  onChange={(e) =>
-                    setFormData({ ...formData, description: e.target.value })
-                  }
-                  placeholder='Deskripsi singkat unit'
-                />
-              </div>
-              {formError && <p className='text-sm text-red-600'>{formError}</p>}
-            </div>
-            <DialogFooter>
-              <Button
-                type='button'
-                variant='outline'
-                onClick={() => setIsEditModalOpen(false)}
-                disabled={isSubmitting}
-              >
-                Batal
-              </Button>
-              <Button type='submit' disabled={isSubmitting}>
-                {isSubmitting ? 'Menyimpan...' : 'Simpan'}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <FormDialog
+        open={isEditModalOpen}
+        onOpenChange={setIsEditModalOpen}
+        title='Edit unit'
+        description={selectedUnit ? `${selectedUnit.code} · ${selectedUnit.name}` : undefined}
+        size='md'
+        onSubmit={handleSubmitEdit}
+        isSubmitting={isSubmitting}
+        error={formError}
+      >
+        {renderUnitFields(true)}
+      </FormDialog>
 
       {/* Detail Unit Modal */}
-      <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
-        <DialogContent className='sm:max-w-[600px]'>
-          <DialogHeader>
-            <DialogTitle>Detail Unit</DialogTitle>
-            <DialogDescription>
-              Informasi lengkap tentang unit
-            </DialogDescription>
-          </DialogHeader>
-          {selectedUnit && (
-            <div className='space-y-4 py-4'>
-              <div className='grid grid-cols-2 gap-4'>
-                <div>
-                  <p className='text-sm font-medium text-gray-500'>ID</p>
-                  <p className='text-sm text-gray-900'>{selectedUnit.id}</p>
-                </div>
-                <div>
-                  <p className='text-sm font-medium text-gray-500'>Kategori</p>
-                  <div className='mt-1'>
-                    {getCategoryBadge(selectedUnit.category)}
-                  </div>
+      <FormDialog
+        open={isDetailModalOpen}
+        onOpenChange={setIsDetailModalOpen}
+        title='Detail unit'
+        description={selectedUnit?.name}
+        size='md'
+        footer={<Button onClick={() => setIsDetailModalOpen(false)}>Tutup</Button>}
+      >
+        {selectedUnit && (
+          <div className='space-y-4'>
+            <DetailGrid
+              items={[
+                ['Kode', <code className='rounded bg-muted px-1.5 py-0.5 text-[13px]'>{selectedUnit.code}</code>],
+                ['Kategori', getCategoryBadge(selectedUnit.category)],
+                ['Unit induk', selectedUnit.parent ? `${selectedUnit.parent.name} (${selectedUnit.parent.code})` : null, true],
+                ['Deskripsi', selectedUnit.description, true],
+                ['Dibuat', new Date(selectedUnit.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })],
+                ['Diperbarui', new Date(selectedUnit.updated_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })],
+              ]}
+            />
+            {selectedUnit.children && selectedUnit.children.length > 0 && (
+              <div className='border-t border-black/[0.06] pt-4'>
+                <h3 className='mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground'>
+                  Sub-unit ({selectedUnit.children.length})
+                </h3>
+                <div className='flex flex-wrap gap-1.5'>
+                  {selectedUnit.children.map((child) => (
+                    <span key={child.id} className='rounded-full bg-muted px-2.5 py-1 text-xs font-medium'>
+                      {child.name}
+                    </span>
+                  ))}
                 </div>
               </div>
-              <div>
-                <p className='text-sm font-medium text-gray-500'>Nama Unit</p>
-                <p className='text-sm text-gray-900'>{selectedUnit.name}</p>
-              </div>
-              <div>
-                <p className='text-sm font-medium text-gray-500'>Kode Unit</p>
-                <p className='text-sm text-gray-900'>
-                  <code className='bg-gray-100 px-2 py-1 rounded'>
-                    {selectedUnit.code}
-                  </code>
-                </p>
-              </div>
-              {selectedUnit.description && (
-                <div>
-                  <p className='text-sm font-medium text-gray-500'>Deskripsi</p>
-                  <p className='text-sm text-gray-900'>
-                    {selectedUnit.description}
-                  </p>
-                </div>
+            )}
+            <div className='border-t border-black/[0.06] pt-4'>
+              <h3 className='mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground'>
+                Pengguna di unit ini{unitUsers.length > 0 ? ` (${unitUsers.length})` : ''}
+              </h3>
+              {isLoadingUsers ? (
+                <p className='text-[13px] text-muted-foreground'>Memuat…</p>
+              ) : unitUsers.length > 0 ? (
+                <ul className='divide-y divide-black/[0.05] overflow-hidden rounded-xl bg-muted/60'>
+                  {unitUsers.map((user) => (
+                    <li key={user.id} className='flex min-w-0 items-center justify-between gap-3 px-3 py-2'>
+                      <span className='truncate text-[13px] font-medium'>{user.name}</span>
+                      <span className='truncate text-xs text-muted-foreground'>{user.email}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className='text-[13px] text-muted-foreground'>Belum ada pengguna.</p>
               )}
-              {selectedUnit.parent && (
-                <div>
-                  <p className='text-sm font-medium text-gray-500'>
-                    Parent Unit
-                  </p>
-                  <p className='text-sm text-gray-900'>
-                    {selectedUnit.parent.name} ({selectedUnit.parent.code})
-                  </p>
-                </div>
-              )}
-              {selectedUnit.children && selectedUnit.children.length > 0 && (
-                <div>
-                  <p className='text-sm font-medium text-gray-500'>
-                    Sub-Unit ({selectedUnit.children.length})
-                  </p>
-                  <ul className='mt-2 space-y-1'>
-                    {selectedUnit.children.map((child) => (
-                      <li key={child.id} className='text-sm text-gray-900'>
-                        • {child.name} ({child.code})
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              <div className='grid grid-cols-2 gap-4'>
-                <div>
-                  <p className='text-sm font-medium text-gray-500'>Dibuat</p>
-                  <p className='text-sm text-gray-900'>
-                    {new Date(selectedUnit.created_at).toLocaleDateString(
-                      'id-ID',
-                      {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric',
-                      },
-                    )}
-                  </p>
-                </div>
-                <div>
-                  <p className='text-sm font-medium text-gray-500'>
-                    Diperbarui
-                  </p>
-                  <p className='text-sm text-gray-900'>
-                    {new Date(selectedUnit.updated_at).toLocaleDateString(
-                      'id-ID',
-                      {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric',
-                      },
-                    )}
-                  </p>
-                </div>
-              </div>
-              <div>
-                <p className='text-sm font-medium text-gray-500 mb-2'>
-                  User di Unit Ini
-                </p>
-                {isLoadingUsers ? (
-                  <p className='text-sm text-gray-500'>Memuat...</p>
-                ) : unitUsers.length > 0 ? (
-                  <ul className='space-y-2'>
-                    {unitUsers.map((user) => (
-                      <li
-                        key={user.id}
-                        className='text-sm text-gray-900 flex justify-between items-center p-2 bg-gray-50 rounded'
-                      >
-                        <span>{user.name}</span>
-                        <span className='text-xs text-gray-500'>
-                          {user.email}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className='text-sm text-gray-500'>
-                    Belum ada user di unit ini
-                  </p>
-                )}
-              </div>
             </div>
-          )}
-          <DialogFooter>
-            <Button onClick={() => setIsDetailModalOpen(false)}>Tutup</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </div>
+        )}
+      </FormDialog>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog

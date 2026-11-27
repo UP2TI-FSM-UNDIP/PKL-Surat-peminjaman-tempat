@@ -1,14 +1,5 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button/button';
+import { DetailGrid, FormDialog } from '@/components/common/FormDialog';
 import type { Workflow } from '@/services/workflow.service';
 
 interface WorkflowDetailDialogProps {
@@ -26,70 +17,52 @@ export function WorkflowDetailDialog({
   getScopeTypeLabel,
   getCategoryLabel,
 }: WorkflowDetailDialogProps) {
+  const steps = [...(selectedWorkflow?.steps ?? [])].sort((a, b) => a.step_order - b.step_order);
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='max-w-2xl'>
-        <DialogHeader>
-          <DialogTitle>Detail Workflow</DialogTitle>
-        </DialogHeader>
-        <div className='max-h-[calc(100vh-200px)] overflow-y-auto'>
-          {selectedWorkflow && (
-            <div className='space-y-4 py-4'>
-              <div>
-                <Label className='font-semibold'>Nama Workflow</Label>
-                <p>{selectedWorkflow.name}</p>
-              </div>
-              <div>
-                <Label className='font-semibold'>Kategori</Label>
-                <p>{getCategoryLabel(selectedWorkflow.applies_to_category)}</p>
-              </div>
-              <div>
-                <Label className='font-semibold'>Deskripsi</Label>
-                <p>{selectedWorkflow.description || '-'}</p>
-              </div>
-              <div>
-                <Label className='font-semibold'>Langkah-langkah</Label>
-                {selectedWorkflow.steps && selectedWorkflow.steps.length > 0 ? (
-                  <div className='space-y-2 mt-2'>
-                    {selectedWorkflow.steps.map((step) => (
-                      <Card key={step.id}>
-                        <CardContent className='p-3'>
-                          <div className='flex items-center gap-2 mb-1'>
-                            <Badge variant='outline'>
-                              Step {step.step_order}
-                            </Badge>
-                            <span className='font-medium'>
-                              {step.step_name}
-                            </span>
-                          </div>
-                          <div className='text-sm text-gray-600'>
-                            <div>Role: {step.target_role_slug}</div>
-                            <div>
-                              Scope: {getScopeTypeLabel(step.scope_type)}
-                            </div>
-                            {step.target_category_lookup && (
-                              <div>
-                                Target:{' '}
-                                {getCategoryLabel(step.target_category_lookup)}
-                              </div>
-                            )}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                ) : (
-                  <p className='text-gray-500 mt-2'>Tidak ada step</p>
-                )}
-              </div>
-            </div>
-          )}
+    <FormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title='Detail alur'
+      description={selectedWorkflow?.name}
+      size='md'
+      footer={<Button onClick={() => onOpenChange(false)}>Tutup</Button>}
+    >
+      {selectedWorkflow && (
+        <div className='space-y-4'>
+          <DetailGrid
+            items={[
+              ['Kategori', getCategoryLabel(selectedWorkflow.applies_to_category)],
+              ['Jumlah tahap', `${steps.length} tahap`],
+              ['Deskripsi', selectedWorkflow.description, true],
+            ]}
+          />
+          <div className='border-t border-black/[0.06] pt-4'>
+            <h3 className='mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground'>Tahapan</h3>
+            {steps.length > 0 ? (
+              <ol className='space-y-1.5'>
+                {steps.map((step) => (
+                  <li key={step.id} className='flex items-start gap-3 rounded-xl bg-muted/60 px-3 py-2'>
+                    <span className='mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-white'>
+                      {step.step_order}
+                    </span>
+                    <div className='min-w-0'>
+                      <p className='text-[13px] font-medium'>{step.step_name}</p>
+                      <p className='text-xs text-muted-foreground'>
+                        {step.target_role_slug} · {getScopeTypeLabel(step.scope_type)}
+                        {step.target_category_lookup ? ` · ${getCategoryLabel(step.target_category_lookup)}` : ''}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p className='text-[13px] text-muted-foreground'>Belum ada tahap.</p>
+            )}
+          </div>
         </div>
-        <DialogFooter>
-          <Button onClick={() => onOpenChange(false)}>Tutup</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      )}
+    </FormDialog>
   );
 }
 

@@ -1,12 +1,4 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
+import { Field, FormDialog, FormSection } from '@/components/common/FormDialog';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -15,7 +7,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Button } from '@/components/ui/button/button';
 import type { Role } from '@/services/role.service';
 
 export type StepFormData = {
@@ -67,123 +58,83 @@ export function WorkflowStepDialog({
   submitLabel,
 }: WorkflowStepDialogProps) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          {description && <DialogDescription>{description}</DialogDescription>}
-        </DialogHeader>
-        <div className='space-y-4 py-4'>
-          <div>
-            <Label htmlFor='step_name'>Nama Step</Label>
-            <Input
-              id='step_name'
-              value={stepFormData.step_name}
-              onChange={(e) =>
-                setStepFormData({ ...stepFormData, step_name: e.target.value })
-              }
-              placeholder='Contoh: Approval Ketua'
-            />
-          </div>
-          <div>
-            <Label htmlFor='target_role'>Target Role</Label>
+    <FormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={title}
+      description={description}
+      size='md'
+      onSubmit={(event) => {
+        event.preventDefault();
+        onSubmit();
+      }}
+      submitLabel={submitLabel}
+    >
+      <FormSection>
+        <Field label='Nama tahap' htmlFor='step_name' required>
+          <Input
+            id='step_name'
+            value={stepFormData.step_name}
+            onChange={(e) => setStepFormData({ ...stepFormData, step_name: e.target.value })}
+            placeholder='Contoh: Approval Ketua'
+            required
+          />
+        </Field>
+        <Field label='Urutan' htmlFor='step_order'>
+          <Input
+            id='step_order'
+            type='number'
+            min={1}
+            value={stepFormData.step_order}
+            onChange={(e) => setStepFormData({ ...stepFormData, step_order: Number.parseInt(e.target.value, 10) || 0 })}
+          />
+        </Field>
+        <Field label='Role penyetuju' htmlFor='target_role'>
+          <Select value={stepFormData.target_role_slug} onValueChange={(value) => setStepFormData({ ...stepFormData, target_role_slug: value })}>
+            <SelectTrigger id='target_role' className='w-full'>
+              <SelectValue placeholder='Pilih role…' />
+            </SelectTrigger>
+            <SelectContent>
+              {roles.map((role) => (
+                <SelectItem key={role.id} value={role.slug}>{role.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+        <Field label='Cakupan' htmlFor='scope_type' hint={scopeTypes.find((type) => type.value === stepFormData.scope_type)?.description}>
+          <Select
+            value={stepFormData.scope_type}
+            onValueChange={(value) => setStepFormData({ ...stepFormData, scope_type: value as StepFormData['scope_type'] })}
+          >
+            <SelectTrigger id='scope_type' className='w-full'>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {scopeTypes.map((type) => (
+                <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+        {stepFormData.scope_type === 'SPECIFIC_CATEGORY' && (
+          <Field label='Kategori target' htmlFor='target_category' wide>
             <Select
-              value={stepFormData.target_role_slug}
-              onValueChange={(value) =>
-                setStepFormData({ ...stepFormData, target_role_slug: value })
-              }
+              value={stepFormData.target_category_lookup}
+              onValueChange={(value) => setStepFormData({ ...stepFormData, target_category_lookup: value })}
             >
-              <SelectTrigger>
-                <SelectValue placeholder='Pilih role...' />
+              <SelectTrigger id='target_category' className='w-full'>
+                <SelectValue placeholder='Pilih kategori…' />
               </SelectTrigger>
               <SelectContent>
-                {roles.map((role) => (
-                  <SelectItem key={role.id} value={role.slug}>
-                    {role.name}
-                  </SelectItem>
+                {categories.map((cat) => (
+                  <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
-          </div>
-          <div>
-            <Label htmlFor='scope_type'>Scope Type</Label>
-            <Select
-              value={stepFormData.scope_type}
-              onValueChange={(
-                value:
-                  | 'SELF'
-                  | 'PARENT'
-                  | 'FACULTY_LEADER'
-                  | 'SPECIFIC_CATEGORY',
-              ) => setStepFormData({ ...stepFormData, scope_type: value })}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {scopeTypes.map((type) => (
-                  <SelectItem key={type.value} value={type.value}>
-                    <div>
-                      <div className='font-medium'>{type.label}</div>
-                      {type.description && (
-                        <div className='text-xs text-gray-500'>
-                          {type.description}
-                        </div>
-                      )}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          {stepFormData.scope_type === 'SPECIFIC_CATEGORY' && (
-            <div>
-              <Label htmlFor='target_category'>Target Category</Label>
-              <Select
-                value={stepFormData.target_category_lookup}
-                onValueChange={(value) =>
-                  setStepFormData({
-                    ...stepFormData,
-                    target_category_lookup: value,
-                  })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder='Pilih kategori...' />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat.value} value={cat.value}>
-                      {cat.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-          <div>
-            <Label htmlFor='step_order'>Order</Label>
-            <Input
-              id='step_order'
-              type='number'
-              value={stepFormData.step_order}
-              onChange={(e) =>
-                setStepFormData({
-                  ...stepFormData,
-                  step_order: Number.parseInt(e.target.value, 10) || 0,
-                })
-              }
-            />
-          </div>
-        </div>
-        <DialogFooter>
-          <Button variant='outline' onClick={() => onOpenChange(false)}>
-            Batal
-          </Button>
-          <Button onClick={onSubmit}>{submitLabel}</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </Field>
+        )}
+      </FormSection>
+    </FormDialog>
   );
 }
 

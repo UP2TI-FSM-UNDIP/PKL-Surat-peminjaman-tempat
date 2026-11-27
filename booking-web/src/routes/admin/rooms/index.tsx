@@ -14,6 +14,7 @@ import {
 import { RoomForm } from '@/features/rooms/components/RoomForm';
 import { DetailRoomModal } from '@/features/rooms/components/DetailRoomModal';
 import { DeleteRoomDialog } from '@/features/rooms/components/DeleteRoomDialog';
+import { FormDialog } from '@/components/common/FormDialog';
 import { RoomEditWarnings } from '@/features/rooms/components/RoomEditWarnings';
 import { useRooms } from '@/features/rooms/hooks/useRooms';
 import {
@@ -24,13 +25,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import {
   Select,
   SelectContent,
@@ -336,57 +330,39 @@ function RouteComponent() {
       </div>
 
       {/* Create Room Modal */}
-      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-        <DialogContent className='sm:max-w-lg max-h-[90vh] overflow-y-auto'>
-          <DialogHeader>
-            <DialogTitle>Tambah Ruangan Baru</DialogTitle>
-            <DialogDescription>
-              Masukkan informasi ruangan yang akan ditambahkan
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleSubmitCreate}>
-            <RoomForm
-              formData={formData}
-              setFormData={setFormData}
-              onFileChange={handleFileChange}
-              imageFile={roomImage}
-              formError={formError}
-              isSubmitting={isSubmitting}
-              onCancel={() => setIsCreateModalOpen(false)}
-              submitLabel="Tambah"
-            />
-          </form>
-        </DialogContent>
-      </Dialog>
+      <FormDialog
+        open={isCreateModalOpen}
+        onOpenChange={setIsCreateModalOpen}
+        title='Tambah ruangan'
+        description='Lengkapi data ruangan yang akan ditambahkan.'
+        onSubmit={handleSubmitCreate}
+        submitLabel='Tambah'
+        isSubmitting={isSubmitting}
+        error={formError}
+      >
+        <RoomForm formData={formData} setFormData={setFormData} onFileChange={handleFileChange} imageFile={roomImage} />
+      </FormDialog>
 
       {/* Edit Room Modal */}
-      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className='sm:max-w-lg max-h-[90vh] overflow-y-auto'>
-          <DialogHeader>
-            <DialogTitle>Edit Ruangan</DialogTitle>
-            <DialogDescription>Perbarui informasi ruangan</DialogDescription>
-          </DialogHeader>
+      <FormDialog
+        open={isEditModalOpen}
+        onOpenChange={setIsEditModalOpen}
+        title='Edit ruangan'
+        description={selectedRoom ? `${selectedRoom.code} · ${selectedRoom.name}` : undefined}
+        onSubmit={handleSubmitEdit}
+        isSubmitting={isSubmitting}
+        error={formError}
+      >
+        <div className='mb-4 space-y-2 empty:hidden'>
           <RoomEditWarnings
             upcomingBookingCount={upcomingBookingCount}
             status={formData.status}
             originalCode={selectedRoom?.code ?? ''}
             currentCode={formData.code}
           />
-          <form onSubmit={handleSubmitEdit}>
-            <RoomForm
-              formData={formData}
-              setFormData={setFormData}
-              onFileChange={handleFileChange}
-              imageFile={roomImage}
-              formError={formError}
-              isSubmitting={isSubmitting}
-              onCancel={() => setIsEditModalOpen(false)}
-              submitLabel="Simpan"
-              showStatus
-            />
-          </form>
-        </DialogContent>
-      </Dialog>
+        </div>
+        <RoomForm formData={formData} setFormData={setFormData} onFileChange={handleFileChange} imageFile={roomImage} showStatus />
+      </FormDialog>
 
       {/* Detail Room Modal */}
       <DetailRoomModal
