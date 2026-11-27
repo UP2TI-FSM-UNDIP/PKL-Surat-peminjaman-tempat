@@ -41,6 +41,14 @@ const STATUS_HINT: Partial<Record<CalendarDisplayStatus, string>> = {
   reservation: 'Proposal belum lengkap',
 };
 
+/** Warna latar solid (bukan transparan) agar event yang berdampingan tidak saling tembus. */
+function tint(hex: string, amount: number): string {
+  const value = hex.replace('#', '');
+  if (value.length !== 6) return hex;
+  const mix = (i: number) => Math.round(255 - (255 - parseInt(value.slice(i, i + 2), 16)) * amount).toString(16).padStart(2, '0');
+  return `#${mix(0)}${mix(2)}${mix(4)}`;
+}
+
 export default function BookingCalendar() {
   const [range, setRange] = useState<VisibleRange>(() => ({
     from: format(startOfMonth(new Date()), 'yyyy-MM-dd'),
@@ -99,7 +107,7 @@ export default function BookingCalendar() {
       start: `${event.booking_date}T${event.start_time}:00`,
       end: `${event.booking_date}T${event.end_time}:00`,
       // Warna lembut: latar tipis + garis kiri berwarna; teks tetap gelap.
-      backgroundColor: `${color}1f`,
+      backgroundColor: tint(color, 0.14),
       borderColor: color,
       textColor: '#1d1d1f',
       classNames: ['fsm-event'],
@@ -138,7 +146,7 @@ export default function BookingCalendar() {
     return (
       <div className='fsm-event-block' title={`${time}–${event?.end_time.slice(0, 5) ?? ''} · ${title} · ${room}`}>
         <span className='fsm-event-title'>{title}</span>
-        <span className='fsm-event-meta'>{time} · {room}</span>
+        <span className='fsm-event-meta'>{time}–{event?.end_time.slice(0, 5) ?? ''} · {room}</span>
       </div>
     );
   };
@@ -292,7 +300,10 @@ export default function BookingCalendar() {
               },
               timeGridDay: {
                 dayHeaderFormat: { weekday: 'long', day: 'numeric', month: 'long' },
-                eventMaxStack: 4,
+                // Event bersamaan ditata berdampingan dalam kolom sendiri, tidak saling menimpa.
+                slotEventOverlap: false,
+                eventMaxStack: 6,
+                slotMinTime: '08:00:00',
               },
             }}
             dayMaxEvents={3}
