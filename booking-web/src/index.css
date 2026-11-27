@@ -809,3 +809,10 @@
     font-size: 0.625rem;
   }
 }
+
+/* Layar kecil: skala dasar diperkecil agar font, jarak, dan ikon (berbasis rem) lebih ringkas. */
+@media (max-width: 640px) {
+  html {
+    font-size: 14px;
+  }
+}

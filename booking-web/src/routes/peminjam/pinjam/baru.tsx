@@ -25,7 +25,7 @@ function NewReservationPage() {
     <div className="mx-auto max-w-4xl space-y-6">
       <div className="space-y-1.5">
         <p className="text-[13px] font-medium text-primary">{isPinjam ? 'Ajukan Pinjam' : 'Reservasi'}</p>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-[28px]">{isPinjam ? 'Ajukan peminjaman ruang' : 'Reservasi ruang'}</h1>
+        <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-[28px]">{isPinjam ? 'Ajukan peminjaman ruang' : 'Reservasi ruang'}</h1>
         <p className="max-w-2xl text-[15px] text-muted-foreground">
           {isPinjam
             ? 'Untuk yang proposalnya sudah lengkap. Setelah slot dibuat, lengkapi proposal lalu ajukan saat itu juga. Peminjaman hari ini hanya bisa lewat alur ini.'

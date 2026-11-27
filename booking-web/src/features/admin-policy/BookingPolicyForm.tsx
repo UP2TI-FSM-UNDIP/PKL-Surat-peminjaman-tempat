@@ -88,7 +88,7 @@ export function BookingPolicyForm() {
 
   return (
     <form className="space-y-6" onSubmit={handleSubmit((values) => save.mutate(values))} onChange={() => setRecalc(null)}>
-      <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-[28px]">Kebijakan Peminjaman</h1>
+      <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-[28px]">Kebijakan Peminjaman</h1>
       <Card>
         <CardHeader><CardTitle>Parameter</CardTitle></CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">

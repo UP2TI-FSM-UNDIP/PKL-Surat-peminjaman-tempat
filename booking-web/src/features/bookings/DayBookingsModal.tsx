@@ -60,7 +60,7 @@ export function DayBookingsModal({ open, onOpenChange, date, events, documents, 
               <span className='size-1.5 rounded-full' style={{ backgroundColor: accent }} />
               {showStatus ? 'Semua peminjaman' : 'Peminjaman aktif'}
             </span>
-            <DialogTitle className='pr-8 text-[22px] font-semibold leading-tight tracking-tight'>{label}</DialogTitle>
+            <DialogTitle className='pr-8 text-lg font-semibold leading-tight tracking-tight sm:text-[22px]'>{label}</DialogTitle>
             <DialogDescription className='text-[13px]'>
               {rows.length} peminjaman · {rooms} ruang · klik baris untuk detail
             </DialogDescription>

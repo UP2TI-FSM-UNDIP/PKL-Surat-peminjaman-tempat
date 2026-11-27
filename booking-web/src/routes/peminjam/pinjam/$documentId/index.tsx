@@ -74,12 +74,12 @@ function DetailPage() {
       <ReservationSummaryCard document={document} summary={summary} onOpenProposal={openProposal} />
       {terminalReason && (
         <section className="rounded-2xl border border-black/[0.06] bg-white p-5 shadow-[0_1px_2px_rgb(0_0_0/0.04)] sm:p-6">
-          <h2 className="text-[17px] font-semibold tracking-tight">Alasan</h2>
+          <h2 className="text-[15px] font-semibold tracking-tight sm:text-[17px]">Alasan</h2>
           <p className="mt-2 text-[14px]">{terminalReason}</p>
         </section>
       )}
       <section className="space-y-4 rounded-2xl border border-black/[0.06] bg-white p-5 shadow-[0_1px_2px_rgb(0_0_0/0.04)] sm:p-6">
-        <h2 className="text-[17px] font-semibold tracking-tight">Riwayat & alur</h2>
+        <h2 className="text-[15px] font-semibold tracking-tight sm:text-[17px]">Riwayat & alur</h2>
         <DocumentTimeline document={document} />
       </section>
       <div className="flex flex-wrap gap-2">

@@ -89,7 +89,7 @@ function ProposalPage() {
     <div className="mx-auto max-w-4xl space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-[28px]">Proposal Kegiatan</h1>
+          <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-[28px]">Proposal Kegiatan</h1>
           <p className="text-sm text-muted-foreground">Jadwal reservasi sudah terkunci. Lengkapi proposal di bawah.</p>
         </div>
         <Link to="/peminjam/pinjam/$documentId" params={{ documentId }} className="text-sm underline">Lihat detail</Link>
@@ -206,7 +206,7 @@ function SectionTitle({ step, title, description }: { step: number; title: strin
     <div className="flex items-start gap-3">
       <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-[13px] font-semibold text-white">{step}</span>
       <div>
-        <h2 className="text-[17px] font-semibold tracking-tight">{title}</h2>
+        <h2 className="text-[15px] font-semibold tracking-tight sm:text-[17px]">{title}</h2>
         <p className="text-[13px] text-muted-foreground">{description}</p>
       </div>
     </div>

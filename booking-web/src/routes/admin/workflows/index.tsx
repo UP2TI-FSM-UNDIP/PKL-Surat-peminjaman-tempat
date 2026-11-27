@@ -313,7 +313,7 @@ function RouteComponent() {
     <div className='container mx-auto px-2 sm:px-4 py-2 sm:py-4 max-w-7xl'>
       {/* Header */}
       <div className='mb-4 sm:mb-6'>
-        <h1 className='text-2xl font-semibold tracking-tight text-foreground sm:text-[28px]'>
+        <h1 className='text-xl font-semibold tracking-tight text-foreground sm:text-[28px]'>
           Manajemen Alur
         </h1>
         <p className='mt-0.5 text-[13px] text-muted-foreground'>

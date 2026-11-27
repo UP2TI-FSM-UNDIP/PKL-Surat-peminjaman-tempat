@@ -96,7 +96,7 @@ export function CalendarEventModal({ open, onOpenChange, event, document, dayAct
               <span className='size-1.5 rounded-full' style={{ backgroundColor: meta.color }} />
               {event.status_label}
             </span>
-            <DialogTitle className='pr-8 text-[22px] font-semibold leading-tight tracking-tight'>
+            <DialogTitle className='pr-8 text-lg font-semibold leading-tight tracking-tight sm:text-[22px]'>
               {document?.purpose || event.title}
             </DialogTitle>
             <DialogDescription className='text-[13px]'>

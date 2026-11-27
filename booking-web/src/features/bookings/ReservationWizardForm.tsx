@@ -299,7 +299,7 @@ function StepHeader({ step, title, description }: { step: number; title: string;
     <div className="flex items-start gap-3">
       <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-[13px] font-semibold text-white">{step}</span>
       <div>
-        <h2 className="text-[17px] font-semibold tracking-tight">{title}</h2>
+        <h2 className="text-[15px] font-semibold tracking-tight sm:text-[17px]">{title}</h2>
         <p className="text-[13px] text-muted-foreground">{description}</p>
       </div>
     </div>

@@ -24,7 +24,7 @@ export function ReservationSummaryCard({ document, summary, onOpenProposal }: {
   return (
     <section className="space-y-6 rounded-2xl border border-black/[0.06] bg-white p-5 shadow-[0_1px_2px_rgb(0_0_0/0.04)] sm:p-6">
       <div className="space-y-3">
-        <h2 className="text-[17px] font-semibold tracking-tight">Jadwal</h2>
+        <h2 className="text-[15px] font-semibold tracking-tight sm:text-[17px]">Jadwal</h2>
         <div className="space-y-2">
           {slots.map((slot, index) => {
             const date = new Date(`${slot.booking_date}T00:00:00`);
@@ -49,7 +49,7 @@ export function ReservationSummaryCard({ document, summary, onOpenProposal }: {
       </div>
 
       <div className="space-y-3">
-        <h2 className="text-[17px] font-semibold tracking-tight">Detail pengajuan</h2>
+        <h2 className="text-[15px] font-semibold tracking-tight sm:text-[17px]">Detail pengajuan</h2>
         <dl className="divide-y divide-border overflow-hidden rounded-xl ring-1 ring-black/[0.06]">
           {rows.map(([label, value]) => (
             <div key={label} className="flex items-start justify-between gap-4 px-4 py-3">
@@ -61,7 +61,7 @@ export function ReservationSummaryCard({ document, summary, onOpenProposal }: {
       </div>
 
       <div className="space-y-3">
-        <h2 className="text-[17px] font-semibold tracking-tight">Kebutuhan alat</h2>
+        <h2 className="text-[15px] font-semibold tracking-tight sm:text-[17px]">Kebutuhan alat</h2>
         <EquipmentTable items={equipment} />
       </div>
 

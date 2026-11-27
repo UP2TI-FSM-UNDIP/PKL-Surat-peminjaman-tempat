@@ -42,7 +42,7 @@ export function ApprovalDetailPage({ documentId, basePath }: { documentId: numbe
         </Link>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0 space-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-[28px] leading-tight">
+            <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-[28px] leading-tight">
               {document.content?.event_name ?? document.title}
             </h1>
             <p className="text-[15px] text-muted-foreground">
@@ -61,13 +61,13 @@ export function ApprovalDetailPage({ documentId, basePath }: { documentId: numbe
         <div className="space-y-6 lg:sticky lg:top-24">
           {canAct && (
             <section className={panel}>
-              <h2 className="text-[17px] font-semibold tracking-tight">Keputusan Anda</h2>
+              <h2 className="text-[15px] font-semibold tracking-tight sm:text-[17px]">Keputusan Anda</h2>
               <p className="mt-1 mb-4 text-[13px] text-muted-foreground">Pengajuan ini menunggu persetujuan Anda.</p>
               <ApprovalActions documentId={documentId} onDone={() => navigate({ to: basePath })} />
             </section>
           )}
           <section className={panel}>
-            <h2 className="mb-4 text-[17px] font-semibold tracking-tight">Riwayat & alur</h2>
+            <h2 className="mb-4 text-[15px] font-semibold tracking-tight sm:text-[17px]">Riwayat & alur</h2>
             <DocumentTimeline document={document} />
           </section>
         </div>
