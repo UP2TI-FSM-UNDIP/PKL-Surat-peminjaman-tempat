@@ -1,4 +1,4 @@
-import { Check, CircleDot, Clock3, FilePlus2, RotateCcw, Send, X } from 'lucide-react';
+import { Check, CircleDot, Clock3, FastForward, FilePlus2, RotateCcw, Send, X } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 import type { Document, DocumentLog } from '@/types/document';
@@ -10,6 +10,7 @@ const ACTIONS: Record<string, Tone> = {
   UPDATED: { dot: 'bg-[#8e8e93]', ring: 'ring-[#8e8e93]/15', label: 'Diperbarui', icon: <CircleDot className='size-3.5' /> },
   SUBMITTED: { dot: 'bg-primary', ring: 'ring-primary/15', label: 'Diajukan', icon: <Send className='size-3.5' /> },
   APPROVED: { dot: 'bg-[#34c759]', ring: 'ring-[#34c759]/15', label: 'Disetujui', icon: <Check className='size-3.5' /> },
+  SKIPPED: { dot: 'bg-[#8e8e93]', ring: 'ring-[#8e8e93]/15', label: 'Dilewati otomatis', icon: <FastForward className='size-3.5' /> },
   REJECTED: { dot: 'bg-[#ff3b30]', ring: 'ring-[#ff3b30]/15', label: 'Ditolak', icon: <X className='size-3.5' /> },
   REVISION: { dot: 'bg-[#ff9f0a]', ring: 'ring-[#ff9f0a]/15', label: 'Diminta revisi', icon: <RotateCcw className='size-3.5' /> },
   RETURNED: { dot: 'bg-[#ff9f0a]', ring: 'ring-[#ff9f0a]/15', label: 'Dikembalikan', icon: <RotateCcw className='size-3.5' /> },
