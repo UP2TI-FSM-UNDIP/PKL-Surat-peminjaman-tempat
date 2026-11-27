@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button/button';
 import { PageHeader } from '@/components/common/PageHeader';
 import { TableCard } from '@/components/common/TableCard';
-import { RoomCodes } from '@/components/common/RoomCodes';
+import { SlotList } from '@/components/common/SlotList';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DocumentStatusBadge } from '@/components/DocumentStatusBadge';
 import { documentService } from '@/services/document.service';
@@ -24,19 +24,40 @@ export function ApprovalQueuePage({ detailRoute }: { detailRoute: ApprovalDetail
   return (
     <div className="space-y-4">
       <PageHeader title="Antrean persetujuan" count={pagination?.total ?? 0} />
-      <TableCard>
+      <div className="space-y-2 md:hidden">
+        {documents.map((document) => (
+          <Link
+            key={document.id}
+            to={detailRoute}
+            params={{ documentId: documentKey(document) }}
+            className="block rounded-2xl border border-black/[0.06] bg-white p-3.5 shadow-[0_1px_2px_rgb(0_0_0/0.04)] active:bg-muted/50"
+          >
+            <div className="mb-2 flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <p className="text-[14px] font-semibold leading-snug">{document.content?.event_name || document.content?.purpose || document.title}</p>
+                <p className="text-xs text-muted-foreground">{document.creator?.name ?? '—'}</p>
+              </div>
+              <DocumentStatusBadge doc={document} />
+            </div>
+            <SlotList slots={document.content?.slots} />
+            <p className="mt-2 text-xs text-muted-foreground">Batas proposal {formatDateShort(document.reservation_deadline)}</p>
+          </Link>
+        ))}
+      </div>
+      <TableCard className="hidden md:block">
       <Table>
-        <TableHeader><TableRow><TableHead>Pemohon</TableHead><TableHead>Ruang</TableHead><TableHead>Kegiatan</TableHead><TableHead>Tanggal</TableHead><TableHead>Batas proposal</TableHead><TableHead>Status</TableHead><TableHead /></TableRow></TableHeader>
+        <TableHeader><TableRow><TableHead>Pengajuan</TableHead><TableHead>Jadwal (tanggal · jam · ruang)</TableHead><TableHead>Batas proposal</TableHead><TableHead>Status</TableHead><TableHead /></TableRow></TableHeader>
         <TableBody>
           {documents.map((document) => (
             <TableRow key={document.id}>
-              <TableCell className="font-medium">{document.creator?.name ?? document.creator_id}</TableCell>
-              <TableCell><RoomCodes slots={document.content?.slots} /></TableCell>
-              <TableCell>{document.content?.event_name ?? document.title}</TableCell>
-              <TableCell>{formatDateShort(document.content?.slots?.[0]?.booking_date)}{(document.content?.slots?.length ?? 0) > 1 && <span className="text-muted-foreground"> · {document.content?.slots?.length} slot</span>}</TableCell>
-              <TableCell>{formatDateShort(document.reservation_deadline)}</TableCell>
-              <TableCell><DocumentStatusBadge doc={document} /></TableCell>
-              <TableCell>
+              <TableCell className="align-top whitespace-normal">
+                <p className="font-medium">{document.content?.event_name || document.content?.purpose || document.title}</p>
+                <p className="text-xs text-muted-foreground">{document.creator?.name ?? '—'}</p>
+              </TableCell>
+              <TableCell className="align-top"><SlotList slots={document.content?.slots} /></TableCell>
+              <TableCell className="align-top">{formatDateShort(document.reservation_deadline)}</TableCell>
+              <TableCell className="align-top"><DocumentStatusBadge doc={document} /></TableCell>
+              <TableCell className="align-top text-right">
                 <Link to={detailRoute} params={{ documentId: documentKey(document) }}>
                   <Button size="sm" variant="outline">Tinjau</Button>
                 </Link>
