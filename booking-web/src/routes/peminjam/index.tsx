@@ -52,7 +52,7 @@ function RouteComponent() {
     { label: 'Total pengajuan', value: isLoading ? '—' : docs.length, dot: 'bg-[#0071e3]', status: 'ALL' },
     { label: 'Disetujui', value: count((s) => s === 'APPROVED'), dot: 'bg-[#34c759]', status: 'APPROVED' },
     { label: 'Sedang diproses', value: count((s) => s === 'IN_PROGRESS'), dot: 'bg-[#ff9f0a]', status: 'IN_PROGRESS' },
-    { label: 'Perlu tindakan', value: count((s) => s === 'DRAFT' || s === 'REVISION'), dot: 'bg-[#ff3b30]', status: 'DRAFT' },
+    { label: 'Perlu tindakan', value: count((s) => s === 'DRAFT' || s === 'REVISION'), dot: 'bg-[#ff3b30]', status: 'DRAFT,REVISION' },
   ];
 
   return (
