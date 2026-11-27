@@ -2,9 +2,10 @@ import type { RoleSlug } from '@/types/auth';
 
 export const ROLE_HOME: Record<RoleSlug, string> = {
   admin: '/admin/',
-  wadek2: '/wadek2/',
-  'manajer-tata-usaha': '/manajer-tata-usaha/',
-  'spv-sumberdaya': '/spv-sumberdaya/',
+  // Approver mendarat di kalender (beranda) yang menampilkan ringkasan antrean.
+  wadek2: '/peminjam/',
+  'manajer-tata-usaha': '/peminjam/',
+  'spv-sumberdaya': '/peminjam/',
   peminjam: '/peminjam/',
   dosen: '/peminjam/',
 };
@@ -17,6 +18,13 @@ const LEGACY_ROLE_NAMES: Record<string, RoleSlug> = {
   Mahasiswa: 'peminjam',
   Peminjam: 'peminjam',
   Dosen: 'dosen',
+};
+
+/** Basis menu persetujuan tiap role approver. */
+export const APPROVAL_BASE: Partial<Record<RoleSlug, '/spv-sumberdaya' | '/manajer-tata-usaha' | '/wadek2'>> = {
+  'spv-sumberdaya': '/spv-sumberdaya',
+  'manajer-tata-usaha': '/manajer-tata-usaha',
+  wadek2: '/wadek2',
 };
 
 export function getRolePath(value: string | null | undefined): string {

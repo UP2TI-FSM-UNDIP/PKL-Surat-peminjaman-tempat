@@ -4,9 +4,9 @@ import { getRolePath, isPathInRole } from './roleRoutes';
 describe('getRolePath', () => {
   it('memetakan enam slug', () => {
     expect(getRolePath('admin')).toBe('/admin/');
-    expect(getRolePath('wadek2')).toBe('/wadek2/');
-    expect(getRolePath('manajer-tata-usaha')).toBe('/manajer-tata-usaha/');
-    expect(getRolePath('spv-sumberdaya')).toBe('/spv-sumberdaya/');
+    expect(getRolePath('wadek2')).toBe('/peminjam/');
+    expect(getRolePath('manajer-tata-usaha')).toBe('/peminjam/');
+    expect(getRolePath('spv-sumberdaya')).toBe('/peminjam/');
     expect(getRolePath('peminjam')).toBe('/peminjam/');
     expect(getRolePath('dosen')).toBe('/peminjam/');
   });
@@ -16,8 +16,8 @@ describe('getRolePath', () => {
   });
 
   it('menerima nama legacy selama migrasi', () => {
-    expect(getRolePath('Wakil Dekan 2')).toBe('/wadek2/');
-    expect(getRolePath('Supervisor Sumberdaya')).toBe('/spv-sumberdaya/');
+    expect(getRolePath('Wakil Dekan 2')).toBe('/peminjam/');
+    expect(getRolePath('Supervisor Sumberdaya')).toBe('/peminjam/');
   });
 
   it('tidak menganggap properti prototype sebagai role', () => {

@@ -1,4 +1,4 @@
-import { Building2, CalendarDays, CalendarPlus, CalendarRange, ClipboardList, DoorOpen, FileText, History, Home, LayoutDashboard, Users } from 'lucide-react';
+import { Building2, CalendarDays, CalendarPlus, ClipboardList, DoorOpen, FileText, History, Home, LayoutDashboard, Users } from 'lucide-react';
 import type { RoleSlug } from '@/types/auth';
 import type { MenuSection, SidebarFooterLink } from './SideBar';
 
@@ -8,7 +8,6 @@ type MenuConfig = { menuSections: MenuSection[]; footerLink?: SidebarFooterLink 
 const ownBookingSection: MenuSection = {
   label: 'Peminjaman',
   items: [
-    { title: 'Kalender', url: '/peminjam', icon: CalendarRange },
     { title: 'Pinjam Ruang', url: '/peminjam/pinjam/baru', icon: CalendarPlus },
     { title: 'Pengajuan Saya', url: '/peminjam/pinjam', icon: FileText },
   ],
@@ -19,6 +18,7 @@ const approvalMenu = (base: string): MenuConfig => ({
     {
       label: 'Persetujuan',
       items: [
+        { title: 'Beranda', url: '/peminjam', icon: Home },
         { title: 'Antrean', url: base, icon: ClipboardList },
         { title: 'Riwayat', url: `${base}/riwayat`, icon: History },
         { title: 'Manajemen Ruang', url: '/admin/rooms', icon: Building2 },
