@@ -149,14 +149,13 @@ class ReservationMultiSlotTest extends TestCase
         $this->assertDatabaseCount('room_bookings', 0);
     }
 
-    public function test_same_day_direct_borrowing_requires_lead_time(): void
+    public function test_same_day_direct_borrowing_follows_day_hours_without_lead_time(): void
     {
         Sanctum::actingAs($this->borrower());
         $room = Room::create(['name' => 'F107', 'code' => 'F107', 'status' => 'ACTIVE', 'is_bookable_weekday' => true, 'weekday_max_end_time' => '16:30']);
 
         $this->postJson('/api/reservations', $this->sameDayPayload($room->id, 'submit', '10:30', '12:00'))
-            ->assertUnprocessable()
-            ->assertJsonFragment(['Pinjam hari ini: jam mulai paling cepat 11:00.']);
+            ->assertCreated();
     }
 
     public function test_same_day_direct_borrowing_creates_draft_due_today(): void
