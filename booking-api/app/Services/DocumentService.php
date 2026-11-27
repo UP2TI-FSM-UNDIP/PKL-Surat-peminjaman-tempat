@@ -24,13 +24,13 @@ class DocumentService
         $search = $filters['q'] ?? null;
 
         if ($isAdmin) {
-            return $this->listDocumentsForAdmin($filters, $perPage, $search);
+            return $this->listDocumentsForAdmin($user, $filters, $perPage, $search);
         }
 
         return $this->listDocumentsForUser($user, $filters, $perPage, $search);
     }
 
-    private function listDocumentsForAdmin(array $filters, int $perPage, ?string $search): array
+    private function listDocumentsForAdmin(User $user, array $filters, int $perPage, ?string $search): array
     {
         $baseQuery = Document::with(['workflow', 'currentHolder', 'creator', 'unit', 'logs']);
 
@@ -42,6 +42,10 @@ class DocumentService
         }
 
         $myQuery = clone $baseQuery;
+        // `mine=1`: halaman "Pengajuan saya" admin hanya menampilkan dokumen buatannya sendiri.
+        if (filter_var($filters['mine'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
+            $myQuery->where('creator_id', $user->id);
+        }
         if (!empty($filters['status'])) {
             $myQuery->where('status', $filters['status']);
         }

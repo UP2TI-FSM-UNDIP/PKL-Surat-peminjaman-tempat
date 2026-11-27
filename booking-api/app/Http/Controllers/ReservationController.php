@@ -13,9 +13,12 @@ use App\Http\Requests\Reservation\CancelReservationRequest;
 
 class ReservationController extends Controller
 {
+    public const BORROWER_ROLES = ['peminjam', 'dosen', 'admin', 'spv-sumberdaya', 'manajer-tata-usaha', 'wadek2'];
+
     public function store(StoreReservationRequest $request, ReservationService $service)
     {
-        abort_if(!in_array($request->user()->role?->slug, ['peminjam', 'dosen', 'admin'], true), 403);
+        // Semua role aktif boleh meminjam: peminjam, dosen, admin, dan para penyetuju.
+        abort_if(!in_array($request->user()->role?->slug, self::BORROWER_ROLES, true), 403);
 
         $document = $service->create($request->user(), $request->validated());
 
