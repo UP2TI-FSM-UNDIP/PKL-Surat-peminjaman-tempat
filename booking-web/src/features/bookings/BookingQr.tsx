@@ -11,7 +11,7 @@ function blobToDataUrl(blob: Blob): Promise<string> {
   });
 }
 
-export function BookingQr({ bookingId }: { bookingId: number }) {
+export function BookingQr({ bookingId, label = 'bukti peminjaman' }: { bookingId: number; label?: string }) {
   const { data: url } = useQuery({
     queryKey: ['booking-qrcode', bookingId],
     queryFn: async () => {
@@ -24,5 +24,5 @@ export function BookingQr({ bookingId }: { bookingId: number }) {
   });
 
   if (!url) return null;
-  return <img src={url} alt={`QR bukti peminjaman ${bookingId}`} className="h-40 w-40" />;
+  return <img src={url} alt={`QR ${label}`} className="size-28 rounded-md bg-white p-1" />;
 }

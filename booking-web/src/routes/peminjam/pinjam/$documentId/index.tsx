@@ -3,28 +3,26 @@ import { useState } from 'react';
 import { createFileRoute, Link, useParams } from '@tanstack/react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { documentService } from '@/services/document.service';
 import { reservationService } from '@/services/reservation.service';
-import { bookingService } from '@/services/booking.service';
 import { getErrorMessage } from '@/lib/errors';
 import { DocumentStatusBadge } from '@/components/DocumentStatusBadge';
-import { PageHeader } from '@/components/common/PageHeader';
-import { ReservationSummaryCard } from '@/features/bookings/ReservationSummaryCard';
+import { ReservationDetail, detailPanel } from '@/features/bookings/ReservationDetail';
+import { formatDateShort } from '@/lib/date';
+import { ChevronLeft } from 'lucide-react';
 import { BookingQr } from '@/features/bookings/BookingQr';
 
 export const Route = createFileRoute('/peminjam/pinjam/$documentId/')({ component: DetailPage });
 
 function DetailPage() {
   const { documentId } = useParams({ from: '/peminjam/pinjam/$documentId/' });
-  const id = Number(documentId);
+  const id = documentId;
   const queryClient = useQueryClient();
   const [cancelOpen, setCancelOpen] = useState(false);
   const [reason, setReason] = useState('');
-  const [receipts, setReceipts] = useState<Record<number, Record<string, unknown>>>({});
 
   const documentQuery = useQuery({ queryKey: ['document', id], queryFn: () => documentService.getDocument(id) });
   const summaryQuery = useQuery({ queryKey: ['reservation-summary', id], queryFn: () => reservationService.summary(id) });
@@ -47,76 +45,81 @@ function DetailPage() {
   if (documentQuery.isLoading || summaryQuery.isLoading) return <p>Memuat…</p>;
   if (!document || !summary) return <p>Dokumen tidak ditemukan.</p>;
 
-  const openProposal = async () => {
-    const tab = window.open('', '_blank');
-    if (!tab) {
-      toast.error('Popup diblokir. Izinkan popup untuk melihat proposal.');
-      return;
-    }
-    tab.opener = null;
-    try {
-      const { objectUrl } = await documentService.fetchFileUrl(id);
-      tab.location.href = objectUrl;
-      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
-    } catch (error) {
-      tab.close();
-      toast.error(getErrorMessage(error, 'Proposal tidak dapat dibuka.'));
-    }
-  };
   const terminalReason = [...(document.logs ?? [])]
     .reverse()
     .find((log) => ['REJECTED', 'CANCELLED', 'EXPIRED'].includes(log.action))?.note;
 
   const editable = document.status === 'DRAFT' || document.status === 'REVISION';
+  const canCancel = ['DRAFT', 'REVISION', 'IN_PROGRESS'].includes(document.status);
+  const approvedBookings = document.status === 'APPROVED' ? document.room_bookings ?? [] : [];
+  const slotLabel = (booking: { room_id: number; booking_date: string }) => {
+    const slot = summary.slots.find((s) => s.room_id === booking.room_id && s.booking_date === booking.booking_date);
+    return `${slot?.room_code ?? slot?.room_name ?? 'Ruang'} · ${formatDateShort(booking.booking_date)}`;
+  };
+
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
-      <PageHeader title={document.title} badge={<DocumentStatusBadge doc={document} />} />
-      <ReservationSummaryCard document={document} summary={summary} onOpenProposal={openProposal} />
-      {terminalReason && (
-        <section className="rounded-2xl border border-black/[0.06] bg-white p-5 shadow-[0_1px_2px_rgb(0_0_0/0.04)] sm:p-6">
-          <h2 className="text-[15px] font-semibold tracking-tight sm:text-[17px]">Alasan</h2>
-          <p className="mt-2 text-[14px]">{terminalReason}</p>
-        </section>
-      )}
-      <section className="space-y-4 rounded-2xl border border-black/[0.06] bg-white p-5 shadow-[0_1px_2px_rgb(0_0_0/0.04)] sm:p-6">
-        <h2 className="text-[15px] font-semibold tracking-tight sm:text-[17px]">Riwayat & alur</h2>
-        <DocumentTimeline document={document} />
-      </section>
-      <div className="flex flex-wrap gap-2">
-        {editable && <Link to="/peminjam/pinjam/$documentId/proposal" params={{ documentId }}><Button>Lengkapi proposal</Button></Link>}
-        {['DRAFT', 'REVISION', 'IN_PROGRESS'].includes(document.status) && (
-          <Button variant="destructive" onClick={() => setCancelOpen(true)}>Batalkan</Button>
-        )}
-        {!editable && document.status !== 'IN_PROGRESS' && (
-          <Link to="/peminjam/pinjam/baru"><Button variant="outline">Buat baru</Button></Link>
-        )}
+    <div className="mx-auto max-w-6xl space-y-4">
+      <div className="space-y-2">
+        <Link to="/peminjam/pinjam" search={{ status: "" }} className="inline-flex items-center gap-0.5 text-[13px] font-medium text-primary hover:underline">
+          <ChevronLeft className="size-4" /> Pengajuan saya
+        </Link>
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <h1 className="min-w-0 text-lg font-semibold leading-tight tracking-tight sm:text-2xl">
+            {document.content?.event_name || document.content?.purpose || document.title}
+          </h1>
+          <DocumentStatusBadge doc={document} />
+        </div>
       </div>
-      {document.status === 'APPROVED' && document.room_bookings?.map((booking) => (
-        <Card key={booking.id}>
-          <CardHeader><CardTitle className="text-base">Bukti peminjaman {booking.id}</CardTitle></CardHeader>
-          <CardContent><BookingQr bookingId={booking.id} /></CardContent>
-          <CardContent className="space-y-2">
-            <Button
-              variant="outline"
-              onClick={async () => {
-                try {
-                  const data = await bookingService.receipt(booking.id);
-                  setReceipts((current) => ({ ...current, [booking.id]: data }));
-                } catch (error) {
-                  toast.error(getErrorMessage(error, 'Gagal memuat receipt.'));
-                }
-              }}
-            >
-              Lihat receipt
-            </Button>
-            {receipts[booking.id] && (
-              <pre className="max-h-64 overflow-auto rounded bg-muted p-2 text-xs">
-                {JSON.stringify(receipts[booking.id], null, 2)}
-              </pre>
-            )}
-          </CardContent>
-        </Card>
-      ))}
+
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
+        <div className="order-2 min-w-0 lg:order-1"><ReservationDetail document={document} summary={summary} /></div>
+
+        <div className="order-1 space-y-4 lg:sticky lg:top-24 lg:order-2">
+          {(editable || canCancel || document.status !== 'IN_PROGRESS') && (
+            <section className={detailPanel}>
+              <div className="flex flex-wrap gap-2">
+                {editable && (
+                  <Link to="/peminjam/pinjam/$documentId/proposal" params={{ documentId }} className="flex-1">
+                    <Button size="sm" className="w-full">Lengkapi proposal</Button>
+                  </Link>
+                )}
+                {canCancel && <Button size="sm" variant="destructive" className="flex-1" onClick={() => setCancelOpen(true)}>Batalkan</Button>}
+                {!editable && !canCancel && (
+                  <Link to="/peminjam/pinjam/baru" className="flex-1"><Button size="sm" variant="outline" className="w-full">Buat pengajuan baru</Button></Link>
+                )}
+              </div>
+              {terminalReason && (
+                <p className="mt-3 rounded-xl bg-muted/70 p-2.5 text-[13px]"><span className="font-semibold">Alasan: </span>{terminalReason}</p>
+              )}
+            </section>
+          )}
+
+          {approvedBookings.length > 0 && (
+            <section className={detailPanel}>
+              <h2 className="mb-1 text-[14px] font-semibold tracking-tight sm:text-[15px]">Bukti peminjaman</h2>
+              <p className="mb-3 text-xs text-muted-foreground">Tunjukkan QR ke petugas saat memakai ruang.</p>
+              <div className="grid grid-cols-2 gap-3">
+                {approvedBookings.map((booking) => (
+                  <div key={booking.id} className="flex flex-col items-center rounded-xl bg-muted/50 p-2 text-center">
+                    <BookingQr bookingId={booking.id} label={slotLabel(booking)} />
+                    <p className="mt-1 text-[11px] font-medium leading-tight">{slotLabel(booking)}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          <section className={`${detailPanel} hidden lg:block`}>
+            <h2 className="mb-3 text-[14px] font-semibold tracking-tight sm:text-[15px]">Riwayat & alur</h2>
+            <DocumentTimeline document={document} />
+          </section>
+        </div>
+
+        <section className={`${detailPanel} order-3 lg:hidden`}>
+          <h2 className="mb-3 text-[14px] font-semibold tracking-tight">Riwayat & alur</h2>
+          <DocumentTimeline document={document} />
+        </section>
+      </div>
 
       <Dialog open={cancelOpen} onOpenChange={setCancelOpen}>
         <DialogContent>

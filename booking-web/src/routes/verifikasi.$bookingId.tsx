@@ -126,7 +126,6 @@ function VerifiedDetail({ booking }: { booking: VerifiedBooking }) {
         <span className={`inline-flex px-3 py-1 rounded-full border text-sm font-semibold ${status.className}`}>
           {status.label}
         </span>
-        <p className='text-xs text-gray-500'>No. Peminjaman #{booking.id}</p>
       </div>
 
       <dl className='space-y-3 text-sm'>
