@@ -10,6 +10,8 @@ interface Props {
   onChange: (roomId: number) => void;
   id?: string;
   invalid?: boolean;
+  disabled?: boolean;
+  placeholder?: string;
 }
 
 /** Gedung/kelompok dari kode ruang, mis. "A101" → "Gedung A", "AU-01" → "AU". */
@@ -21,7 +23,7 @@ function groupOf(room: Room): string {
 }
 
 /** Pemilih ruang yang bisa dicari, dikelompokkan per gedung, menampilkan kapasitas. */
-export function RoomPicker({ rooms, value, onChange, id, invalid }: Props) {
+export function RoomPicker({ rooms, value, onChange, id, invalid, disabled, placeholder = 'Pilih ruang' }: Props) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const selected = rooms.find((room) => room.id === value);
@@ -44,8 +46,10 @@ export function RoomPicker({ rooms, value, onChange, id, invalid }: Props) {
           type="button"
           aria-label="Ruang"
           aria-invalid={invalid || undefined}
+          disabled={disabled}
           className={cn(
-            'flex h-10 w-full items-center gap-2 rounded-xl border border-input bg-white px-3 text-left text-[14px] transition-colors hover:border-black/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
+            'flex h-10 w-full items-center gap-2 rounded-xl border border-input bg-white px-3 text-left text-[14px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
+            disabled ? 'cursor-not-allowed opacity-50' : 'hover:border-black/20',
             invalid && 'border-destructive',
           )}
         >
@@ -56,7 +60,7 @@ export function RoomPicker({ rooms, value, onChange, id, invalid }: Props) {
               {selected.capacity ? <span className="ml-auto shrink-0 text-xs text-muted-foreground">{selected.capacity} org</span> : null}
             </span>
           ) : (
-            <span className="flex-1 text-muted-foreground">Pilih ruang</span>
+            <span className="flex-1 text-muted-foreground">{placeholder}</span>
           )}
           <ChevronDown className="size-4 shrink-0 text-muted-foreground" />
         </button>

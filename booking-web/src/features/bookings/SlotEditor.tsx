@@ -19,9 +19,11 @@ interface Props {
   maxRows: number;
   rowErrors: Record<number, string[]>;
   availability?: Record<number, boolean>;
+  /** Aturan tanggal sedang dimuat; di mode "1 tanggal, banyak ruang", pilihan ruang menunggu ini selesai. */
+  rulesLoading: boolean;
 }
 
-export function SlotEditor({ control, setValue, mode, rooms, rulesByDate, maxRows, rowErrors, availability }: Props) {
+export function SlotEditor({ control, setValue, mode, rooms, rulesByDate, maxRows, rowErrors, availability, rulesLoading }: Props) {
   const { fields, append, remove } = useFieldArray({ control, name: 'slots' });
   const roomId = useWatch({ control, name: 'room_id' });
   const bookingDate = useWatch({ control, name: 'booking_date' });
@@ -36,11 +38,18 @@ export function SlotEditor({ control, setValue, mode, rooms, rulesByDate, maxRow
       if (mode === 'one_room_many_dates' && roomId) {
         setValue(`slots.${index}.room_id`, roomId, { shouldDirty: true });
       }
-      if (mode === 'one_date_many_rooms' && bookingDate) {
+      // Tanggal kosong ikut disalin: jika tanggal utama dihapus, baris tidak boleh menyimpan tanggal lama.
+      if (mode === 'one_date_many_rooms') {
         setValue(`slots.${index}.booking_date`, bookingDate, { shouldDirty: true });
       }
     }
   }, [bookingDate, fields.length, mode, roomId, setValue]);
+
+  // "1 ruang, banyak tanggal": tanggal baris dikunci sampai ruang dipilih.
+  // "1 tanggal, banyak ruang": ruang baris dikunci sampai tanggal dipilih dan aturan tanggal itu selesai dimuat,
+  // supaya daftar ruang sudah disaring oleh aturan hari tersebut.
+  const rowsLocked = mode === 'one_room_many_dates' ? !roomId : !bookingDate || rulesLoading;
+  const addLocked = rowsLocked || fields.length >= maxRows;
 
   const addRow = () => {
     append({
@@ -87,7 +96,16 @@ export function SlotEditor({ control, setValue, mode, rooms, rulesByDate, maxRow
                     control={control}
                     name={`slots.${index}.booking_date`}
                     render={({ field: dateField }) => (
-                      <DateInput id={`slot-${index}-booking-date`} min={todayIso()} value={dateField.value} onChange={dateField.onChange} aria-label="Tanggal" isDateDisabled={weekendOnly ? isWeekday : undefined} />
+                      <DateInput
+                        id={`slot-${index}-booking-date`}
+                        min={todayIso()}
+                        value={dateField.value}
+                        onChange={dateField.onChange}
+                        aria-label="Tanggal"
+                        isDateDisabled={weekendOnly ? isWeekday : undefined}
+                        disabled={rowsLocked}
+                        placeholder={rowsLocked ? 'Pilih ruang dulu' : undefined}
+                      />
                     )}
                   />
                 ) : (
@@ -95,7 +113,13 @@ export function SlotEditor({ control, setValue, mode, rooms, rulesByDate, maxRow
                     control={control}
                     name={`slots.${index}.room_id`}
                     render={({ field: roomField }) => (
-                      <RoomPicker rooms={rooms} value={roomField.value || null} onChange={(id) => roomField.onChange(id)} />
+                      <RoomPicker
+                        rooms={rooms}
+                        value={roomField.value || null}
+                        onChange={(id) => roomField.onChange(id)}
+                        disabled={rowsLocked}
+                        placeholder={bookingDate ? undefined : 'Pilih tanggal dulu'}
+                      />
                     )}
                   />
                 )}
@@ -132,7 +156,7 @@ export function SlotEditor({ control, setValue, mode, rooms, rulesByDate, maxRow
         );
       })}
       <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-        <Button type="button" variant="outline" onClick={addRow} disabled={fields.length >= maxRows} className="gap-1.5">
+        <Button type="button" variant="outline" onClick={addRow} disabled={addLocked} className="gap-1.5">
           <Plus className="size-4" />
           {mode === 'one_room_many_dates' ? 'Tambah tanggal' : 'Tambah ruang'}
         </Button>

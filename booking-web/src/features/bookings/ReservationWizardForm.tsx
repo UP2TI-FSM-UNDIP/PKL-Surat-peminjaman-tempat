@@ -237,6 +237,7 @@ export function ReservationWizardForm({ intent, submitLabel = 'Simpan Reservasi'
             maxRows={maxRows}
             rowErrors={rowErrors}
             availability={availability}
+            rulesLoading={rulesLoading}
           />
         </div>
 
