@@ -17,7 +17,7 @@ export function PageHeader({ title, count, badge, description, actions }: {
           {count !== undefined && <Badge variant="secondary" className="rounded-full">{count}</Badge>}
           {badge}
         </div>
-        {description && <p className="mt-0.5 text-[13px] text-muted-foreground">{description}</p>}
+        {description && <p className="mt-0.5 text-xs text-muted-foreground sm:text-[13px]">{description}</p>}
       </div>
       {actions && <div className="flex shrink-0 flex-wrap gap-2">{actions}</div>}
     </div>

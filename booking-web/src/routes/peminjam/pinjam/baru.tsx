@@ -23,14 +23,14 @@ function NewReservationPage() {
   const isPinjam = jenis === 'pinjam';
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="mx-auto max-w-4xl space-y-4 sm:space-y-6">
       <div className="space-y-1.5">
-        <p className="text-[13px] font-medium text-primary">{isPinjam ? 'Ajukan Pinjam' : 'Reservasi'}</p>
+        <p className="text-xs font-medium text-primary sm:text-[13px]">{isPinjam ? 'Ajukan Pinjam' : 'Reservasi'}</p>
         <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-[28px]">{isPinjam ? 'Ajukan peminjaman ruang' : 'Reservasi ruang'}</h1>
-        <p className="max-w-2xl text-[15px] text-muted-foreground">
+        <p className="max-w-2xl text-xs text-muted-foreground sm:text-[14px]">
           {isPinjam
-            ? 'Untuk yang proposalnya sudah lengkap. Setelah slot dibuat, lengkapi proposal lalu ajukan saat itu juga. Peminjaman hari ini hanya bisa lewat alur ini.'
-            : 'Pilih slot terlebih dahulu. Slot akan ditahan setelah reservasi dibuat.'}
+            ? 'Untuk proposal yang sudah lengkap, langsung diajukan.'
+            : 'Pilih slot dulu, proposal menyusul.'}
         </p>
       </div>
       <ReservationWizardForm

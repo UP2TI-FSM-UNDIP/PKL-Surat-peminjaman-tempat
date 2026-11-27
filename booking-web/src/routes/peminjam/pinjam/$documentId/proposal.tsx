@@ -110,7 +110,7 @@ function ProposalPage() {
       ) : (
         <form className="space-y-5" onSubmit={handleSubmit((values) => mutation.mutate(values))} onChange={() => setDirty(true)}>
           <section className={sectionClass}>
-            <SectionTitle step={1} title="Detail kegiatan" description="Isi sesuai proposal kegiatan Anda." />
+            <SectionTitle step={1} title="Detail kegiatan" description="Sesuai proposal kegiatan." />
             <div className="grid gap-x-4 gap-y-5 md:grid-cols-2">
               <ProposalField id="event_name" label="Nama kegiatan" error={errors.event_name?.message} className="md:col-span-2">
                 <Input id="event_name" placeholder="Contoh: Seminar Nasional Matematika 2026" {...register('event_name', { required: 'Wajib diisi' })} />
@@ -134,12 +134,12 @@ function ProposalPage() {
           </section>
 
           <section className={sectionClass}>
-            <SectionTitle step={2} title="Kebutuhan alat" description="Opsional. Alat yang perlu disiapkan pengelola ruang." />
+            <SectionTitle step={2} title="Kebutuhan alat" description="Opsional." />
             <EquipmentEditor control={control} />
           </section>
 
           <section className={sectionClass}>
-            <SectionTitle step={3} title="Proposal PDF" description="Unggah file proposal (PDF, maks. 20 MB)." />
+            <SectionTitle step={3} title="Proposal PDF" description="PDF, maks. 20 MB." />
             <label
               htmlFor="proposal"
               className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-black/15 bg-muted/50 p-4 transition-colors hover:bg-muted"
@@ -207,7 +207,7 @@ function SectionTitle({ step, title, description }: { step: number; title: strin
       <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-[13px] font-semibold text-white">{step}</span>
       <div>
         <h2 className="text-[15px] font-semibold tracking-tight sm:text-[17px]">{title}</h2>
-        <p className="text-[13px] text-muted-foreground">{description}</p>
+        <p className="text-xs text-muted-foreground sm:text-[13px]">{description}</p>
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import type { DatesSetArg, EventClickArg, EventContentArg, EventInput } from '@fullcalendar/core';
 import type { DateClickArg } from '@fullcalendar/interaction';
@@ -45,6 +46,7 @@ export default function BookingCalendar() {
     from: format(startOfMonth(new Date()), 'yyyy-MM-dd'),
     to: format(endOfMonth(new Date()), 'yyyy-MM-dd'),
   }));
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [visibleStatuses, setVisibleStatuses] =
     useState<CalendarDisplayStatus[]>(DEFAULT_VISIBLE_STATUSES);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
@@ -191,34 +193,45 @@ export default function BookingCalendar() {
   return (
     <>
       <div className='bg-white rounded-2xl border border-black/[0.06] shadow-[0_1px_2px_rgb(0_0_0/0.04)] p-4 sm:p-6 fc-responsive'>
-        <div className='mb-5 flex flex-wrap items-center gap-x-3 gap-y-2'>
-          <span className='text-[13px] font-medium text-muted-foreground'>Tampilkan</span>
-          <div className='flex flex-wrap gap-1.5'>
-            {CALENDAR_STATUS_ORDER.map((status) => {
-              const meta = CALENDAR_STATUS_META[status];
-              const isActive = visibleStatuses.includes(status);
+        <div className='mb-4 sm:mb-5'>
+          <button
+            type='button'
+            onClick={() => setFiltersOpen((open) => !open)}
+            aria-expanded={filtersOpen}
+            className='inline-flex h-7 items-center gap-1 rounded-full bg-secondary px-2.5 text-[11px] font-medium text-foreground sm:hidden'
+          >
+            Filter · {visibleStatuses.length}/{CALENDAR_STATUS_ORDER.length}
+            <ChevronDown className={`size-3 transition-transform ${filtersOpen ? 'rotate-180' : ''}`} />
+          </button>
+          <div className={`${filtersOpen ? 'mt-2 flex' : 'hidden'} flex-wrap items-center gap-x-3 gap-y-2 sm:mt-0 sm:flex`}>
+            <span className='hidden text-[13px] font-medium text-muted-foreground sm:inline'>Tampilkan</span>
+            <div className='flex flex-wrap gap-1 sm:gap-1.5'>
+              {CALENDAR_STATUS_ORDER.map((status) => {
+                const meta = CALENDAR_STATUS_META[status];
+                const isActive = visibleStatuses.includes(status);
 
-              return (
-                <button
-                  key={status}
-                  type='button'
-                  aria-pressed={isActive}
-                  title={STATUS_HINT[status]}
-                  onClick={() => toggleStatus(status)}
-                  className={`inline-flex h-7 items-center gap-1.5 rounded-full px-3 text-xs font-medium transition-colors ${
-                    isActive
-                      ? 'bg-secondary text-foreground hover:bg-[#e3e3e8]'
-                      : 'bg-transparent text-muted-foreground/70 line-through decoration-1 hover:bg-muted'
-                  }`}
-                >
-                  <span
-                    className='h-2 w-2 rounded-full'
-                    style={{ backgroundColor: meta.color, opacity: isActive ? 1 : 0.35 }}
-                  />
-                  {meta.label}
-                </button>
-              );
-            })}
+                return (
+                  <button
+                    key={status}
+                    type='button'
+                    aria-pressed={isActive}
+                    title={STATUS_HINT[status]}
+                    onClick={() => toggleStatus(status)}
+                    className={`inline-flex h-6 items-center gap-1 rounded-full px-2 text-[11px] font-medium transition-colors sm:h-7 sm:gap-1.5 sm:px-3 sm:text-xs ${
+                      isActive
+                        ? 'bg-secondary text-foreground hover:bg-[#e3e3e8]'
+                        : 'bg-transparent text-muted-foreground/70 line-through decoration-1 hover:bg-muted'
+                    }`}
+                  >
+                    <span
+                      className='size-1.5 rounded-full sm:size-2'
+                      style={{ backgroundColor: meta.color, opacity: isActive ? 1 : 0.35 }}
+                    />
+                    {meta.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
 

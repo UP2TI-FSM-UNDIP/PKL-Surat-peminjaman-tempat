@@ -99,8 +99,8 @@ function RouteComponent() {
     <div className="space-y-4">
       <div>
         <h1 className="text-xl font-semibold tracking-tight text-foreground">{primary ? 'Dashboard' : 'Beranda'}</h1>
-        <p className="text-[13px] text-muted-foreground">
-          {approvalBase ? 'Ringkasan persetujuan dan jadwal ruang. Klik kartu untuk membuka daftarnya.' : 'Ringkasan pengajuan dan jadwal ruang. Klik tanggal di kalender untuk mengajukan.'}
+        <p className="text-xs text-muted-foreground sm:text-[13px]">
+          {approvalBase ? 'Antrean persetujuan & jadwal ruang.' : 'Pengajuan & jadwal ruang.'}
         </p>
       </div>
 
