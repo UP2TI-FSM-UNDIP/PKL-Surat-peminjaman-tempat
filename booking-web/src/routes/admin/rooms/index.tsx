@@ -361,7 +361,7 @@ function RouteComponent() {
             currentCode={formData.code}
           />
         </div>
-        <RoomForm formData={formData} setFormData={setFormData} onFileChange={handleFileChange} imageFile={roomImage} showStatus />
+        <RoomForm formData={formData} setFormData={setFormData} onFileChange={handleFileChange} imageFile={roomImage} showStatus roomId={selectedRoom?.id} />
       </FormDialog>
 
       {/* Detail Room Modal */}

@@ -11,6 +11,7 @@ import { ROOM_TYPES, type Room, type RoomType } from '@/services/room.service';
 import { FileDropZone } from '@/components/common/FileDropZone';
 import { Field, FormSection, textareaClass } from '@/components/common/FormDialog';
 import type { RoomFormData } from '../utils/roomForm';
+import { SekatFields } from './SekatFields';
 
 interface RoomFormProps {
   formData: RoomFormData;
@@ -18,10 +19,12 @@ interface RoomFormProps {
   onFileChange: (file: File | null) => void;
   imageFile?: File | null;
   showStatus?: boolean;
+  /** Id ruang yang diedit (untuk daftar anggota grup sekat). */
+  roomId?: number;
 }
 
 /** Isi form ruangan (dipakai di modal tambah & edit). Tombol ada di FormDialog. */
-export function RoomForm({ formData, setFormData, onFileChange, imageFile, showStatus = false }: RoomFormProps) {
+export function RoomForm({ formData, setFormData, onFileChange, imageFile, showStatus = false, roomId }: RoomFormProps) {
   const set = (patch: Partial<RoomFormData>) => setFormData({ ...formData, ...patch });
 
   return (
@@ -76,14 +79,16 @@ export function RoomForm({ formData, setFormData, onFileChange, imageFile, showS
         <Field label='Batas jam hari kerja' htmlFor='weekday-max-end' hint={formData.type === 'STUDIO' ? 'Kosong = 16:30. Studio umumnya 18:00.' : 'Kosong = 16:30.'}>
           <Input id='weekday-max-end' type='time' value={formData.weekdayMaxEndTime} onChange={(e) => set({ weekdayMaxEndTime: e.target.value })} />
         </Field>
-        <div className='grid grid-cols-2 gap-3'>
-          <Field label='Grup sekat' htmlFor='adjacent-group'>
-            <Input id='adjacent-group' value={formData.adjacentGroup} onChange={(e) => set({ adjacentGroup: e.target.value })} placeholder='A1-2' />
-          </Field>
-          <Field label='Posisi' htmlFor='adjacent-position'>
-            <Input id='adjacent-position' type='number' min={1} value={formData.adjacentPosition} onChange={(e) => set({ adjacentPosition: e.target.value })} placeholder='1' />
-          </Field>
-        </div>
+      </FormSection>
+
+      <FormSection title='Sekat (ruang bersebelahan)'>
+        <SekatFields
+          roomId={roomId}
+          roomCode={formData.code}
+          group={formData.adjacentGroup}
+          position={formData.adjacentPosition}
+          onChange={set}
+        />
       </FormSection>
 
       <FormSection title='Detail'>
