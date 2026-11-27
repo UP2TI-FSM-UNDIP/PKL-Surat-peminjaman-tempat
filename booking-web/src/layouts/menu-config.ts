@@ -1,8 +1,18 @@
-import { Building2, CalendarDays, ClipboardList, DoorOpen, History, Home, LayoutDashboard, Users } from 'lucide-react';
+import { Building2, CalendarDays, CalendarPlus, CalendarRange, ClipboardList, DoorOpen, FileText, History, Home, LayoutDashboard, Users } from 'lucide-react';
 import type { RoleSlug } from '@/types/auth';
 import type { MenuSection, SidebarFooterLink } from './SideBar';
 
 type MenuConfig = { menuSections: MenuSection[]; footerLink?: SidebarFooterLink };
+
+// Penyetuju dan admin juga bisa melihat kalender dan meminjam ruang.
+const ownBookingSection: MenuSection = {
+  label: 'Peminjaman',
+  items: [
+    { title: 'Kalender', url: '/peminjam', icon: CalendarRange },
+    { title: 'Pinjam Ruang', url: '/peminjam/pinjam/baru', icon: CalendarPlus },
+    { title: 'Pengajuan Saya', url: '/peminjam/pinjam', icon: FileText },
+  ],
+};
 
 const approvalMenu = (base: string): MenuConfig => ({
   menuSections: [
@@ -14,6 +24,7 @@ const approvalMenu = (base: string): MenuConfig => ({
         { title: 'Manajemen Ruang', url: '/admin/rooms', icon: Building2 },
       ],
     },
+    ownBookingSection,
   ],
 });
 
@@ -48,6 +59,13 @@ export const menuConfigurations: Record<RoleSlug, MenuConfig> = {
           { title: 'Manajemen Pengguna', url: '/admin/users', icon: Users },
           { title: 'Manajemen Unit', url: '/admin/units', icon: Building2 },
           { title: 'Manajemen Alur', url: '/admin/workflows', icon: DoorOpen },
+        ],
+      },
+      {
+        label: 'Peminjaman Saya',
+        items: [
+          { title: 'Pinjam Ruang', url: '/peminjam/pinjam/baru', icon: CalendarPlus },
+          { title: 'Pengajuan Saya', url: '/peminjam/pinjam', icon: FileText },
         ],
       },
     ],

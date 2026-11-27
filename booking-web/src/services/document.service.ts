@@ -15,7 +15,7 @@ export const documentService = {
    * Get list dokumen user
    * Axios otomatis meng-handle query params object
    */
-  async getDocuments(filters?: { status?: string; workflow_id?: number; per_page?: number; page_my?: number; page_pending?: number; page_processed?: number }) {
+  async getDocuments(filters?: { status?: string; workflow_id?: number; per_page?: number; page_my?: number; page_pending?: number; page_processed?: number; mine?: 1 }) {
     // Optimasi: Gunakan opsi 'params' milik Axios, tidak perlu URLSearchParams manual
     const response = await api.get<DocumentsResponse>('/documents', {
       params: { per_page: 10, ...filters },

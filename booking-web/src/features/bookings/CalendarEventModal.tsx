@@ -15,6 +15,7 @@ import {
 import { Callout } from '@/components/ui/callout';
 import { Clock, Columns2, Hourglass, Table2, User, Users } from 'lucide-react';
 import { authService } from '@/services/auth.service';
+import { canBorrow as canBorrowRole } from '@/lib/borrowerRoles';
 import type { CalendarDocument, CalendarEvent } from '@/types/calendar';
 import { CALENDAR_STATUS_META, TERMINAL_STATUSES } from './calendarStatus';
 
@@ -65,7 +66,7 @@ export function CalendarEventModal({ open, onOpenChange, event, document, dayAct
   const meta = CALENDAR_STATUS_META[event.display_status];
   const currentUserId = Number(authStorage.getItem('userId') ?? 0);
   const roleSlug = authService.getRoleSlug();
-  const canBorrow = roleSlug === 'peminjam' || roleSlug === 'dosen';
+  const canBorrow = canBorrowRole(roleSlug);
   const canCompleteProposal =
     event.display_status === 'reservation' &&
     !!document &&

@@ -4,12 +4,15 @@ import React from 'react';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { SideBar, TopBar, getMenuConfig } from '@/layouts';
 import { isPathInRole } from '@/lib/roleRoutes';
+import { canBorrow } from '@/lib/borrowerRoles';
+import type { RoleSlug } from '@/types/auth';
 
 export const Route = createFileRoute('/peminjam')({
   beforeLoad: ({ location }) => {
     if (!authService.isAuthenticated()) throw redirect({ to: '/' });
     const slug = authService.getRoleSlug();
-    if (slug !== 'peminjam' && slug !== 'dosen') {
+    // Penyetuju dan admin juga boleh meminjam; menu tetap mengikuti role masing-masing.
+    if (!canBorrow(slug)) {
       throw redirect({ to: authService.getRolePath(slug) });
     }
     if (!isPathInRole(location.pathname, '/peminjam')) {
@@ -21,7 +24,7 @@ export const Route = createFileRoute('/peminjam')({
 
 function RouteComponent() {
   const [open, setOpen] = React.useState(false);
-  const menuConfig = getMenuConfig('peminjam');
+  const menuConfig = getMenuConfig((authService.getRoleSlug() ?? 'peminjam') as RoleSlug);
 
   return (
     <SidebarProvider open={open} onOpenChange={setOpen} className='gap-0'>

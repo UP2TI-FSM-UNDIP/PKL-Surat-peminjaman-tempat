@@ -2,6 +2,8 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { BookingCalendar } from '@/features/bookings';
 import { useQuery } from '@tanstack/react-query';
 import { documentService } from '@/services/document.service';
+import { authService } from '@/services/auth.service';
+import { isPrimaryBorrower } from '@/lib/borrowerRoles';
 
 export const Route = createFileRoute('/peminjam/')({
   component: RouteComponent,
@@ -35,10 +37,11 @@ function StatStrip({ stats, onSelect }: { stats: Stat[]; onSelect: (status: stri
 
 function RouteComponent() {
   const navigate = useNavigate();
+  const primary = isPrimaryBorrower(authService.getRoleSlug());
 
   const { data: queryResult, isLoading } = useQuery({
-    queryKey: ['documents', 1],
-    queryFn: () => documentService.getDocuments({ page_my: 1, per_page: 100 }),
+    queryKey: ['documents', 'mine', 1],
+    queryFn: () => documentService.getDocuments({ page_my: 1, per_page: 100, mine: 1 }),
   });
 
   const docs = queryResult?.my_documents ?? [];
@@ -55,7 +58,7 @@ function RouteComponent() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">Dashboard</h1>
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">{primary ? 'Dashboard' : 'Kalender peminjaman'}</h1>
         <p className="text-[13px] text-muted-foreground">Ringkasan pengajuan dan jadwal ruang. Klik tanggal di kalender untuk mengajukan.</p>
       </div>
 

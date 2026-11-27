@@ -30,7 +30,7 @@ function SubmissionListPage() {
   const [page, setPage] = useState(1);
   const query = useQuery({
     queryKey: ['documents', 'my', status, page],
-    queryFn: () => documentService.getDocuments({ status: status || undefined, page_my: page }),
+    queryFn: () => documentService.getDocuments({ status: status || undefined, page_my: page, mine: 1 }),
   });
   const documents = query.data?.my_documents ?? [];
   const pagination = query.data?.my_documents_pagination;
