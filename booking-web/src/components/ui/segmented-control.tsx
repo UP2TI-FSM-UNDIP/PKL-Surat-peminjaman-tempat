@@ -97,7 +97,7 @@ export function SegmentedControl<T extends string>({
               aria-pressed={isActive}
               onClick={() => onChange(option.value)}
               className={cn(
-                'relative z-10 rounded-full px-3.5 py-1.5 text-[13px] font-medium whitespace-nowrap transition-colors',
+                'relative z-10 rounded-full px-2.5 py-1.5 text-xs font-medium whitespace-nowrap transition-colors sm:px-3.5 sm:text-[13px]',
                 isActive
                   ? 'text-foreground'
                   : 'text-muted-foreground hover:text-foreground',

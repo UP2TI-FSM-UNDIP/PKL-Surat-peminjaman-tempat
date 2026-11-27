@@ -6,7 +6,10 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
+import { Callout } from '@/components/ui/callout';
+import type { ReactNode } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { documentService } from '@/services/document.service';
 import { reservationService } from '@/services/reservation.service';
@@ -105,64 +108,124 @@ function ProposalPage() {
           </CardContent>
         </Card>
       ) : (
-        <form className="space-y-4" onSubmit={handleSubmit((values) => mutation.mutate(values))} onChange={() => setDirty(true)}>
-          <div className="grid gap-4 md:grid-cols-2">
-            {(['event_name', 'event_nature', 'event_form', 'objectives', 'benefits', 'target_audience'] as const).map((key) => (
-              <div key={key} className="space-y-2">
-                <Label htmlFor={key}>{key === 'event_name' ? 'Nama kegiatan' : key === 'event_nature' ? 'Sifat kegiatan' : key === 'event_form' ? 'Bentuk kegiatan' : key === 'objectives' ? 'Tujuan' : key === 'benefits' ? 'Manfaat' : 'Sasaran peserta'}</Label>
-                <Input id={key} {...register(key, { required: ['event_name', 'objectives'].includes(key) ? 'Wajib diisi' : false })} />
-                {errors[key] && <p className="text-xs text-destructive">{errors[key]?.message}</p>}
-              </div>
-            ))}
-          </div>
+        <form className="space-y-5" onSubmit={handleSubmit((values) => mutation.mutate(values))} onChange={() => setDirty(true)}>
+          <section className={sectionClass}>
+            <SectionTitle step={1} title="Detail kegiatan" description="Isi sesuai proposal kegiatan Anda." />
+            <div className="grid gap-x-4 gap-y-5 md:grid-cols-2">
+              <ProposalField id="event_name" label="Nama kegiatan" error={errors.event_name?.message} className="md:col-span-2">
+                <Input id="event_name" placeholder="Contoh: Seminar Nasional Matematika 2026" {...register('event_name', { required: 'Wajib diisi' })} />
+              </ProposalField>
+              <ProposalField id="event_nature" label="Sifat kegiatan" hint="Mis. akademik, non-akademik, internal">
+                <Input id="event_nature" placeholder="Contoh: Akademik" {...register('event_nature')} />
+              </ProposalField>
+              <ProposalField id="event_form" label="Bentuk kegiatan" hint="Mis. seminar, rapat, lomba, workshop">
+                <Input id="event_form" placeholder="Contoh: Seminar" {...register('event_form')} />
+              </ProposalField>
+              <ProposalField id="target_audience" label="Sasaran peserta" className="md:col-span-2">
+                <Input id="target_audience" placeholder="Contoh: Mahasiswa FSM angkatan 2024" {...register('target_audience')} />
+              </ProposalField>
+              <ProposalField id="objectives" label="Tujuan" error={errors.objectives?.message}>
+                <Textarea id="objectives" rows={3} placeholder="Tujuan kegiatan" {...register('objectives', { required: 'Wajib diisi' })} />
+              </ProposalField>
+              <ProposalField id="benefits" label="Manfaat">
+                <Textarea id="benefits" rows={3} placeholder="Manfaat bagi peserta" {...register('benefits')} />
+              </ProposalField>
+            </div>
+          </section>
 
-          <div className="space-y-2">
-            <Label>Kebutuhan alat</Label>
+          <section className={sectionClass}>
+            <SectionTitle step={2} title="Kebutuhan alat" description="Opsional. Alat yang perlu disiapkan pengelola ruang." />
             <EquipmentEditor control={control} />
-          </div>
+          </section>
 
-          <div className="space-y-2">
-            <Label htmlFor="proposal">Proposal PDF (maks. 20 MB)</Label>
-            <Input id="proposal" type="file" accept="application/pdf" onChange={(event) => { setFile(event.target.files?.[0] ?? null); setDirty(true); }} />
-            <p className="text-xs text-muted-foreground">{file ? file.name : document.file_proposal ? 'Proposal PDF tersimpan' : 'Belum ada file'}</p>
-          </div>
+          <section className={sectionClass}>
+            <SectionTitle step={3} title="Proposal PDF" description="Unggah file proposal (PDF, maks. 20 MB)." />
+            <label
+              htmlFor="proposal"
+              className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-black/15 bg-muted/50 p-4 transition-colors hover:bg-muted"
+            >
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#ff3b30] text-[10px] font-bold text-white">PDF</span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-[14px] font-semibold">
+                  {file ? file.name : document.file_proposal ? 'Proposal PDF tersimpan' : 'Pilih file proposal'}
+                </span>
+                <span className="block text-[13px] text-muted-foreground">
+                  {file ? `${(file.size / 1024 / 1024).toFixed(2)} MB · akan diunggah saat disimpan` : 'Klik untuk memilih file PDF'}
+                </span>
+              </span>
+              <span className="shrink-0 rounded-full bg-white px-3 py-1 text-[13px] font-medium ring-1 ring-black/[0.08]">{file || document.file_proposal ? 'Ganti' : 'Pilih'}</span>
+            </label>
+            <input id="proposal" aria-label="Proposal PDF (maks. 20 MB)" type="file" accept="application/pdf" className="sr-only" onChange={(event) => { setFile(event.target.files?.[0] ?? null); setDirty(true); }} />
+          </section>
 
           {summary && !summary.completeness.is_complete && (
-            <Card>
-              <CardHeader><CardTitle className="text-base">Yang belum lengkap</CardTitle></CardHeader>
-              <CardContent>
-                <ul className="list-disc pl-5 text-sm">
-                  {missingLabels(summary.completeness.missing_fields).map((label) => <li key={label}>{label}</li>)}
-                </ul>
-              </CardContent>
-            </Card>
+            <Callout tone="warning" title="Yang belum lengkap">
+              <ul className="list-disc space-y-0.5 pl-4">
+                {missingLabels(summary.completeness.missing_fields).map((label) => <li key={label}>{label}</li>)}
+              </ul>
+            </Callout>
           )}
 
-          <div className="flex gap-2">
-            <Button type="submit" variant="outline" disabled={mutation.isPending}>Simpan draf</Button>
-            <Button
-              type="button"
-              disabled={mutation.isPending}
-              onClick={handleSubmit(async (values) => {
-                try {
-                  await mutation.mutateAsync(values);
-                  const fresh = await reservationService.summary(id);
-                  if (!fresh.completeness.is_complete) {
-                    toast.error('Proposal belum lengkap.');
+          <section className={`${sectionClass} sm:flex sm:items-center sm:justify-between sm:gap-6 sm:space-y-0`}>
+            <p className="text-[13px] text-muted-foreground">
+              {equipment.length} alat · simpan draf kapan saja, lalu lanjut ke ringkasan untuk mengajukan.
+            </p>
+            <div className="flex shrink-0 gap-2">
+              <Button type="submit" variant="outline" disabled={mutation.isPending}>Simpan draf</Button>
+              <Button
+                type="button"
+                disabled={mutation.isPending}
+                onClick={handleSubmit(async (values) => {
+                  try {
+                    await mutation.mutateAsync(values);
+                    const fresh = await reservationService.summary(id);
+                    if (!fresh.completeness.is_complete) {
+                      toast.error('Proposal belum lengkap.');
+                      return;
+                    }
+                    await navigate({ to: '/peminjam/pinjam/$documentId/ringkasan', params: { documentId } });
+                  } catch {
                     return;
                   }
-                  await navigate({ to: '/peminjam/pinjam/$documentId/ringkasan', params: { documentId } });
-                } catch {
-                  return;
-                }
-              })}
-            >
-              Lanjut ke ringkasan
-            </Button>
-          </div>
-          <p className="text-xs text-muted-foreground">{equipment.length} baris alat</p>
+                })}
+              >
+                Lanjut ke ringkasan
+              </Button>
+            </div>
+          </section>
         </form>
       )}
+    </div>
+  );
+}
+
+const sectionClass = 'space-y-5 rounded-2xl border border-black/[0.06] bg-white p-5 shadow-[0_1px_2px_rgb(0_0_0/0.04)] sm:p-6';
+
+function SectionTitle({ step, title, description }: { step: number; title: string; description: string }) {
+  return (
+    <div className="flex items-start gap-3">
+      <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-[13px] font-semibold text-white">{step}</span>
+      <div>
+        <h2 className="text-[17px] font-semibold tracking-tight">{title}</h2>
+        <p className="text-[13px] text-muted-foreground">{description}</p>
+      </div>
+    </div>
+  );
+}
+
+function ProposalField({ id, label, hint, error, className, children }: {
+  id: string;
+  label: string;
+  hint?: string;
+  error?: string;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className={`space-y-2 ${className ?? ''}`}>
+      <Label htmlFor={id}>{label}</Label>
+      {children}
+      {error ? <p className="text-xs text-destructive">{error}</p> : hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
     </div>
   );
 }

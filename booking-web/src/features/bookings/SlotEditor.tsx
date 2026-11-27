@@ -1,10 +1,10 @@
 import { useEffect } from 'react';
 import { Controller, useFieldArray, useWatch, type Control, type UseFormSetValue } from 'react-hook-form';
-import { Input } from '@/components/ui/input';
 import { DateInput } from '@/components/ui/date-input';
 import { Button } from '@/components/ui/button/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash2 } from 'lucide-react';
+import { RoomPicker } from './RoomPicker';
+import { TimeSelect } from './TimeSelect';
+import { Plus, Trash2 } from 'lucide-react';
 import type { Room } from '@/services/room.service';
 import type { BookingRuleDate, ReservationMode } from '@/types/reservation';
 import type { ReservationWizardValues } from './reservationForm.types';
@@ -46,11 +46,18 @@ export function SlotEditor({ control, setValue, mode, rooms, rulesByDate, maxRow
     });
   };
 
+  const ruleText = (rule: BookingRuleDate | undefined, maxEnd: string) =>
+    !rule ? null
+      : rule.same_day ? `Hari ini · mulai ≥ ${rule.min_start_time ?? ''}`
+      : rule.day_type === 'saturday' ? 'Sabtu · 09.00–17.00'
+      : rule.day_type === 'weekday' ? `Hari kerja · s.d. ${maxEnd.replace(':', '.')}`
+      : rule.message ?? null;
+
   return (
-    <div className="space-y-3">
-      <div className="hidden gap-2 text-xs font-medium text-muted-foreground md:grid md:grid-cols-[minmax(0,1.3fr)_minmax(0,0.8fr)_136px_136px_40px]">
+    <div className="space-y-2">
+      <div className="hidden gap-3 px-3 text-xs font-medium text-muted-foreground md:grid md:grid-cols-[28px_minmax(0,1fr)_140px_140px_36px]">
+        <span>#</span>
         <span>{mode === 'one_room_many_dates' ? 'Tanggal' : 'Ruang'}</span>
-        <span>Keterangan</span>
         <span>Mulai</span>
         <span>Selesai</span>
         <span />
@@ -61,71 +68,70 @@ export function SlotEditor({ control, setValue, mode, rooms, rulesByDate, maxRow
         const rowRoomId = mode === 'one_room_many_dates' ? roomId : rowSlot?.room_id;
         const rule = rulesByDate[date ?? ''];
         const maxEnd = rule?.rooms.find((room) => room.id === rowRoomId)?.max_end_time ?? '16:30';
+        const hint = ruleText(rule, maxEnd);
+        const conflict = availability?.[index] === false;
+        const ok = availability?.[index] === true;
         return (
-          <div key={field.id} className="space-y-2 rounded-xl bg-muted/70 p-3">
-            <div className="grid gap-2 md:grid-cols-[minmax(0,1.3fr)_minmax(0,0.8fr)_136px_136px_40px] md:items-center">
-              {mode === 'one_room_many_dates' ? (
-                <Controller
-                  control={control}
-                  name={`slots.${index}.booking_date`}
-                  render={({ field: dateField }) => (
-                    <DateInput
-                      id={`slot-${index}-booking-date`}
-                      value={dateField.value}
-                      onChange={dateField.onChange}
-                      aria-label="Tanggal"
-                    />
-                  )}
-                />
-              ) : (
-                <Controller
-                  control={control}
-                  name={`slots.${index}.room_id`}
-                  render={({ field: roomField }) => (
-                    <Select value={String(roomField.value || '')} onValueChange={(value) => roomField.onChange(Number(value))}>
-                      <SelectTrigger aria-label="Ruang"><SelectValue placeholder="Pilih ruang" /></SelectTrigger>
-                      <SelectContent>
-                        {rooms.map((room) => (
-                          <SelectItem key={room.id} value={String(room.id)}>{room.code} — {room.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-              )}
-              <span className="text-[13px] text-muted-foreground">
-                {!rule ? '—'
-                  : rule.same_day ? `Hari ini · mulai ≥ ${rule.min_start_time ?? ''}`
-                  : rule.day_type === 'saturday' ? 'Sabtu · 09.00–17.00'
-                  : rule.day_type === 'weekday' ? `Hari kerja · s.d. ${maxEnd}`
-                  : rule.message ?? '—'}
-              </span>
+          <div key={field.id} className={`space-y-2 rounded-xl p-3 ${conflict || rowErrors[index]?.length ? 'bg-[#fdeeee]/70 ring-1 ring-destructive/20' : 'bg-muted/70'}`}>
+            <div className="grid grid-cols-[1fr_1fr_36px] gap-2 md:grid-cols-[28px_minmax(0,1fr)_140px_140px_36px] md:items-center md:gap-3">
+              <span className="hidden text-center text-[13px] font-medium text-muted-foreground tabular-nums md:block">{index + 1}</span>
+              <div className="col-span-3 md:col-span-1">
+                {mode === 'one_room_many_dates' ? (
+                  <Controller
+                    control={control}
+                    name={`slots.${index}.booking_date`}
+                    render={({ field: dateField }) => (
+                      <DateInput id={`slot-${index}-booking-date`} value={dateField.value} onChange={dateField.onChange} aria-label="Tanggal" />
+                    )}
+                  />
+                ) : (
+                  <Controller
+                    control={control}
+                    name={`slots.${index}.room_id`}
+                    render={({ field: roomField }) => (
+                      <RoomPicker rooms={rooms} value={roomField.value || null} onChange={(id) => roomField.onChange(id)} />
+                    )}
+                  />
+                )}
+              </div>
               <Controller
                 control={control}
                 name={`slots.${index}.start_time`}
-                render={({ field: timeField }) => <Input type="time" aria-label="Jam mulai" value={timeField.value} onChange={timeField.onChange} />}
+                render={({ field: timeField }) => (
+                  <TimeSelect label="Jam mulai" value={timeField.value} onChange={timeField.onChange} min={rule?.same_day ? rule.min_start_time ?? undefined : undefined} />
+                )}
               />
               <Controller
                 control={control}
                 name={`slots.${index}.end_time`}
-                render={({ field: timeField }) => <Input type="time" aria-label="Jam selesai" max={maxEnd} value={timeField.value} onChange={timeField.onChange} />}
+                render={({ field: timeField }) => (
+                  <TimeSelect label="Jam selesai" value={timeField.value} onChange={timeField.onChange} min={rowSlot?.start_time} max={maxEnd} />
+                )}
               />
-              <Button type="button" variant="ghost" size="icon" aria-label="Hapus slot" onClick={() => remove(index)}>
+              <Button type="button" variant="ghost" size="icon" aria-label="Hapus slot" onClick={() => remove(index)} disabled={fields.length === 1}>
                 <Trash2 className="h-4 w-4" />
               </Button>
             </div>
-            {rowErrors[index]?.map((error) => (
-              <p key={error} className="text-[13px] text-destructive">{error}</p>
-            ))}
-            {availability?.[index] === false && (
-              <p className="text-[13px] text-destructive">Slot ini bentrok dengan booking lain.</p>
+            {(hint || ok) && (
+              <div className="flex flex-wrap items-center gap-2 text-[12px] md:pl-[40px]">
+                {hint && <span className="rounded-full bg-white px-2 py-0.5 text-muted-foreground ring-1 ring-black/[0.06]">{hint}</span>}
+                {ok && <span className="rounded-full bg-[#ecf8ef] px-2 py-0.5 font-medium text-[#248a3d]">Tersedia</span>}
+              </div>
             )}
+            {rowErrors[index]?.map((error) => (
+              <p key={error} className="text-[13px] text-destructive md:pl-[40px]">{error}</p>
+            ))}
+            {conflict && <p className="text-[13px] text-destructive md:pl-[40px]">Slot ini bentrok dengan booking lain.</p>}
           </div>
         );
       })}
-      <Button type="button" variant="outline" onClick={addRow} disabled={fields.length >= maxRows}>
-        {mode === 'one_room_many_dates' ? 'Tambah tanggal' : 'Tambah ruang'}
-      </Button>
+      <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+        <Button type="button" variant="outline" onClick={addRow} disabled={fields.length >= maxRows} className="gap-1.5">
+          <Plus className="size-4" />
+          {mode === 'one_room_many_dates' ? 'Tambah tanggal' : 'Tambah ruang'}
+        </Button>
+        <span className="text-xs text-muted-foreground">{fields.length} dari maks. {maxRows} {mode === 'one_room_many_dates' ? 'tanggal' : 'ruang'}</span>
+      </div>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button/button';
 import { Input } from '@/components/ui/input';
 import { DateInput } from '@/components/ui/date-input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { RoomPicker } from './RoomPicker';
 import { toast } from 'sonner';
 import { roomService } from '@/services/room.service';
 import { reservationService } from '@/services/reservation.service';
@@ -166,96 +166,102 @@ export function ReservationWizardForm({ intent, submitLabel = 'Simpan Reservasi'
     setFormErrors(['Periksa kembali isian.']);
   });
 
+  const selectedRoom = rooms.find((room) => room.id === roomId);
+  const filledSlots = slots.filter((slot) => slot.room_id > 0 && slot.booking_date);
+  const capacityHint = (() => {
+    const ids = [...new Set(filledSlots.map((slot) => slot.room_id))];
+    const caps = ids.map((id) => rooms.find((room) => room.id === id)?.capacity).filter((cap): cap is number => !!cap);
+    return caps.length ? Math.min(...caps) : null;
+  })();
+
   return (
     <form className="space-y-5" onSubmit={(event) => { event.preventDefault(); void submit(); }}>
       <section className={sectionClass}>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-[17px] font-semibold tracking-tight">Ruang &amp; waktu</h2>
-        <SegmentedControl
-          ariaLabel="Mode reservasi"
-          value={mode}
-          onChange={(next) => switchMode(next)}
-          options={[
-            { value: 'one_room_many_dates', label: '1 ruang, banyak tanggal' },
-            { value: 'one_date_many_rooms', label: '1 tanggal, banyak ruang' },
-          ]}
-        />
-      </div>
+        <StepHeader step={1} title="Ruang & waktu" description="Pilih ruang, tanggal, dan jam pemakaian." />
 
-      {mode === 'one_room_many_dates' ? (
         <div className="space-y-2">
-          <Label>Ruang</Label>
-          <Select value={String(roomId ?? '')} onValueChange={(value) => setValue('room_id', Number(value))}>
-            <SelectTrigger aria-label="Ruang"><SelectValue placeholder="Pilih ruang" /></SelectTrigger>
-            <SelectContent>
-              {selectableRooms.map((room) => <SelectItem key={room.id} value={String(room.id)}>{room.code} — {room.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          <Label>Pola peminjaman</Label>
+          <SegmentedControl
+            ariaLabel="Mode reservasi"
+            value={mode}
+            onChange={(next) => switchMode(next)}
+            options={[
+              { value: 'one_room_many_dates', label: '1 ruang, banyak tanggal' },
+              { value: 'one_date_many_rooms', label: '1 tanggal, banyak ruang' },
+            ]}
+          />
+          <p className="text-xs text-muted-foreground">
+            {mode === 'one_room_many_dates'
+              ? 'Satu ruang dipakai di beberapa tanggal, misalnya rapat rutin.'
+              : 'Beberapa ruang dipakai di satu tanggal, misalnya acara besar.'}
+          </p>
         </div>
-      ) : (
-        <div className="space-y-2">
-          <Label htmlFor="booking_date">Tanggal</Label>
-          <Controller
-            control={control}
-            name="booking_date"
-            render={({ field }) => (
-              <DateInput
-                id="booking_date"
-                value={field.value}
-                onChange={field.onChange}
-                onBlur={field.onBlur}
-                aria-label="Tanggal"
-              />
+
+        {mode === 'one_room_many_dates' ? (
+          <div className="space-y-2">
+            <Label>Ruang</Label>
+            <RoomPicker rooms={selectableRooms} value={roomId} onChange={(id) => setValue('room_id', id)} />
+            {selectedRoom && (
+              <div className="flex flex-wrap gap-x-4 gap-y-1 rounded-xl bg-muted/60 px-3 py-2 text-[12px] text-muted-foreground">
+                <span><span className="font-medium text-foreground">{selectedRoom.code}</span> · {selectedRoom.name}</span>
+                {selectedRoom.capacity ? <span>Kapasitas {selectedRoom.capacity} orang</span> : null}
+                {selectedRoom.location || selectedRoom.building ? <span>{selectedRoom.location || selectedRoom.building}</span> : null}
+                {selectedRoom.facilities?.length ? <span>Fasilitas: {selectedRoom.facilities.join(', ')}</span> : null}
+              </div>
             )}
+          </div>
+        ) : (
+          <div className="space-y-2 sm:max-w-xs">
+            <Label htmlFor="booking_date">Tanggal</Label>
+            <Controller
+              control={control}
+              name="booking_date"
+              render={({ field }) => (
+                <DateInput id="booking_date" value={field.value} onChange={field.onChange} onBlur={field.onBlur} aria-label="Tanggal" />
+              )}
+            />
+          </div>
+        )}
+
+        <div className="space-y-2">
+          <Label>{mode === 'one_room_many_dates' ? 'Tanggal & jam' : 'Ruang & jam'}</Label>
+          <SlotEditor
+            control={control}
+            setValue={setValue}
+            mode={mode}
+            rooms={selectableRooms}
+            rulesByDate={rulesByDate}
+            maxRows={maxRows}
+            rowErrors={rowErrors}
+            availability={availability}
           />
         </div>
-      )}
 
-      <SlotEditor
-        control={control}
-        setValue={setValue}
-        mode={mode}
-        rooms={selectableRooms}
-        rulesByDate={rulesByDate}
-        maxRows={maxRows}
-        rowErrors={rowErrors}
-        availability={availability}
-      />
-
-      <BukaSekatField control={control} roomsById={roomsById} />
-      {slots[0]?.booking_date && (mode === 'one_room_many_dates' ? (roomId ?? 0) > 0 : (slots[0]?.room_id ?? 0) > 0) && (
-        <DayRuleAlert slot={slots[0]} dayRule={rulesByDate[slots[0].booking_date]} expectedParticipants={expectedParticipants ? Number(expectedParticipants) : null} direct={direct} />
-      )}
+        <BukaSekatField control={control} roomsById={roomsById} />
+        {slots[0]?.booking_date && (mode === 'one_room_many_dates' ? (roomId ?? 0) > 0 : (slots[0]?.room_id ?? 0) > 0) && (
+          <DayRuleAlert slot={slots[0]} dayRule={rulesByDate[slots[0].booking_date]} expectedParticipants={expectedParticipants ? Number(expectedParticipants) : null} direct={direct} />
+        )}
       </section>
 
       <section className={sectionClass}>
-      <h2 className="text-[17px] font-semibold tracking-tight">Data kegiatan</h2>
-      <div className="grid gap-x-4 gap-y-5 md:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="purpose">Tujuan / nama kegiatan</Label>
-          <Input id="purpose" placeholder="Nama kegiatan / tujuan" {...register('purpose', { required: 'Wajib diisi' })} />
-          {errors.purpose && <p className="text-xs text-destructive">{errors.purpose.message}</p>}
+        <StepHeader step={2} title="Data kegiatan" description="Informasi kegiatan dan penanggung jawab yang bisa dihubungi." />
+        <div className="grid gap-x-4 gap-y-5 md:grid-cols-2">
+          <Field id="purpose" label="Tujuan / nama kegiatan" error={errors.purpose?.message} className="md:col-span-2">
+            <Input id="purpose" placeholder="Nama kegiatan / tujuan" {...register('purpose', { required: 'Wajib diisi' })} />
+          </Field>
+          <Field id="ketua_pelaksana_nama" label="Nama ketua pelaksana" error={errors.ketua_pelaksana_nama?.message}>
+            <Input id="ketua_pelaksana_nama" placeholder="Nama lengkap" autoComplete="name" {...register('ketua_pelaksana_nama', { required: 'Wajib diisi' })} />
+          </Field>
+          <Field id="ketua_pelaksana_identitas" label="NIM/NIP/NIDN" hint="10, 14, atau 18 digit angka" error={errors.ketua_pelaksana_identitas?.message}>
+            <Input id="ketua_pelaksana_identitas" inputMode="numeric" placeholder="Contoh: 24060121120001" {...register('ketua_pelaksana_identitas', { required: 'Wajib diisi', pattern: { value: /^(?:\d{10}|\d{14}|\d{18})$/, message: '10, 14, atau 18 digit' } })} />
+          </Field>
+          <Field id="ketua_pelaksana_hp" label="Nomor HP" hint="12–13 digit, aktif WhatsApp" error={errors.ketua_pelaksana_hp?.message}>
+            <Input id="ketua_pelaksana_hp" inputMode="tel" autoComplete="tel" placeholder="08xxxxxxxxxx" {...register('ketua_pelaksana_hp', { required: 'Wajib diisi', pattern: { value: /^\d{12,13}$/, message: '12–13 digit' } })} />
+          </Field>
+          <Field id="expected_participants" label="Perkiraan peserta (opsional)" hint={capacityHint ? `Kapasitas ruang terkecil: ${capacityHint} orang` : 'Jumlah orang yang hadir'}>
+            <Input id="expected_participants" type="number" min={1} inputMode="numeric" placeholder="Contoh: 40" {...register('expected_participants')} />
+          </Field>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="ketua_pelaksana_nama">Nama ketua pelaksana</Label>
-          <Input id="ketua_pelaksana_nama" {...register('ketua_pelaksana_nama', { required: 'Wajib diisi' })} />
-          {errors.ketua_pelaksana_nama && <p className="text-xs text-destructive">{errors.ketua_pelaksana_nama.message}</p>}
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="ketua_pelaksana_identitas">NIM/NIP/NIDN</Label>
-          <Input id="ketua_pelaksana_identitas" {...register('ketua_pelaksana_identitas', { required: 'Wajib diisi', pattern: { value: /^(?:\d{10}|\d{14}|\d{18})$/, message: '10, 14, atau 18 digit' } })} />
-          {errors.ketua_pelaksana_identitas && <p className="text-xs text-destructive">{errors.ketua_pelaksana_identitas.message}</p>}
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="ketua_pelaksana_hp">Nomor HP</Label>
-          <Input id="ketua_pelaksana_hp" {...register('ketua_pelaksana_hp', { required: 'Wajib diisi', pattern: { value: /^\d{12,13}$/, message: '12–13 digit' } })} />
-          {errors.ketua_pelaksana_hp && <p className="text-xs text-destructive">{errors.ketua_pelaksana_hp.message}</p>}
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="expected_participants">Perkiraan peserta (opsional)</Label>
-          <Input id="expected_participants" type="number" min={1} {...register('expected_participants')} />
-        </div>
-      </div>
       </section>
 
       {formErrors.length > 0 && (
@@ -269,11 +275,50 @@ export function ReservationWizardForm({ intent, submitLabel = 'Simpan Reservasi'
         <Callout tone="danger">Beberapa slot bentrok. Periksa baris yang ditandai.</Callout>
       )}
 
-      <div className="flex justify-end">
-        <Button type="submit" size="lg" disabled={mutation.isPending || rulesLoading || roomsQuery.isLoading}>
+      <section className={`${sectionClass} sm:flex sm:items-center sm:justify-between sm:gap-6 sm:space-y-0`}>
+        <div className="space-y-1">
+          <p className="text-[15px] font-semibold">
+            {filledSlots.length > 0 ? `${filledSlots.length} slot dipilih` : 'Belum ada slot dipilih'}
+          </p>
+          <p className="text-[13px] text-muted-foreground">
+            {direct
+              ? 'Langkah berikutnya: lengkapi proposal dan kebutuhan alat, lalu ajukan.'
+              : 'Slot ditahan sampai batas proposal. Lengkapi proposal sebelum batas waktu agar tidak kedaluwarsa.'}
+          </p>
+        </div>
+        <Button type="submit" size="lg" className="w-full shrink-0 sm:w-auto" disabled={mutation.isPending || rulesLoading || roomsQuery.isLoading}>
           {mutation.isPending ? 'Menyimpan…' : submitLabel}
         </Button>
-      </div>
+      </section>
     </form>
+  );
+}
+
+function StepHeader({ step, title, description }: { step: number; title: string; description: string }) {
+  return (
+    <div className="flex items-start gap-3">
+      <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-[13px] font-semibold text-white">{step}</span>
+      <div>
+        <h2 className="text-[17px] font-semibold tracking-tight">{title}</h2>
+        <p className="text-[13px] text-muted-foreground">{description}</p>
+      </div>
+    </div>
+  );
+}
+
+function Field({ id, label, hint, error, className, children }: {
+  id: string;
+  label: string;
+  hint?: string;
+  error?: string;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className={`space-y-2 ${className ?? ''}`}>
+      <Label htmlFor={id}>{label}</Label>
+      {children}
+      {error ? <p className="text-xs text-destructive">{error}</p> : hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
+    </div>
   );
 }

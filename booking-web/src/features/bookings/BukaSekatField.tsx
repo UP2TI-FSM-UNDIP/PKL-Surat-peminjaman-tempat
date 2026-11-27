@@ -18,7 +18,7 @@ export function BukaSekatField({ control, roomsById }: Props) {
       control={control}
       name="buka_sekat"
       render={({ field }) => (
-        <label className="flex items-start gap-2 rounded-md border p-3 text-sm">
+        <label className="flex cursor-pointer items-start gap-3 rounded-xl bg-muted/70 p-3 text-sm">
           <Checkbox checked={field.value} onCheckedChange={(value) => field.onChange(value === true)} />
           <span>
             <span className="font-medium">Buka Sekat</span>
