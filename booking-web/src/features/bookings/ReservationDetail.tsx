@@ -62,11 +62,33 @@ export function ReservationDetail({ document, summary }: {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-3 sm:gap-4">
       <section className={detailPanel}>
-        <Title aside={`${summary.slots.length} slot · ${MODE_LABEL[c.mode ?? ''] ?? '—'}`}>Jadwal</Title>
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[420px] text-[13px]">
+        <Title aside={<><span>{summary.slots.length} slot</span><span className="hidden sm:inline"> · {MODE_LABEL[c.mode ?? ''] ?? '—'}</span></>}>Jadwal</Title>
+        {/* Mobile: daftar bertumpuk; desktop: tabel. */}
+        <ul className="divide-y divide-border sm:hidden">
+          {summary.slots.map((slot, index) => {
+            const date = new Date(`${slot.booking_date}T00:00:00`);
+            return (
+              <li key={`${slot.room_id}-${slot.booking_date}-${index}`} className="flex items-center gap-3 py-2 first:pt-0 last:pb-0">
+                <div className="flex w-11 shrink-0 flex-col items-center rounded-lg bg-muted py-1 leading-none">
+                  <span className="text-[10px] font-medium uppercase text-muted-foreground">{date.toLocaleDateString('id-ID', { weekday: 'short' })}</span>
+                  <span className="mt-0.5 text-[15px] font-semibold">{date.getDate()}</span>
+                  <span className="mt-0.5 text-[10px] text-muted-foreground">{date.toLocaleDateString('id-ID', { month: 'short' })}</span>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[13px] font-semibold tabular-nums">{formatTimeRange(slot.start_time, slot.end_time)}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    <span className="font-medium text-foreground">{slot.room_code ?? slot.room_name}</span>
+                    {slot.room_code && slot.room_name ? ` · ${slot.room_name}` : ''}
+                  </p>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+        <div className="hidden overflow-x-auto sm:block">
+          <table className="w-full text-[13px]">
             <thead>
               <tr className="border-b border-border text-left text-[11px] uppercase tracking-wide text-muted-foreground">
                 <th className="py-1.5 pr-3 font-medium">Tanggal</th>

@@ -33,14 +33,14 @@ export function ApprovalDetailPage({ documentId, basePath }: { documentId: strin
   const firstSlot = summaryQuery.data.slots[0];
 
   return (
-    <div className="mx-auto max-w-6xl space-y-4">
-      <div className="space-y-2">
-        <Link to={basePath} className="inline-flex items-center gap-0.5 text-[13px] font-medium text-primary hover:underline">
+    <div className="mx-auto flex max-w-6xl flex-col gap-3 sm:gap-4">
+      <div className="space-y-1.5">
+        <Link to={basePath} className="-ml-1 inline-flex items-center gap-0.5 text-[13px] font-medium text-primary hover:underline">
           <ChevronLeft className="size-4" /> Antrean persetujuan
         </Link>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0 space-y-1">
-            <h1 className="text-lg font-semibold leading-tight tracking-tight text-foreground sm:text-2xl">
+            <h1 className="text-[17px] font-semibold leading-snug tracking-tight text-foreground sm:text-2xl">
               {document.content?.event_name || document.content?.purpose || document.title}
             </h1>
             <p className="text-[13px] text-muted-foreground sm:text-[14px]">
@@ -53,10 +53,10 @@ export function ApprovalDetailPage({ documentId, basePath }: { documentId: strin
         </div>
       </div>
 
-      <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:gap-4 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
         <ReservationDetail document={document} summary={summaryQuery.data} />
 
-        <div className="space-y-4 lg:sticky lg:top-24">
+        <div className="flex flex-col gap-3 sm:gap-4 lg:sticky lg:top-24">
           {canAct && (
             <section className={panel}>
               <h2 className="text-[14px] font-semibold tracking-tight sm:text-[15px]">Keputusan Anda</h2>

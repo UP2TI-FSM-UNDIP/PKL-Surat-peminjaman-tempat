@@ -58,32 +58,34 @@ function DetailPage() {
   };
 
   return (
-    <div className="mx-auto max-w-6xl space-y-4">
-      <div className="space-y-2">
-        <Link to="/peminjam/pinjam" search={{ status: "" }} className="inline-flex items-center gap-0.5 text-[13px] font-medium text-primary hover:underline">
+    <div className="mx-auto flex max-w-6xl flex-col gap-3 sm:gap-4">
+      <div>
+        <Link to="/peminjam/pinjam" search={{ status: "" }} className="-ml-1 inline-flex items-center gap-0.5 text-[13px] font-medium text-primary hover:underline">
           <ChevronLeft className="size-4" /> Pengajuan saya
         </Link>
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          <h1 className="min-w-0 text-lg font-semibold leading-tight tracking-tight sm:text-2xl">
-            {document.content?.event_name || document.content?.purpose || document.title}
-          </h1>
-          <DocumentStatusBadge doc={document} />
-        </div>
+        <h1 className="mt-1 text-[17px] font-semibold leading-snug tracking-tight sm:text-2xl">
+          {document.content?.event_name || document.content?.purpose || document.title}
+        </h1>
+        <div className="mt-1.5"><DocumentStatusBadge doc={document} /></div>
       </div>
 
-      <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:gap-4 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
         <div className="order-2 min-w-0 lg:order-1"><ReservationDetail document={document} summary={summary} /></div>
 
-        <div className="order-1 space-y-4 lg:sticky lg:top-24 lg:order-2">
+        <div className="order-1 flex flex-col gap-3 sm:gap-4 lg:sticky lg:top-24 lg:order-2">
           {(editable || canCancel || document.status !== 'IN_PROGRESS') && (
-            <section className={detailPanel}>
+            <section className="lg:rounded-2xl lg:border lg:border-black/[0.06] lg:bg-white lg:p-5 lg:shadow-[0_1px_2px_rgb(0_0_0/0.04)]">
               <div className="flex flex-wrap gap-2">
                 {editable && (
                   <Link to="/peminjam/pinjam/$documentId/proposal" params={{ documentId }} className="flex-1">
                     <Button size="sm" className="w-full">Lengkapi proposal</Button>
                   </Link>
                 )}
-                {canCancel && <Button size="sm" variant="destructive" className="flex-1" onClick={() => setCancelOpen(true)}>Batalkan</Button>}
+                {canCancel && (
+                  <Button size="sm" variant="outline" className="flex-1 border-destructive/30 text-destructive hover:bg-destructive/5 hover:text-destructive" onClick={() => setCancelOpen(true)}>
+                    Batalkan pengajuan
+                  </Button>
+                )}
                 {!editable && !canCancel && (
                   <Link to="/peminjam/pinjam/baru" className="flex-1"><Button size="sm" variant="outline" className="w-full">Buat pengajuan baru</Button></Link>
                 )}
