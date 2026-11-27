@@ -1,12 +1,12 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { useEffect, useState, useCallback } from 'react';
+import { Fragment, useEffect, useState, useCallback } from 'react';
 import { AxiosError } from 'axios';
 import { userService, type User } from '@/services/user.service';
 import { roleService, type Role } from '@/services/role.service';
 import { unitService, type Unit } from '@/services/unit.service';
 import { Button } from '@/components/ui/button/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Pencil, Trash2, Search, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -35,6 +35,12 @@ import {
 } from '@/components/ui/select';
 import type { UpdateUserData } from '@/services/user.service';
 
+/** Jumlah kolom tabel pengguna; dipakai juga untuk baris kosong dan baris detail yang melebar. */
+const TABLE_COLUMN_COUNT = 5;
+
+const formatTanggal = (value: string) =>
+  new Date(value).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+
 export const Route = createFileRoute('/admin/users/')({
   component: RouteComponent,
 });
@@ -59,8 +65,10 @@ function RouteComponent() {
   // Modal states
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+  // Baris pengguna yang panel detailnya terbuka (hanya satu sekaligus)
+  const [expandedUserId, setExpandedUserId] = useState<number | null>(null);
 
   // Form states
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -87,6 +95,11 @@ function RouteComponent() {
   useEffect(() => {
     setCurrentPage(1);
   }, [debouncedSearchQuery, selectedRoleId, selectedUnitId]);
+
+  // Tutup detail saat pindah halaman atau filter berubah, karena baris yang terbuka bisa tidak tampil lagi.
+  useEffect(() => {
+    setExpandedUserId(null);
+  }, [currentPage, debouncedSearchQuery, selectedRoleId, selectedUnitId]);
 
   // Daftar pengguna (mengikuti halaman & filter). Juga dipanggil ulang setelah
   // tambah/ubah/hapus pengguna.
@@ -165,9 +178,8 @@ function RouteComponent() {
     setIsDeleteDialogOpen(true);
   };
 
-  const handleDetail = (user: User) => {
-    setSelectedUser(user);
-    setIsDetailModalOpen(true);
+  const toggleExpanded = (userId: number) => {
+    setExpandedUserId((current) => (current === userId ? null : userId));
   };
 
   const handleSubmitCreate = async (e: React.FormEvent) => {
@@ -411,12 +423,6 @@ function RouteComponent() {
                   Email
                 </TableHead>
                 <TableHead className='text-xs sm:text-sm'>Role</TableHead>
-                <TableHead className='hidden md:table-cell text-xs sm:text-sm'>
-                  Unit
-                </TableHead>
-                <TableHead className='hidden lg:table-cell text-xs sm:text-sm'>
-                  Terdaftar
-                </TableHead>
                 <TableHead className='text-center text-xs sm:text-sm w-20 sm:w-auto'>
                   Aksi
                 </TableHead>
@@ -426,7 +432,7 @@ function RouteComponent() {
               {users.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={7}
+                    colSpan={TABLE_COLUMN_COUNT}
                     className='text-center text-gray-500 h-32'
                   >
                     {debouncedSearchQuery ||
@@ -437,65 +443,82 @@ function RouteComponent() {
                   </TableCell>
                 </TableRow>
               ) : (
-                users.map((user, index) => (
-                  <TableRow key={user.id}>
-                    <TableCell className='font-medium text-center text-xs sm:text-sm py-2 sm:py-3'>
-                      {(currentPage - 1) * 10 + index + 1}
-                    </TableCell>
-                    <TableCell className='text-xs sm:text-sm font-medium text-gray-900 py-2 sm:py-3'>
-                      <div>{user.name}</div>
-                      <div className='sm:hidden text-[10px] text-gray-500 mt-0.5'>
-                        {user.email}
-                      </div>
-                    </TableCell>
-                    <TableCell className='hidden sm:table-cell text-xs sm:text-sm text-gray-500 py-2 sm:py-3'>
-                      {user.email}
-                    </TableCell>
-                    <TableCell className='text-xs sm:text-sm text-gray-500 py-2 sm:py-3'>
-                      <span className='inline-flex items-center px-1.5 sm:px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-medium bg-blue-100 text-blue-700'>
-                        {user.role?.name || '-'}
-                      </span>
-                    </TableCell>
-                    <TableCell className='hidden md:table-cell text-xs sm:text-sm text-gray-500 py-2 sm:py-3'>
-                      {user.unit?.name || '-'}
-                    </TableCell>
-                    <TableCell className='hidden lg:table-cell text-xs sm:text-sm text-gray-500 py-2 sm:py-3'>
-                      {new Date(user.created_at).toLocaleDateString('id-ID', {
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric',
-                      })}
-                    </TableCell>
-                    <TableCell className='py-2 sm:py-3'>
-                      <div className='flex items-center justify-center gap-1 sm:gap-2'>
-                        <Button
-                          variant='ghost'
-                          size='sm'
-                          onClick={() => handleDetail(user)}
-                          className='h-6 w-6 sm:h-8 sm:w-8 p-0'
-                        >
-                          <Eye className='h-3 w-3 sm:h-4 sm:w-4' />
-                        </Button>
-                        <Button
-                          variant='ghost'
-                          size='sm'
-                          onClick={() => handleEdit(user)}
-                          className='h-6 w-6 sm:h-8 sm:w-8 p-0'
-                        >
-                          <Pencil className='h-3 w-3 sm:h-4 sm:w-4' />
-                        </Button>
-                        <Button
-                          variant='ghost'
-                          size='sm'
-                          onClick={() => handleDelete(user)}
-                          className='h-6 w-6 sm:h-8 sm:w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50'
-                        >
-                          <Trash2 className='h-3 w-3 sm:h-4 sm:w-4' />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
+                users.map((user, index) => {
+                  const isExpanded = expandedUserId === user.id;
+                  return (
+                    <Fragment key={user.id}>
+                      <TableRow className={isExpanded ? 'border-b-0 bg-muted/40 hover:bg-muted/40' : undefined}>
+                        <TableCell className='font-medium text-center text-xs sm:text-sm py-2 sm:py-3'>
+                          {(currentPage - 1) * 10 + index + 1}
+                        </TableCell>
+                        <TableCell className='text-xs sm:text-sm font-medium text-gray-900 py-2 sm:py-3'>
+                          <div>{user.name}</div>
+                          <div className='sm:hidden text-[10px] text-gray-500 mt-0.5'>
+                            {user.email}
+                          </div>
+                        </TableCell>
+                        <TableCell className='hidden sm:table-cell text-xs sm:text-sm text-gray-500 py-2 sm:py-3'>
+                          {user.email}
+                        </TableCell>
+                        <TableCell className='text-xs sm:text-sm text-gray-500 py-2 sm:py-3'>
+                          <span className='inline-flex items-center px-1.5 sm:px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-medium bg-blue-100 text-blue-700'>
+                            {user.role?.name || '-'}
+                          </span>
+                        </TableCell>
+                        <TableCell className='py-2 sm:py-3'>
+                          <div className='flex items-center justify-center gap-1 sm:gap-2'>
+                            <Button
+                              variant='ghost'
+                              size='sm'
+                              onClick={() => toggleExpanded(user.id)}
+                              aria-expanded={isExpanded}
+                              aria-label={isExpanded ? 'Sembunyikan detail' : 'Lihat detail'}
+                              className='h-6 w-6 sm:h-8 sm:w-8 p-0'
+                            >
+                              <ChevronDown className={`h-3 w-3 sm:h-4 sm:w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                            </Button>
+                            <Button
+                              variant='ghost'
+                              size='sm'
+                              onClick={() => handleEdit(user)}
+                              className='h-6 w-6 sm:h-8 sm:w-8 p-0'
+                            >
+                              <Pencil className='h-3 w-3 sm:h-4 sm:w-4' />
+                            </Button>
+                            <Button
+                              variant='ghost'
+                              size='sm'
+                              onClick={() => handleDelete(user)}
+                              className='h-6 w-6 sm:h-8 sm:w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50'
+                            >
+                              <Trash2 className='h-3 w-3 sm:h-4 sm:w-4' />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                      {isExpanded && (
+                        <TableRow className='bg-muted/40 hover:bg-muted/40'>
+                          <TableCell colSpan={TABLE_COLUMN_COUNT} className='whitespace-normal py-3 sm:px-6'>
+                            <DetailGrid
+                              className='grid-cols-1 md:grid-cols-4'
+                              items={[
+                                ['Unit', user.unit ? `${user.unit.name} (${user.unit.code})` : null],
+                                [
+                                  'Status',
+                                  <span className='inline-flex rounded-full bg-[#e8f8ee] px-2 py-0.5 text-xs font-medium text-[#1f8a4c]'>
+                                    {user.status || 'Aktif'}
+                                  </span>,
+                                ],
+                                ['Terdaftar', formatTanggal(user.created_at)],
+                                ['Diperbarui', formatTanggal(user.updated_at)],
+                              ]}
+                            />
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </Fragment>
+                  );
+                })
               )}
             </TableBody>
           </Table>
@@ -601,35 +624,6 @@ function RouteComponent() {
         error={formError}
       >
         {renderUserFields(true)}
-      </FormDialog>
-
-      {/* Detail User Modal */}
-      <FormDialog
-        open={isDetailModalOpen}
-        onOpenChange={setIsDetailModalOpen}
-        title='Detail pengguna'
-        description={selectedUser?.name}
-        size='md'
-        footer={<Button onClick={() => setIsDetailModalOpen(false)}>Tutup</Button>}
-      >
-        {selectedUser && (
-          <DetailGrid
-            items={[
-              ['Nama', selectedUser.name, true],
-              ['Email', selectedUser.email, true],
-              ['Role', selectedUser.role?.name],
-              [
-                'Status',
-                <span className='inline-flex rounded-full bg-[#e8f8ee] px-2 py-0.5 text-xs font-medium text-[#1f8a4c]'>
-                  {selectedUser.status || 'Aktif'}
-                </span>,
-              ],
-              ['Unit', selectedUser.unit ? `${selectedUser.unit.name} (${selectedUser.unit.code})` : null, true],
-              ['Terdaftar', new Date(selectedUser.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })],
-              ['Diperbarui', new Date(selectedUser.updated_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })],
-            ]}
-          />
-        )}
       </FormDialog>
 
       {/* Delete Confirmation Dialog */}

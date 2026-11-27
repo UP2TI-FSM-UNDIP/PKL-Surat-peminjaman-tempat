@@ -126,9 +126,9 @@ export function Field({
 }
 
 /** Daftar detail label–nilai 2 kolom untuk modal "Detail". */
-export function DetailGrid({ items }: { items: Array<[ReactNode, ReactNode, boolean?]> }) {
+export function DetailGrid({ items, className }: { items: Array<[ReactNode, ReactNode, boolean?]>; className?: string }) {
   return (
-    <dl className='grid grid-cols-2 gap-x-4 gap-y-3'>
+    <dl className={cn('grid grid-cols-2 gap-x-4 gap-y-3', className)}>
       {items.map(([label, value, wide], index) => (
         <div key={index} className={cn('min-w-0', wide && 'col-span-2')}>
           <dt className='text-[11px] font-medium uppercase tracking-wide text-muted-foreground'>{label}</dt>
