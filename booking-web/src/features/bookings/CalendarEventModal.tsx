@@ -1,3 +1,4 @@
+import { documentKey } from '@/types/document';
 import { formatTimeRange, formatDateShort } from '@/lib/date';
 import { EquipmentTable } from '@/components/common/EquipmentTable';
 import { authStorage } from '@/lib/authStorage';
@@ -233,7 +234,7 @@ export function CalendarEventModal({ open, onOpenChange, event, document, dayAct
                 onClick={() => {
                   navigate({
                     to: '/peminjam/pinjam/$documentId/proposal',
-                    params: { documentId: String(document.id) },
+                    params: { documentId: documentKey(document) },
                   });
                   onOpenChange(false);
                 }}

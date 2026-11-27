@@ -1,3 +1,4 @@
+import type { DocumentKey } from '@/types/document';
 import api from '@/lib/axios';
 import type {
   AvailabilityBatch,
@@ -20,7 +21,7 @@ export const reservationService = {
     return response.data.data;
   },
 
-  async updateProposal(documentId: number, form: FormData): Promise<Document<ReservationContent>> {
+  async updateProposal(documentId: DocumentKey, form: FormData): Promise<Document<ReservationContent>> {
     const response = await api.post<SingleResponse<Document<ReservationContent>>>(
       `/reservations/${documentId}/proposal`,
       form,
@@ -29,7 +30,7 @@ export const reservationService = {
     return response.data.data;
   },
 
-  async cancel(documentId: number, reason?: string): Promise<Document<ReservationContent>> {
+  async cancel(documentId: DocumentKey, reason?: string): Promise<Document<ReservationContent>> {
     const response = await api.post<SingleResponse<Document<ReservationContent>>>(
       `/reservations/${documentId}/cancel`,
       { reason: reason?.trim() || null },
@@ -37,7 +38,7 @@ export const reservationService = {
     return response.data.data;
   },
 
-  async summary(documentId: number): Promise<ReservationSummary> {
+  async summary(documentId: DocumentKey): Promise<ReservationSummary> {
     const response = await api.get<SingleResponse<ReservationSummary>>(`/reservations/${documentId}/summary`);
     return response.data.data;
   },

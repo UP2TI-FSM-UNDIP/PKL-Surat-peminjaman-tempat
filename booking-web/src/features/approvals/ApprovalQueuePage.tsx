@@ -1,3 +1,4 @@
+import { documentKey } from '@/types/document';
 import { formatDateShort } from '@/lib/date';
 import { useState } from 'react';
 import { Link } from '@tanstack/react-router';
@@ -36,7 +37,7 @@ export function ApprovalQueuePage({ detailRoute }: { detailRoute: ApprovalDetail
               <TableCell>{formatDateShort(document.reservation_deadline)}</TableCell>
               <TableCell><DocumentStatusBadge doc={document} /></TableCell>
               <TableCell>
-                <Link to={detailRoute} params={{ documentId: String(document.id) }}>
+                <Link to={detailRoute} params={{ documentId: documentKey(document) }}>
                   <Button size="sm" variant="outline">Tinjau</Button>
                 </Link>
               </TableCell>

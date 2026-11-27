@@ -1,3 +1,4 @@
+import type { DocumentKey } from '@/types/document';
 import api from '@/lib/axios';
 import type { Document } from '@/types/document';
 import type { ReservationContent } from '@/types/reservation';
@@ -9,7 +10,7 @@ interface SingleResponse<T> {
 }
 
 export const approvalService = {
-  async approve(documentId: number, note?: string): Promise<Document<ReservationContent>> {
+  async approve(documentId: DocumentKey, note?: string): Promise<Document<ReservationContent>> {
     const response = await api.post<SingleResponse<Document<ReservationContent>>>(
       `/documents/${documentId}/approve`,
       { note: note?.trim() || null },
@@ -17,7 +18,7 @@ export const approvalService = {
     return response.data.data;
   },
 
-  async reject(documentId: number, note: string): Promise<Document<ReservationContent>> {
+  async reject(documentId: DocumentKey, note: string): Promise<Document<ReservationContent>> {
     const response = await api.post<SingleResponse<Document<ReservationContent>>>(
       `/documents/${documentId}/reject`,
       { note },
@@ -25,7 +26,7 @@ export const approvalService = {
     return response.data.data;
   },
 
-  async revise(documentId: number, note: string): Promise<Document<ReservationContent>> {
+  async revise(documentId: DocumentKey, note: string): Promise<Document<ReservationContent>> {
     const response = await api.post<SingleResponse<Document<ReservationContent>>>(
       `/documents/${documentId}/revise`,
       { note },

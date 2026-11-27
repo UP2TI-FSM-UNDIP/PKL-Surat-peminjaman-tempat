@@ -17,7 +17,7 @@ export const Route = createFileRoute('/peminjam/pinjam/$documentId/ringkasan')({
 
 function SummaryPage() {
   const { documentId } = useParams({ from: '/peminjam/pinjam/$documentId/ringkasan' });
-  const id = Number(documentId);
+  const id = documentId;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -54,7 +54,7 @@ function SummaryPage() {
         return;
       }
       if (status === 422 && 'slots' in errors) {
-        const batch = await reservationService.checkAvailabilityBatch(documentQuery.data?.content?.slots ?? [], id);
+        const batch = await reservationService.checkAvailabilityBatch(documentQuery.data?.content?.slots ?? [], documentQuery.data?.id);
         setSlotConflicts(batch.slots.filter((slot) => !slot.available));
         setSubmitError('Slot bentrok. Batalkan reservasi lalu buat baru.');
         return;

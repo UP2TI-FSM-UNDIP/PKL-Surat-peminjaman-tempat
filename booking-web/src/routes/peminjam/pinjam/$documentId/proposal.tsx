@@ -25,7 +25,7 @@ export const Route = createFileRoute('/peminjam/pinjam/$documentId/proposal')({ 
 
 function ProposalPage() {
   const { documentId } = useParams({ from: '/peminjam/pinjam/$documentId/proposal' });
-  const id = Number(documentId);
+  const id = documentId;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [file, setFile] = useState<File | null>(null);

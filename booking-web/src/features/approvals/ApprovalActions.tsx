@@ -10,7 +10,7 @@ import { getErrorMessage } from '@/lib/errors';
 
 type Action = 'approve' | 'reject' | 'revise';
 
-export function ApprovalActions({ documentId, onDone }: { documentId: number; onDone: () => void }) {
+export function ApprovalActions({ documentId, onDone }: { documentId: string; onDone: () => void }) {
   const [action, setAction] = useState<Action | null>(null);
   const [note, setNote] = useState('');
   const queryClient = useQueryClient();

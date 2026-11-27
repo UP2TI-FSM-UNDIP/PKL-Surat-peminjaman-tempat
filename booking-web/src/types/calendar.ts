@@ -24,6 +24,7 @@ export interface CalendarEvent {
 
 export interface CalendarDocument {
   id: number;
+  public_id?: string;
   purpose: string;
   status: DocumentStatus;
   creator: {

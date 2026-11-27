@@ -1,3 +1,4 @@
+import type { DocumentKey } from '@/types/document';
 import api from '@/lib/axios';
 
 // Import Types dan Interface dari file terpisah
@@ -59,14 +60,14 @@ export const documentService = {
     };
   },
 
-  async getDocument(id: number) {
+  async getDocument(id: DocumentKey) {
     const response = await api.get<SingleDocumentResponse>(`/documents/${id}`);
     return response.data.data;
   },
 
   // --- WORKFLOW ACTIONS ---
 
-  async submitDocument(id: number): Promise<Document> {
+  async submitDocument(id: DocumentKey): Promise<Document> {
     const response = await api.post<SingleDocumentResponse>(
       `/documents/${id}/submit`,
     );
@@ -76,7 +77,7 @@ export const documentService = {
   /**
    * Ambil file dokumen sebagai blob beserta object URL untuk preview.
    */
-  async fetchFileUrl(documentId: number, type: 'proposal' = 'proposal') {
+  async fetchFileUrl(documentId: DocumentKey, type: 'proposal' = 'proposal') {
     const response = await api.get<Blob>(`/documents/${documentId}/file/${type}`, {
       responseType: 'blob',
     });

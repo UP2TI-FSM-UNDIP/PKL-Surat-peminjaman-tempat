@@ -43,6 +43,8 @@ export interface DocumentLog {
 // Document Interface (Generic TContent)
 export interface Document<TContent = ReservationContent> {
   id: number;
+  /** ID publik acak (ULID huruf kecil) untuk URL & API; jangan tampilkan ID numerik ke pengguna. */
+  public_id?: string;
   workflow_id: number;
   title: string;
   content?: TContent;
@@ -108,4 +110,11 @@ export interface DocumentsResponse {
 export interface SingleDocumentResponse {
   success: boolean;
   data: Document;
+}
+
+/** Kunci dokumen untuk URL/API: ID publik acak bila ada. */
+export type DocumentKey = number | string;
+
+export function documentKey(doc: { id: number; public_id?: string | null }): string {
+  return doc.public_id || String(doc.id);
 }

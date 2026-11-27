@@ -1,3 +1,4 @@
+import { documentKey } from '@/types/document';
 import { formatDateShort } from '@/lib/date';
 import { useState } from 'react';
 import { createFileRoute, Link } from '@tanstack/react-router';
@@ -66,7 +67,7 @@ function SubmissionListPage() {
               <TableCell>{formatDateShort(document.reservation_deadline)}</TableCell>
               <TableCell><DocumentStatusBadge doc={document} /></TableCell>
               <TableCell>
-                <Link to="/peminjam/pinjam/$documentId" params={{ documentId: String(document.id) }}>
+                <Link to="/peminjam/pinjam/$documentId" params={{ documentId: documentKey(document) }}>
                   <Button size="sm" variant="outline">{['DRAFT', 'REVISION'].includes(document.status) ? 'Lengkapi' : 'Lihat'}</Button>
                 </Link>
               </TableCell>

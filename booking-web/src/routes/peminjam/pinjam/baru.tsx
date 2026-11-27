@@ -1,3 +1,4 @@
+import { documentKey } from '@/types/document';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { ReservationWizardForm } from '@/features/bookings/ReservationWizardForm';
 
@@ -37,7 +38,7 @@ function NewReservationPage() {
         intent={isPinjam ? 'submit' : 'reservation'}
         submitLabel={isPinjam ? 'Lanjut ke Proposal' : 'Simpan Reservasi'}
         initialDate={tanggal}
-        onSuccess={(document) => navigate({ to: '/peminjam/pinjam/$documentId/proposal', params: { documentId: String(document.id) } })}
+        onSuccess={(document) => navigate({ to: '/peminjam/pinjam/$documentId/proposal', params: { documentId: documentKey(document) } })}
       />
     </div>
   );
