@@ -26,6 +26,10 @@ export function SlotEditor({ control, setValue, mode, rooms, rulesByDate, maxRow
   const roomId = useWatch({ control, name: 'room_id' });
   const bookingDate = useWatch({ control, name: 'booking_date' });
   const slots = useWatch({ control, name: 'slots' }) ?? [];
+  // Ruang yang tidak dibuka hari kerja hanya bisa dipilih Sabtu–Minggu.
+  const fixedRoom = mode === 'one_room_many_dates' ? rooms.find((room) => room.id === roomId) : undefined;
+  const weekendOnly = fixedRoom?.is_bookable_weekday === false;
+  const isWeekday = (date: Date) => date.getDay() >= 1 && date.getDay() <= 5;
 
   useEffect(() => {
     for (let index = 0; index < fields.length; index += 1) {
@@ -83,7 +87,7 @@ export function SlotEditor({ control, setValue, mode, rooms, rulesByDate, maxRow
                     control={control}
                     name={`slots.${index}.booking_date`}
                     render={({ field: dateField }) => (
-                      <DateInput id={`slot-${index}-booking-date`} min={todayIso()} value={dateField.value} onChange={dateField.onChange} aria-label="Tanggal" />
+                      <DateInput id={`slot-${index}-booking-date`} min={todayIso()} value={dateField.value} onChange={dateField.onChange} aria-label="Tanggal" isDateDisabled={weekendOnly ? isWeekday : undefined} />
                     )}
                   />
                 ) : (

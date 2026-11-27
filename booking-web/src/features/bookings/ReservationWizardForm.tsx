@@ -207,6 +207,7 @@ export function ReservationWizardForm({ intent, submitLabel = 'Simpan Reservasi'
               <div className="flex flex-wrap gap-x-4 gap-y-1 rounded-xl bg-muted/60 px-3 py-2 text-[12px] text-muted-foreground">
                 <span><span className="font-medium text-foreground">{selectedRoom.code}</span> · {selectedRoom.name}</span>
                 {selectedRoom.capacity ? <span>Kapasitas {selectedRoom.capacity} orang</span> : null}
+                {selectedRoom.is_bookable_weekday === false && <span className="font-medium text-[#a05a00]">Hanya Sabtu–Minggu</span>}
                 {selectedRoom.location || selectedRoom.building ? <span>{selectedRoom.location || selectedRoom.building}</span> : null}
                 {selectedRoom.facilities?.length ? <span>Fasilitas: {selectedRoom.facilities.join(', ')}</span> : null}
               </div>

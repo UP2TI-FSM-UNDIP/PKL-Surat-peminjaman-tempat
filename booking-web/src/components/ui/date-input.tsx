@@ -20,6 +20,8 @@ interface DateInputProps {
   'aria-invalid'?: boolean;
   min?: string;
   max?: string;
+  /** Tanggal lain yang tidak boleh dipilih (mis. hari kerja untuk ruang akhir pekan). */
+  isDateDisabled?: (date: Date) => boolean;
 }
 
 const toDate = (value?: string) => {
@@ -45,6 +47,7 @@ export function DateInput({
   'aria-invalid': ariaInvalid,
   min,
   max,
+  isDateDisabled,
 }: DateInputProps) {
   const [open, setOpen] = useState(false);
   const selected = toDate(value);
@@ -102,7 +105,7 @@ export function DateInput({
             showOutsideDays
             selected={selected}
             defaultMonth={selected ?? minDate}
-            disabled={[...(minDate ? [{ before: minDate }] : []), ...(maxDate ? [{ after: maxDate }] : [])]}
+            disabled={[...(minDate ? [{ before: minDate }] : []), ...(maxDate ? [{ after: maxDate }] : []), ...(isDateDisabled ? [isDateDisabled] : [])]}
             onSelect={(date) => {
               if (!date) return;
               onChange(format(date, 'yyyy-MM-dd'));
@@ -129,7 +132,7 @@ export function DateInput({
               day_button:
                 'inline-flex size-9 items-center justify-center rounded-full tabular-nums transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50',
               selected: '[&>button]:bg-primary [&>button]:font-semibold [&>button]:text-white [&>button]:hover:bg-primary',
-              today: '[&>button]:font-semibold [&>button]:text-primary',
+              today: '[&>button]:font-semibold [&:not([data-disabled])>button]:text-primary',
               outside: 'text-muted-foreground/40',
               disabled: 'text-muted-foreground/30 [&>button]:cursor-not-allowed [&>button]:hover:bg-transparent',
               hidden: 'invisible',
