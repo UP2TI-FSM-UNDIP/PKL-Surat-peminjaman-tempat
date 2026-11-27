@@ -11,6 +11,15 @@ class BookingRuleService
 {
     public function __construct(private BookingPolicyService $policies) {}
 
+    /** Jam mulai paling cepat untuk pinjam hari ini: jam sekarang, dibulatkan ke 5 menit ke atas. */
+    public function sameDayEarliestStart(): string
+    {
+        $now = CarbonImmutable::now('Asia/Jakarta');
+        $minutes = (int) (ceil((($now->hour * 60) + $now->minute + ($now->second > 0 ? 1 : 0)) / 5) * 5);
+
+        return sprintf('%02d:%02d', intdiv(min($minutes, 1439), 60), min($minutes, 1439) % 60);
+    }
+
     public function rulesForDate(CarbonImmutable $date): array
     {
         $policy = $this->policies->active();
@@ -61,8 +70,8 @@ class BookingRuleService
                 ? 'Belum ada ruang yang diizinkan untuk hari kerja.'
                 : ($sameDay ? 'Hari ini hanya bisa lewat Ajukan Pinjam (proposal sudah lengkap).' : null),
             'same_day' => $sameDay,
-            // H-0 memakai jam aturan hari itu (tanpa jeda minimal dari sekarang).
-            'min_start_time' => null,
+            // H-0 memakai jam aturan hari itu, tetapi tidak boleh sebelum jam sekarang.
+            'min_start_time' => $sameDay ? $this->sameDayEarliestStart() : null,
         ];
     }
 
@@ -87,6 +96,9 @@ class BookingRuleService
         }
         if (!$sameDay && $date->lt($today->addDays($policy->min_booking_days))) {
             throw ValidationException::withMessages(['slots' => ['Tanggal reservasi terlalu dekat.']]);
+        }
+        if ($date->isSameDay($today) && $start < $this->minutes($this->sameDayEarliestStart())) {
+            throw ValidationException::withMessages(['slots' => ['Pinjam hari ini: jam mulai tidak boleh sebelum '.$this->sameDayEarliestStart().'.']]);
         }
         if ($room->status !== 'ACTIVE') {
             throw ValidationException::withMessages(['slots' => ["Ruang {$room->code} tidak aktif."]]);

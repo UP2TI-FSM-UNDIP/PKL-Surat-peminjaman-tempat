@@ -91,7 +91,7 @@ class BookingRuleTest extends TestCase
             ->assertJsonPath('data.day_type', 'weekday')
             ->assertJsonPath('data.is_bookable', true)
             ->assertJsonPath('data.same_day', true)
-            ->assertJsonPath('data.min_start_time', null)
+            ->assertJsonPath('data.min_start_time', '10:00')
             ->assertJsonPath('data.message', 'Hari ini hanya bisa lewat Ajukan Pinjam (proposal sudah lengkap).');
 
         $this->getJson('/api/booking-rules?date=2026-11-23')
