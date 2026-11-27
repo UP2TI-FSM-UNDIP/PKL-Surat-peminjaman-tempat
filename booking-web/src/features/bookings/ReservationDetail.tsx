@@ -122,27 +122,32 @@ export function ReservationDetail({ document, summary }: {
             ['Manfaat', c.benefits, true],
           ]}
         />
-        <div className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_220px] sm:items-start">
+        <div className="mt-4 space-y-4 border-t border-border pt-4">
           <div>
             <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Kebutuhan alat</p>
             <EquipmentTable items={summary.equipment_items} />
           </div>
-          {document.file_proposal ? (
-            <button
-              type="button"
-              onClick={openProposal}
-              className="flex items-center gap-2.5 rounded-xl bg-[#fdeeee]/60 p-2.5 text-left transition-colors hover:bg-[#fdeeee]"
-            >
-              <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-[#ff3b30] text-[9px] font-bold text-white">PDF</span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-[13px] font-semibold">Proposal PDF</span>
-                <span className="block text-xs text-muted-foreground">Buka di tab baru</span>
-              </span>
-              <ExternalLink className="size-3.5 text-muted-foreground" />
-            </button>
-          ) : (
-            <p className="rounded-xl bg-muted/70 p-2.5 text-[13px] text-muted-foreground">Proposal PDF belum diunggah.</p>
-          )}
+          <div>
+            <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Lampiran</p>
+            {document.file_proposal ? (
+              <button
+                type="button"
+                onClick={openProposal}
+                className="flex w-full items-center gap-3 rounded-xl border border-black/[0.06] bg-white p-2.5 text-left transition-colors hover:bg-muted/60"
+              >
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#ff3b30] text-[10px] font-bold text-white">PDF</span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[13px] font-semibold sm:text-[14px]">Proposal kegiatan</span>
+                  <span className="block text-xs text-muted-foreground">Klik untuk membuka di tab baru</span>
+                </span>
+                <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-secondary px-3 py-1 text-xs font-medium">
+                  Buka <ExternalLink className="size-3" />
+                </span>
+              </button>
+            ) : (
+              <p className="rounded-xl bg-muted/70 p-3 text-[13px] text-muted-foreground">Proposal PDF belum diunggah.</p>
+            )}
+          </div>
         </div>
       </section>
     </div>
