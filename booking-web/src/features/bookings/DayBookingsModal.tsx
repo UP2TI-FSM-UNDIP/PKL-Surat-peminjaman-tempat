@@ -15,8 +15,10 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   /** Tanggal yyyy-MM-dd. */
   date: string | null;
-  /** Peminjaman aktif (hijau) pada tanggal tersebut. */
+  /** Peminjaman pada tanggal tersebut. */
   events: CalendarEvent[];
+  /** `active`: hanya peminjaman hijau; `all`: semua status yang tampil (kolom Status ikut muncul). */
+  mode?: 'active' | 'all';
   documents: Record<string, CalendarDocument>;
   onSelect: (event: CalendarEvent) => void;
 }
@@ -24,7 +26,9 @@ interface Props {
 const GREEN = CALENDAR_STATUS_META.active.color;
 
 /** Semua peminjaman aktif dalam satu hari, ditampilkan sebagai tabel ala spreadsheet. */
-export function DayBookingsModal({ open, onOpenChange, date, events, documents, onSelect }: Props) {
+export function DayBookingsModal({ open, onOpenChange, date, events, documents, onSelect, mode = 'active' }: Props) {
+  const showStatus = mode === 'all';
+  const accent = showStatus ? '#0071e3' : GREEN;
   if (!date) return null;
 
   const rows = [...events].sort(
@@ -46,15 +50,15 @@ export function DayBookingsModal({ open, onOpenChange, date, events, documents, 
       <DialogContent className='max-h-[90vh] grid-cols-[minmax(0,1fr)] gap-0 overflow-hidden p-0 sm:max-w-5xl'>
         <div
           className='px-6 pt-6 pb-4'
-          style={{ background: `linear-gradient(180deg, ${GREEN}1f 0%, ${GREEN}08 70%, transparent 100%)` }}
+          style={{ background: `linear-gradient(180deg, ${accent}1f 0%, ${accent}08 70%, transparent 100%)` }}
         >
           <DialogHeader className='space-y-2 text-left'>
             <span
               className='inline-flex w-fit items-center gap-1.5 rounded-full bg-white/80 px-2.5 py-1 text-xs font-semibold shadow-[0_1px_2px_rgb(0_0_0/0.06)]'
-              style={{ color: GREEN }}
+              style={{ color: accent }}
             >
-              <span className='size-1.5 rounded-full' style={{ backgroundColor: GREEN }} />
-              Peminjaman aktif
+              <span className='size-1.5 rounded-full' style={{ backgroundColor: accent }} />
+              {showStatus ? 'Semua peminjaman' : 'Peminjaman aktif'}
             </span>
             <DialogTitle className='pr-8 text-[22px] font-semibold leading-tight tracking-tight'>{label}</DialogTitle>
             <DialogDescription className='text-[13px]'>
@@ -74,6 +78,7 @@ export function DayBookingsModal({ open, onOpenChange, date, events, documents, 
                   <th className={th}>Kegiatan</th>
                   <th className={th}>Peminjam</th>
                   <th className={`${th} w-20 text-right`}>Peserta</th>
+                  {showStatus && <th className={`${th} w-32`}>Status</th>}
                 </tr>
               </thead>
               <tbody>
@@ -105,12 +110,20 @@ export function DayBookingsModal({ open, onOpenChange, date, events, documents, 
                         {doc?.creator.unit_code && <span className='text-muted-foreground'> · {doc.creator.unit_code}</span>}
                       </td>
                       <td className={`${td} text-right tabular-nums`}>{doc?.expected_participants ?? '—'}</td>
+                      {showStatus && (
+                        <td className={`${td} whitespace-nowrap`}>
+                          <span className='inline-flex items-center gap-1.5'>
+                            <span className='size-2 rounded-full' style={{ backgroundColor: CALENDAR_STATUS_META[event.display_status].color }} />
+                            {CALENDAR_STATUS_META[event.display_status].label}
+                          </span>
+                        </td>
+                      )}
                     </tr>
                   );
                 })}
                 {rows.length === 0 && (
                   <tr>
-                    <td colSpan={6} className='px-3 py-8 text-center text-muted-foreground'>Tidak ada peminjaman aktif.</td>
+                    <td colSpan={showStatus ? 7 : 6} className='px-3 py-8 text-center text-muted-foreground'>Tidak ada peminjaman.</td>
                   </tr>
                 )}
               </tbody>

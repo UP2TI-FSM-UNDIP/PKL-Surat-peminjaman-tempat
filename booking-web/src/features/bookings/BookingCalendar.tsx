@@ -54,6 +54,7 @@ export default function BookingCalendar() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [dayListDate, setDayListDate] = useState<string | null>(null);
   const [isDayListOpen, setIsDayListOpen] = useState(false);
+  const [dayListMode, setDayListMode] = useState<'active' | 'all'>('active');
 
   const calendarRef = useRef<FullCalendar>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -284,6 +285,14 @@ export default function BookingCalendar() {
             dayMaxEvents={3}
             eventMaxStack={2}
             moreLinkContent={(arg) => `+${arg.num} lainnya`}
+            moreLinkClick={(arg) => {
+              // Ganti popover bawaan (berantakan bila event banyak) dengan tabel semua peminjaman hari itu.
+              setDayListMode('all');
+              setDayListDate(format(arg.date, 'yyyy-MM-dd'));
+              setIsDayListOpen(true);
+              // Nilai truthy non-string: FullCalendar tidak membuka popover maupun pindah view.
+              return {} as unknown as string;
+            }}
             nowIndicator
             expandRows
           />
@@ -297,6 +306,7 @@ export default function BookingCalendar() {
         document={selectedDocument}
         dayActiveCount={activeOn(selectedEvent?.booking_date ?? null).length}
         onShowDay={() => {
+          setDayListMode('active');
           setDayListDate(selectedEvent?.booking_date ?? null);
           setIsModalOpen(false);
           setIsDayListOpen(true);
@@ -307,7 +317,8 @@ export default function BookingCalendar() {
         open={isDayListOpen}
         onOpenChange={setIsDayListOpen}
         date={dayListDate}
-        events={activeOn(dayListDate)}
+        mode={dayListMode}
+        events={dayListMode === 'all' ? visibleEvents.filter((e) => e.booking_date === dayListDate) : activeOn(dayListDate)}
         documents={data?.documents ?? {}}
         onSelect={(event) => {
           setIsDayListOpen(false);
