@@ -49,6 +49,9 @@ export function validateSlotDay(
   if (!sameDay && slot.booking_date < earliest) return ['Tanggal reservasi terlalu dekat.'];
 
   const errors: string[] = [];
+  if (sameDay && dayRule.min_start_time && toMinutes(slot.start_time) < toMinutes(dayRule.min_start_time)) {
+    errors.push(`Pinjam hari ini: jam mulai tidak boleh sebelum ${dayRule.min_start_time}.`);
+  }
   const room = dayRule.rooms.find((item) => item.id === slot.room_id);
   if (!room) {
     errors.push('Ruang tidak dibuka pada tanggal ini.');

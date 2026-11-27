@@ -77,7 +77,7 @@ export function DateSelectionModal({
 
                 {sameDay && (
                     <Callout tone='info' title='Peminjaman hari ini'>
-                        Hanya lewat Ajukan Pinjam, dengan proposal lengkap yang diajukan hari ini juga.
+                        Hanya lewat Ajukan Pinjam, dengan proposal lengkap yang diajukan hari ini juga. Jam mulai tidak boleh sebelum jam sekarang.
                     </Callout>
                 )}
 

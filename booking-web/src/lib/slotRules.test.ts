@@ -38,10 +38,12 @@ describe('validateSlotDay', () => {
       .toEqual(['Tanggal hari ini hanya bisa lewat Ajukan Pinjam.']);
   });
 
-  it('H-0 boleh untuk Ajukan Pinjam dengan jam aturan hari itu', () => {
-    const today = { ...dayRule, date: '2026-11-20', same_day: true, min_start_time: null };
-    expect(validateSlotDay(slot({ booking_date: '2026-11-20', start_time: '09:00', end_time: '12:00' }), today, undefined, '2026-11-20', true))
+  it('H-0 boleh untuk Ajukan Pinjam, mulai tidak sebelum jam sekarang', () => {
+    const today = { ...dayRule, date: '2026-11-20', same_day: true, min_start_time: '10:00' };
+    expect(validateSlotDay(slot({ booking_date: '2026-11-20', start_time: '10:00', end_time: '12:00' }), today, undefined, '2026-11-20', true))
       .toEqual([]);
+    expect(validateSlotDay(slot({ booking_date: '2026-11-20', start_time: '09:30', end_time: '12:00' }), today, undefined, '2026-11-20', true))
+      .toContain('Pinjam hari ini: jam mulai tidak boleh sebelum 10:00.');
   });
 
   it('menolak tanggal yang sudah lewat dengan pesan berbeda', () => {
